@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rede Humaniza e Acolhe</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@600;700;800&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --azul:#1B3D6F;--azul2:#2a5298;--azul-pale:#e8edf7;
+  --laranja:#E8762B;--laranja2:#f5934a;--laranja-pale:#fff4ec;
+  --text:#1a1a2e;--muted:#6b7280;--bg:#f9fafb;--white:#fff;
+  --border:#e5e7eb;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;color:var(--text);background:var(--white);overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:0 32px;}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px;}
+.nav-logo{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;color:var(--azul);line-height:1.2;}
+.nav-logo span{color:var(--laranja);}
+.nav-links{display:flex;gap:28px;align-items:center;}
+.nav-links a{font-size:0.83rem;font-weight:500;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover{color:var(--azul);}
+.nav-cta{padding:8px 20px;background:var(--laranja);color:white;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;transition:background 0.2s;}
+.nav-cta:hover{background:var(--laranja2);color:white;}
+
+/* HERO */
+.hero{padding:130px 32px 90px;background:linear-gradient(135deg,var(--azul) 0%,var(--azul2) 60%,#1a4a8a 100%);position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;right:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(232,118,43,0.18) 0%,transparent 70%);pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:-40px;left:-60px;width:350px;height:350px;background:radial-gradient(circle,rgba(255,255,255,0.05) 0%,transparent 70%);pointer-events:none;}
+.hero-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.hero-tag{display:inline-block;background:rgba(232,118,43,0.2);color:#f5934a;font-size:0.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:18px;border:1px solid rgba(232,118,43,0.3);}
+.hero h1{font-family:'Poppins',sans-serif;font-size:2.6rem;font-weight:800;color:white;line-height:1.2;margin-bottom:20px;}
+.hero h1 em{color:var(--laranja);font-style:normal;}
+.hero p{font-size:1rem;color:rgba(255,255,255,0.8);line-height:1.7;margin-bottom:32px;max-width:460px;}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-primary{padding:13px 28px;background:var(--laranja);color:white;border-radius:10px;font-size:0.88rem;font-weight:700;text-decoration:none;transition:all 0.2s;display:inline-block;}
+.btn-primary:hover{background:var(--laranja2);transform:translateY(-1px);}
+.btn-outline{padding:13px 28px;border:2px solid rgba(255,255,255,0.4);color:white;border-radius:10px;font-size:0.88rem;font-weight:600;text-decoration:none;transition:all 0.2s;display:inline-block;}
+.btn-outline:hover{border-color:white;background:rgba(255,255,255,0.08);}
+.hero-visual{position:relative;}
+.hero-card{background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:28px;color:white;}
+.hero-card-title{font-family:'Poppins',sans-serif;font-size:0.8rem;font-weight:700;opacity:0.6;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+.impact-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.impact-item{background:rgba(255,255,255,0.08);border-radius:12px;padding:16px;text-align:center;}
+.impact-num{font-family:'Poppins',sans-serif;font-size:1.8rem;font-weight:800;color:var(--laranja);}
+.impact-label{font-size:0.72rem;opacity:0.7;margin-top:2px;line-height:1.3;}
+.hero-card-foot{margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);font-size:0.75rem;opacity:0.6;text-align:center;}
+
+/* SECTIONS */
+section{padding:80px 32px;}
+.container{max-width:1100px;margin:0 auto;}
+.section-tag{display:inline-block;background:var(--laranja-pale);color:var(--laranja);font-size:0.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:12px;}
+.section-title{font-family:'Poppins',sans-serif;font-size:2rem;font-weight:700;color:var(--azul);margin-bottom:12px;line-height:1.3;}
+.section-sub{font-size:0.95rem;color:var(--muted);line-height:1.7;max-width:580px;}
+
+/* MISSÃO */
+.missao{background:var(--bg);}
+.missao-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
+.missao-text .section-sub{max-width:100%;}
+.missao-values{display:flex;flex-direction:column;gap:14px;margin-top:28px;}
+.value-item{display:flex;gap:14px;align-items:flex-start;}
+.value-icon{width:40px;height:40px;border-radius:10px;background:var(--azul-pale);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.value-title{font-weight:600;font-size:0.88rem;color:var(--azul);margin-bottom:2px;}
+.value-desc{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+.missao-quote{background:white;border-radius:20px;padding:32px;border:1px solid var(--border);position:relative;}
+.missao-quote::before{content:'"';font-family:'Poppins',sans-serif;font-size:5rem;color:var(--laranja);opacity:0.15;position:absolute;top:10px;left:24px;line-height:1;}
+.quote-text{font-size:1.05rem;font-style:italic;color:var(--azul);line-height:1.7;margin-bottom:16px;position:relative;z-index:1;}
+.quote-author{font-size:0.8rem;color:var(--muted);font-weight:500;}
+
+/* PROJETOS */
+.projetos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px;}
+.projeto-card{background:white;border-radius:16px;border:1px solid var(--border);overflow:hidden;transition:all 0.2s;display:flex;flex-direction:column;}
+.projeto-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(27,61,111,0.1);}
+.projeto-img{height:180px;display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative;overflow:hidden;}
+.projeto-img.azul{background:linear-gradient(135deg,var(--azul),var(--azul2));}
+.projeto-img.laranja{background:linear-gradient(135deg,var(--laranja),var(--laranja2));}
+.projeto-img.verde{background:linear-gradient(135deg,#1a8a5a,#34d399);}
+.projeto-body{padding:22px;flex:1;display:flex;flex-direction:column;}
+.projeto-tag{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--laranja);margin-bottom:8px;}
+.projeto-title{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;color:var(--azul);margin-bottom:8px;line-height:1.3;}
+.projeto-desc{font-size:0.78rem;color:var(--muted);line-height:1.6;flex:1;}
+.projeto-foot{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.projeto-status{font-size:0.7rem;font-weight:600;padding:3px 10px;border-radius:20px;}
+.status-ativo{background:#e6f9f0;color:#1a8a5a;}
+.status-plan{background:var(--laranja-pale);color:#c05e00;}
+.projeto-link{font-size:0.75rem;font-weight:600;color:var(--azul);text-decoration:none;}
+.projeto-link:hover{color:var(--laranja);}
+
+/* IMPACTO */
+.impacto{background:linear-gradient(135deg,var(--azul),var(--azul2));color:white;text-align:center;}
+.impacto .section-title{color:white;}
+.impacto .section-sub{color:rgba(255,255,255,0.75);margin:0 auto 48px;}
+.impacto-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;}
+.impacto-item{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:16px;padding:28px 16px;transition:background 0.2s;}
+.impacto-item:hover{background:rgba(255,255,255,0.13);}
+.impacto-num{font-family:'Poppins',sans-serif;font-size:2.4rem;font-weight:800;color:var(--laranja);margin-bottom:4px;}
+.impacto-label{font-size:0.82rem;color:rgba(255,255,255,0.75);line-height:1.4;}
+
+/* QUEM SOMOS */
+.quem-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:0;}
+.quem-text p{font-size:0.92rem;color:var(--muted);line-height:1.8;margin-bottom:14px;}
+.quem-text p strong{color:var(--azul);}
+.parceiros-logos{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;}
+.parceiro-badge{background:var(--azul-pale);color:var(--azul);font-size:0.75rem;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid rgba(27,61,111,0.15);}
+.quem-visual{display:flex;flex-direction:column;gap:14px;}
+.quem-card{background:white;border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;gap:14px;align-items:flex-start;transition:box-shadow 0.2s;}
+.quem-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.07);}
+.quem-icon{width:44px;height:44px;border-radius:12px;background:var(--azul-pale);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.quem-card-title{font-weight:600;font-size:0.88rem;color:var(--azul);margin-bottom:3px;}
+.quem-card-desc{font-size:0.78rem;color:var(--muted);line-height:1.5;}
+
+/* APOIE */
+.apoie{background:var(--bg);}
+.apoie-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px;}
+.apoie-card{background:white;border-radius:16px;border:1px solid var(--border);padding:28px;text-align:center;transition:all 0.2s;}
+.apoie-card:hover{border-color:var(--laranja);box-shadow:0 8px 24px rgba(232,118,43,0.1);}
+.apoie-icon{font-size:2rem;margin-bottom:14px;}
+.apoie-title{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;color:var(--azul);margin-bottom:8px;}
+.apoie-desc{font-size:0.8rem;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+.apoie-btn{display:inline-block;padding:10px 22px;background:var(--azul);color:white;border-radius:8px;font-size:0.8rem;font-weight:600;text-decoration:none;transition:background 0.2s;}
+.apoie-btn:hover{background:var(--azul2);}
+.apoie-card.destaque{border-color:var(--laranja);background:linear-gradient(135deg,var(--laranja-pale),white);}
+.apoie-card.destaque .apoie-btn{background:var(--laranja);}
+.apoie-card.destaque .apoie-btn:hover{background:var(--laranja2);}
+
+/* CONTATO */
+.contato-inner{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;}
+.contato-info p{font-size:0.9rem;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+.contato-links{display:flex;flex-direction:column;gap:12px;}
+.contato-link{display:flex;align-items:center;gap:12px;font-size:0.85rem;color:var(--azul);text-decoration:none;font-weight:500;transition:color 0.2s;}
+.contato-link:hover{color:var(--laranja);}
+.contato-link-icon{width:36px;height:36px;background:var(--azul-pale);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.contato-form{background:white;border-radius:16px;border:1px solid var(--border);padding:28px;}
+.form-title{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;color:var(--azul);margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:0.75rem;font-weight:600;color:var(--azul);margin-bottom:5px;}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.82rem;font-family:'Inter',sans-serif;outline:none;color:var(--text);}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--azul2);}
+.form-group textarea{resize:vertical;min-height:90px;}
+.form-submit{width:100%;padding:11px;background:var(--laranja);color:white;border:none;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.2s;margin-top:4px;}
+.form-submit:hover{background:var(--laranja2);}
+
+/* FOOTER */
+footer{background:var(--azul);color:white;padding:40px 32px 24px;}
+.footer-inner{max-width:1100px;margin:0 auto;}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:32px;}
+.footer-logo{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;margin-bottom:10px;}
+.footer-logo span{color:var(--laranja);}
+.footer-desc{font-size:0.78rem;opacity:0.6;line-height:1.6;}
+.footer-col-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.5;margin-bottom:12px;}
+.footer-links{display:flex;flex-direction:column;gap:8px;}
+.footer-links a{font-size:0.8rem;opacity:0.7;text-decoration:none;color:white;transition:opacity 0.2s;}
+.footer-links a:hover{opacity:1;}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.1);padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;opacity:0.5;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .hero-inner,.missao-grid,.quem-grid,.contato-inner{grid-template-columns:1fr;}
+  .hero-visual,.missao-quote{display:none;}
+  .projetos-grid,.impacto-grid,.apoie-grid{grid-template-columns:1fr 1fr;}
+  .footer-top{grid-template-columns:1fr;}
+  .hero h1{font-size:2rem;}
+  nav .nav-links{display:none;}
+}
+@media(max-width:600px){
+  .projetos-grid,.impacto-grid,.apoie-grid{grid-template-columns:1fr;}
+  section{padding:60px 20px;}
+  .hero{padding:100px 20px 60px;}
+  nav{padding:0 20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">Humaniza<span> e Acolhe</span></div>
+    <div class="nav-links">
+      <a href="#missao">Missão</a>
+      <a href="#projetos">Projetos</a>
+      <a href="#impacto">Impacto</a>
+      <a href="#quem">Quem somos</a>
+      <a href="#apoie">Apoie</a>
+      <a href="#contato" class="nav-cta">Fale conosco</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-tag">Instituto em formação · Rocinha, Rio de Janeiro</div>
+      <h1>Arte, cuidado e <em>neurodiversidade</em> na Rocinha</h1>
+      <p>A Rede Humaniza e Acolhe conecta pessoas, projetos e comunidade — construindo um espaço de pertencimento, expressão e transformação social na Rocinha.</p>
+      <div class="hero-btns">
+        <a href="#projetos" class="btn-primary">Conheça nossos projetos</a>
+        <a href="#apoie" class="btn-outline">Quero apoiar</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-card">
+        <div class="hero-card-title">Nosso impacto</div>
+        <div class="impact-row">
+          <div class="impact-item"><div class="impact-num">200+</div><div class="impact-label">Pessoas atendidas</div></div>
+          <div class="impact-item"><div class="impact-num">5+</div><div class="impact-label">Anos de atuação</div></div>
+          <div class="impact-item"><div class="impact-num">3</div><div class="impact-label">Projetos ativos</div></div>
+          <div class="impact-item"><div class="impact-num">30+</div><div class="impact-label">Voluntários</div></div>
+        </div>
+        <div class="hero-card-foot">Transformando vidas na Rocinha desde o início</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSÃO -->
+<section class="missao" id="missao">
+  <div class="container">
+    <div class="missao-grid">
+      <div class="missao-text">
+        <div class="section-tag">Nossa missão</div>
+        <h2 class="section-title">Humanizar é acolher cada história</h2>
+        <p class="section-sub">Nascemos da necessidade de criar espaços seguros para pessoas neurodiversas e suas famílias na Rocinha. Hoje somos uma rede que conecta arte, saúde, educação e comunidade.</p>
+        <div class="missao-values">
+          <div class="value-item">
+            <div class="value-icon">💛</div>
+            <div><div class="value-title">Acolhimento sem julgamento</div><div class="value-desc">Todo ser humano merece ser visto, ouvido e respeitado em sua singularidade.</div></div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon">🎨</div>
+            <div><div class="value-title">Arte como linguagem universal</div><div class="value-desc">A expressão artística é ferramenta de transformação, autonomia e pertencimento.</div></div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon">🤝</div>
+            <div><div class="value-title">Comunidade em rede</div><div class="value-desc">Acreditamos na força das conexões — entre pessoas, saberes e territórios.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="missao-quote">
+        <p class="quote-text">Cada pessoa que passa pela Humaniza e Acolhe carrega uma história única. Nossa missão é garantir que essa história seja contada com dignidade, cor e pertencimento.</p>
+        <div class="quote-author">— Rede Humaniza e Acolhe</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJETOS -->
+<section id="projetos">
+  <div class="container">
+    <div class="section-tag">Nossos projetos</div>
+    <h2 class="section-title">O que fazemos na prática</h2>
+    <p class="section-sub">Cada projeto nasce de uma necessidade real da comunidade e é construído junto com as pessoas que atendemos.</p>
+    <div class="projetos-grid">
+
+      <div class="projeto-card">
+        <div class="projeto-img azul">🎭</div>
+        <div class="projeto-body">
+          <div class="projeto-tag">Arte & Neurodiversidade</div>
+          <div class="projeto-title">Mostra Cultural Humaniza e Acolhe</div>
+          <p class="projeto-desc">Mostra cultural inclusiva que celebra a arte produzida por pessoas neurodiversas da Rocinha. Realizada com apoio da Lei Rouanet (PRONAC 542.133) em parceria com o Instituto Ama Vida.</p>
+          <div class="projeto-foot">
+            <span class="projeto-status status-ativo">● Em andamento</span>
+            <a href="#contato" class="projeto-link">Saiba mais →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="projeto-card">
+        <div class="projeto-img laranja">🏊</div>
+        <div class="projeto-body">
+          <div class="projeto-tag">Esporte & Inclusão</div>
+          <div class="projeto-title">Dragon Boat Humaniza</div>
+          <p class="projeto-desc">Projeto esportivo que une atletas de diferentes perfis em uma mesma canoa — promovendo trabalho em equipe, disciplina e inclusão através do esporte de alta performance.</p>
+          <div class="projeto-foot">
+            <span class="projeto-status status-ativo">● Em andamento</span>
+            <a href="#contato" class="projeto-link">Saiba mais →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="projeto-card">
+        <div class="projeto-img verde">🌱</div>
+        <div class="projeto-body">
+          <div class="projeto-tag">Comunidade</div>
+          <div class="projeto-title">Rede de Apoio e Acolhimento</div>
+          <p class="projeto-desc">Conexão entre famílias, cuidadores e profissionais de saúde mental — criando uma rede de suporte contínuo para pessoas neurodiversas e suas famílias na Rocinha.</p>
+          <div class="projeto-foot">
+            <span class="projeto-status status-ativo">● Contínuo</span>
+            <a href="#contato" class="projeto-link">Saiba mais →</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- IMPACTO -->
+<section class="impacto" id="impacto">
+  <div class="container">
+    <div class="section-tag" style="background:rgba(232,118,43,0.2);color:#f5934a;">Nosso impacto</div>
+    <h2 class="section-title">Números que representam pessoas</h2>
+    <p class="section-sub">Cada número aqui é uma história real de transformação na Rocinha.</p>
+    <div class="impacto-grid">
+      <div class="impacto-item"><div class="impacto-num">200+</div><div class="impacto-label">Pessoas diretamente atendidas</div></div>
+      <div class="impacto-item"><div class="impacto-num">5+</div><div class="impacto-label">Anos de atuação comunitária</div></div>
+      <div class="impacto-item"><div class="impacto-num">30+</div><div class="impacto-label">Voluntários engajados</div></div>
+      <div class="impacto-item"><div class="impacto-num">3</div><div class="impacto-label">Projetos simultâneos ativos</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- QUEM SOMOS -->
+<section id="quem">
+  <div class="container">
+    <div class="quem-grid">
+      <div class="quem-text">
+        <div class="section-tag">Quem somos</div>
+        <h2 class="section-title">Uma rede que se torna instituto</h2>
+        <p>A <strong>Rede Humaniza e Acolhe</strong> nasceu do encontro de pessoas comprometidas com a dignidade humana na Rocinha, Rio de Janeiro. O que começou como uma rede de apoio informal está se formalizando como instituto — ampliando nossa capacidade de gerar impacto com mais estrutura e sustentabilidade.</p>
+        <p>Atuamos na interseção entre <strong>arte, saúde mental, esporte e comunidade</strong>, sempre colocando as pessoas neurodiversas e suas famílias no centro das nossas ações.</p>
+        <p>Trabalhamos em parceria com organizações e instituições que compartilham nossa visão de um mundo mais inclusivo e humano.</p>
+        <div class="parceiros-logos">
+          <span class="parceiro-badge">Instituto Ama Vida</span>
+          <span class="parceiro-badge">Lei Rouanet</span>
+          <span class="parceiro-badge">Comunidade Rocinha</span>
+        </div>
+      </div>
+      <div class="quem-visual">
+        <div class="quem-card">
+          <div class="quem-icon">🎯</div>
+          <div><div class="quem-card-title">Missão</div><div class="quem-card-desc">Promover inclusão, dignidade e pertencimento para pessoas neurodiversas e suas famílias.</div></div>
+        </div>
+        <div class="quem-card">
+          <div class="quem-icon">👁</div>
+          <div><div class="quem-card-title">Visão</div><div class="quem-card-desc">Ser referência nacional em projetos socioculturais inclusivos voltados à neurodiversidade.</div></div>
+        </div>
+        <div class="quem-card">
+          <div class="quem-icon">💎</div>
+          <div><div class="quem-card-title">Valores</div><div class="quem-card-desc">Acolhimento, respeito à singularidade, arte como transformação, e comunidade como força.</div></div>
+        </div>
+        <div class="quem-card">
+          <div class="quem-icon">📍</div>
+          <div><div class="quem-card-title">Onde atuamos</div><div class="quem-card-desc">Rocinha, Rio de Janeiro — com projetos de impacto local e alcance nacional.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APOIE -->
+<section class="apoie" id="apoie">
+  <div class="container">
+    <div style="text-align:center;">
+      <div class="section-tag">Faça parte</div>
+      <h2 class="section-title">Como você pode apoiar</h2>
+      <p class="section-sub" style="margin:0 auto;">Existem muitas formas de caminhar com a Humaniza e Acolhe. Escolha a que faz mais sentido para você.</p>
+    </div>
+    <div class="apoie-grid">
+      <div class="apoie-card">
+        <div class="apoie-icon">🤝</div>
+        <div class="apoie-title">Seja voluntário</div>
+        <p class="apoie-desc">Contribua com seu tempo e talento. Buscamos profissionais de saúde, arte, educação, comunicação e gestão.</p>
+        <a href="#contato" class="apoie-btn">Quero ser voluntário</a>
+      </div>
+      <div class="apoie-card destaque">
+        <div class="apoie-icon">💛</div>
+        <div class="apoie-title">Patrocine um projeto</div>
+        <p class="apoie-desc">Sua empresa pode usar a Lei Rouanet ou outros mecanismos para apoiar nossos projetos culturais com incentivo fiscal.</p>
+        <a href="#contato" class="apoie-btn">Quero patrocinar</a>
+      </div>
+      <div class="apoie-card">
+        <div class="apoie-icon">🏢</div>
+        <div class="apoie-title">Seja parceiro</div>
+        <p class="apoie-desc">Organizações, empresas e instituições que compartilham nossos valores podem construir parcerias estratégicas conosco.</p>
+        <a href="#contato" class="apoie-btn">Quero ser parceiro</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTATO -->
+<section id="contato">
+  <div class="container">
+    <div class="contato-inner">
+      <div class="contato-info">
+        <div class="section-tag">Contato</div>
+        <h2 class="section-title">Vamos conversar?</h2>
+        <p>Seja para apoiar, conhecer mais ou construir algo juntos — nossa porta está sempre aberta. Entre em contato pelo formulário ou pelas nossas redes.</p>
+        <div class="contato-links">
+          <a href="https://instagram.com" target="_blank" class="contato-link">
+            <div class="contato-link-icon">📸</div> @humanizaeacolhe no Instagram
+          </a>
+          <a href="https://facebook.com" target="_blank" class="contato-link">
+            <div class="contato-link-icon">👍</div> Humaniza e Acolhe no Facebook
+          </a>
+          <a href="mailto:contato@humanizaeacolhe.org.br" class="contato-link">
+            <div class="contato-link-icon">✉️</div> contato@humanizaeacolhe.org.br
+          </a>
+          <a href="https://wa.me/55219999999" target="_blank" class="contato-link">
+            <div class="contato-link-icon">💬</div> WhatsApp da equipe
+          </a>
+        </div>
+      </div>
+      <div class="contato-form">
+        <div class="form-title">Envie uma mensagem</div>
+        <div class="form-group"><label>Seu nome</label><input type="text" placeholder="Como podemos te chamar?"></div>
+        <div class="form-group"><label>E-mail ou WhatsApp</label><input type="text" placeholder="Para retornarmos o contato"></div>
+        <div class="form-group"><label>Interesse</label>
+          <select>
+            <option>Quero ser voluntário</option>
+            <option>Quero patrocinar um projeto</option>
+            <option>Quero ser parceiro institucional</option>
+            <option>Imprensa / Mídia</option>
+            <option>Outro assunto</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Mensagem</label><textarea placeholder="Conte um pouco mais sobre você e como quer se envolver..."></textarea></div>
+        <button class="form-submit" onclick="this.textContent='✅ Mensagem enviada!';setTimeout(()=>this.textContent='Enviar mensagem',3000)">Enviar mensagem</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">Humaniza <span>e Acolhe</span></div>
+        <p class="footer-desc">Rede em processo de formalização como instituto. Arte, neurodiversidade e comunidade na Rocinha, Rio de Janeiro.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Projetos</div>
+        <div class="footer-links">
+          <a href="#projetos">Mostra Cultural</a>
+          <a href="#projetos">Dragon Boat</a>
+          <a href="#projetos">Rede de Apoio</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Instituto</div>
+        <div class="footer-links">
+          <a href="#missao">Nossa missão</a>
+          <a href="#quem">Quem somos</a>
+          <a href="#apoie">Como apoiar</a>
+          <a href="#contato">Contato</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Rede Humaniza e Acolhe · Rocinha, Rio de Janeiro</span>
+      <span>PRONAC 542.133 · Lei Rouanet</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

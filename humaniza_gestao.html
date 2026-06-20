@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Humaniza e Acolhe — Gestão</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --azul: #1B3D6F; --azul-light: #2a5298; --laranja: #E8762B; --laranja-light: #f5934a;
+    --bg: #f4f6fb; --white: #ffffff; --text: #1a1a2e; --text-muted: #6b7280;
+    --border: #e2e8f0; --success: #10b981; --danger: #ef4444; --tag-bg: #e8edf7;
+  }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; background: var(--azul); color: white; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; overflow-y: auto; z-index: 100; }
+  .logo-area { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  .logo-title { font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 700; line-height: 1.3; }
+  .logo-sub { font-size: 0.68rem; opacity: 0.6; margin-top: 2px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .nav { padding: 16px 0; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 11px 20px; cursor: pointer; font-size: 0.82rem; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; opacity: 0.75; }
+  .nav-item:hover { background: rgba(255,255,255,0.08); opacity: 1; }
+  .nav-item.active { background: rgba(232,118,43,0.2); border-left-color: var(--laranja); opacity: 1; }
+  .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+  .nav-section { padding: 12px 20px 4px; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.4; }
+  .main { margin-left: 220px; padding: 28px 32px; flex: 1; min-height: 100vh; }
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--azul); }
+  .page-sub { font-size: 0.83rem; color: var(--text-muted); margin-top: 3px; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat-card { background: white; border-radius: 12px; padding: 16px 18px; border: 1px solid var(--border); }
+  .stat-num { font-family: 'Poppins', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--azul); }
+  .stat-num.orange { color: var(--laranja); }
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
+  .search-input { padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.82rem; width: 240px; outline: none; font-family: 'Inter', sans-serif; }
+  .search-input:focus { border-color: var(--azul-light); }
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filter-btn { padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border); background: white; font-size: 0.78rem; cursor: pointer; font-family: 'Inter', sans-serif; color: var(--text-muted); transition: all 0.15s; font-weight: 500; }
+  .filter-btn:hover, .filter-btn.active { background: var(--tag-bg); color: var(--azul); border-color: var(--azul-light); }
+  .btn-add { padding: 8px 18px; background: var(--laranja); color: white; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s; display: flex; align-items: center; gap: 6px; }
+  .btn-add:hover { background: var(--laranja-light); }
+  .table-card { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--bg); }
+  th { padding: 11px 16px; text-align: left; font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 16px; font-size: 0.82rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbff; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--azul); display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 0.72rem; font-weight: 700; margin-right: 10px; flex-shrink: 0; }
+  .avatar.orange { background: var(--laranja); }
+  .avatar.green { background: var(--success); }
+  .person-cell { display: flex; align-items: center; }
+  .person-name { font-weight: 500; }
+  .person-email { font-size: 0.73rem; color: var(--text-muted); }
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+  .badge-blue { background: #e8edf7; color: var(--azul); }
+  .badge-orange { background: #fff1e6; color: #c05e00; }
+  .badge-green { background: #e6f9f0; color: #1a8a5a; }
+  .badge-gray { background: #f3f4f6; color: #6b7280; }
+  .badge-purple { background: #f3e8ff; color: #7c3aed; }
+  .action-btn { background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; color: var(--text-muted); transition: all 0.15s; }
+  .action-btn:hover { background: var(--bg); color: var(--danger); }
+  .projects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .project-card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px; transition: box-shadow 0.15s; }
+  .project-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .project-name { font-family: 'Poppins', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--azul); flex: 1; margin-right: 8px; }
+  .project-desc { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 5px; }
+  .progress-bar-bg { background: var(--bg); border-radius: 4px; height: 7px; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--azul), var(--azul-light)); }
+  .progress-bar.orange { background: linear-gradient(90deg, var(--laranja), var(--laranja-light)); }
+  .progress-bar.green { background: linear-gradient(90deg, var(--success), #34d399); }
+  .project-meta { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .meta-item { font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 1000; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 16px; width: 540px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 28px; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+  .modal-title { font-family: 'Poppins', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--azul); }
+  .close-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--text-muted); padding: 4px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.span2 { grid-column: span 2; }
+  label { font-size: 0.76rem; font-weight: 600; color: var(--azul); }
+  input, select, textarea { padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.82rem; font-family: 'Inter', sans-serif; outline: none; color: var(--text); width: 100%; }
+  input:focus, select:focus, textarea:focus { border-color: var(--azul-light); }
+  textarea { resize: vertical; min-height: 70px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 22px; justify-content: flex-end; }
+  .btn-cancel { padding: 9px 20px; border: 1px solid var(--border); background: white; border-radius: 8px; font-size: 0.82rem; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-save { padding: 9px 22px; background: var(--azul); color: white; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .btn-save:hover { background: var(--azul-light); }
+  .empty { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .empty p { font-size: 0.85rem; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--success); color: white; padding: 12px 20px; border-radius: 10px; font-size: 0.83rem; font-weight: 500; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .section-divider { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .disabled-item { opacity: 0.4; pointer-events: none; }
+  .coming-soon { font-size: 0.6rem; margin-left: auto; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; }
+  @media (max-width: 768px) {
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .main { margin-left: 0; padding: 16px; }
+    .stats-row { grid-template-columns: repeat(2,1fr); }
+    .projects-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.span2 { grid-column: span 1; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="logo-area">
+      <div class="logo-title">Humaniza e Acolhe</div>
+      <div class="logo-sub">Gestão do Instituto</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-section">Visão Geral</div>
+      <div class="nav-item active" onclick="goPage('dashboard',this)"><span class="nav-icon">🏠</span> Dashboard</div>
+      <div class="nav-section">Pessoas</div>
+      <div class="nav-item" onclick="goPage('pessoas',this)"><span class="nav-icon">👥</span> Beneficiários</div>
+      <div class="nav-item" onclick="goPage('voluntarios',this)"><span class="nav-icon">🤝</span> Voluntários</div>
+      <div class="nav-item" onclick="goPage('parceiros',this)"><span class="nav-icon">🏢</span> Parceiros</div>
+      <div class="nav-section">Gestão</div>
+      <div class="nav-item" onclick="goPage('projetos',this)"><span class="nav-icon">📁</span> Projetos</div>
+      <div class="nav-item disabled-item"><span class="nav-icon">💰</span> Financeiro <span class="coming-soon">em breve</span></div>
+      <div class="nav-item disabled-item"><span class="nav-icon">📊</span> Relatórios <span class="coming-soon">em breve</span></div>
+    </nav>
+  </div>
+
+  <div class="main">
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="page-header">
+        <div class="page-title">Olá, Vanessa 👋</div>
+        <div class="page-sub">Bem-vinda ao painel da Rede Humaniza e Acolhe</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="stat-benef">0</div><div class="stat-label">Beneficiários</div></div>
+        <div class="stat-card"><div class="stat-num orange" id="stat-vol">0</div><div class="stat-label">Voluntários</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-parc">0</div><div class="stat-label">Parceiros</div></div>
+        <div class="stat-card"><div class="stat-num orange" id="stat-proj">0</div><div class="stat-label">Projetos ativos</div></div>
+      </div>
+      <div class="section-divider">Projetos em andamento</div>
+      <div class="projects-grid" id="dash-projects-grid" style="margin-bottom:24px"></div>
+      <div class="section-divider">Últimos cadastros</div>
+      <div class="table-card">
+        <table><thead><tr><th>Nome</th><th>Tipo</th><th>Cadastrado em</th></tr></thead>
+        <tbody id="dash-recent"></tbody></table>
+      </div>
+    </div>
+
+    <!-- BENEFICIÁRIOS -->
+    <div id="page-pessoas" class="page">
+      <div class="page-header">
+        <div class="page-title">Beneficiários</div>
+        <div class="page-sub">Pessoas atendidas pela Rede Humaniza e Acolhe</div>
+      </div>
+      <div class="toolbar">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <input class="search-input" placeholder="🔍 Buscar por nome..." oninput="filterTable('benef',this.value)">
+          <div class="filter-row">
+            <button class="filter-btn active" onclick="filterBadge('benef','Todos',this)">Todos</button>
+            <button class="filter-btn" onclick="filterBadge('benef','Neurodiverso',this)">Neurodiverso</button>
+            <button class="filter-btn" onclick="filterBadge('benef','Família',this)">Família</button>
+            <button class="filter-btn" onclick="filterBadge('benef','Cuidador',this)">Cuidador</button>
+          </div>
+        </div>
+        <button class="btn-add" onclick="openModal('benef')">＋ Novo Beneficiário</button>
+      </div>
+      <div class="table-card">
+        <table><thead><tr><th>Nome</th><th>Perfil</th><th>Diagnóstico</th><th>Bairro</th><th>Contato</th><th>Projeto</th><th></th></tr></thead>
+        <tbody id="table-benef"></tbody></table>
+        <div id="empty-benef" class="empty"><div class="empty-icon">👥</div><p>Nenhum beneficiário cadastrado ainda.<br>Clique em <strong>+ Novo Beneficiário</strong> para começar.</p></div>
+      </div>
+    </div>
+
+    <!-- VOLUNTÁRIOS -->
+    <div id="page-voluntarios" class="page">
+      <div class="page-header">
+        <div class="page-title">Voluntários</div>
+        <div class="page-sub">Pessoas que contribuem com a Humaniza e Acolhe</div>
+      </div>
+      <div class="toolbar">
+        <input class="search-input" placeholder="🔍 Buscar voluntário..." oninput="filterTable('vol',this.value)">
+        <button class="btn-add" onclick="openModal('vol')">＋ Novo Voluntário</button>
+      </div>
+      <div class="table-card">
+        <table><thead><tr><th>Nome</th><th>Área</th><th>Disponibilidade</th><th>Contato</th><th></th></tr></thead>
+        <tbody id="table-vol"></tbody></table>
+        <div id="empty-vol" class="empty"><div class="empty-icon">🤝</div><p>Nenhum voluntário cadastrado.<br>Clique em <strong>+ Novo Voluntário</strong>.</p></div>
+      </div>
+    </div>
+
+    <!-- PARCEIROS -->
+    <div id="page-parceiros" class="page">
+      <div class="page-header">
+        <div class="page-title">Parceiros & Patrocinadores</div>
+        <div class="page-sub">Organizações e empresas que apoiam a Humaniza</div>
+      </div>
+      <div class="toolbar">
+        <input class="search-input" placeholder="🔍 Buscar parceiro..." oninput="filterTable('parc',this.value)">
+        <button class="btn-add" onclick="openModal('parc')">＋ Novo Parceiro</button>
+      </div>
+      <div class="table-card">
+        <table><thead><tr><th>Organização</th><th>Tipo</th><th>Responsável</th><th>Contato</th><th>Projeto</th><th></th></tr></thead>
+        <tbody id="table-parc"></tbody></table>
+        <div id="empty-parc" class="empty"><div class="empty-icon">🏢</div><p>Nenhum parceiro cadastrado.<br>Clique em <strong>+ Novo Parceiro</strong>.</p></div>
+      </div>
+    </div>
+
+    <!-- PROJETOS -->
+    <div id="page-projetos" class="page">
+      <div class="page-header">
+        <div class="page-title">Projetos</div>
+        <div class="page-sub">Acompanhe o andamento de cada iniciativa</div>
+      </div>
+      <div class="toolbar">
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterBadge('proj','Todos',this)">Todos</button>
+          <button class="filter-btn" onclick="filterBadge('proj','Em andamento',this)">Em andamento</button>
+          <button class="filter-btn" onclick="filterBadge('proj','Planejamento',this)">Planejamento</button>
+          <button class="filter-btn" onclick="filterBadge('proj','Concluído',this)">Concluído</button>
+        </div>
+        <button class="btn-add" onclick="openModal('proj')">＋ Novo Projeto</button>
+      </div>
+      <div class="projects-grid" id="grid-projetos"></div>
+      <div id="empty-proj" class="empty" style="display:none"><div class="empty-icon">📁</div><p>Nenhum projeto cadastrado.<br>Clique em <strong>+ Novo Projeto</strong>.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BENEFICIÁRIO -->
+<div class="modal-overlay" id="modal-benef">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">👤 Novo Beneficiário</div><button class="close-btn" onclick="closeModal('benef')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group span2"><label>Nome completo *</label><input id="b-nome" placeholder="Nome do beneficiário"></div>
+      <div class="form-group"><label>Data de nascimento</label><input id="b-nasc" type="date"></div>
+      <div class="form-group"><label>Perfil</label><select id="b-perfil"><option>Neurodiverso</option><option>Família</option><option>Cuidador</option><option>Outro</option></select></div>
+      <div class="form-group span2"><label>Diagnóstico / Condição</label><input id="b-diag" placeholder="Ex: TEA, TDAH, Síndrome de Down, Altas Habilidades..."></div>
+      <div class="form-group"><label>Bairro / Comunidade</label><input id="b-bairro" placeholder="Ex: Rocinha, Vidigal..."></div>
+      <div class="form-group"><label>Telefone / WhatsApp</label><input id="b-tel" placeholder="(21) 99999-9999"></div>
+      <div class="form-group"><label>Responsável (se menor)</label><input id="b-resp" placeholder="Nome do responsável"></div>
+      <div class="form-group"><label>Projeto vinculado</label><select id="b-projeto"><option value="">— Selecione —</option></select></div>
+      <div class="form-group span2"><label>Observações</label><textarea id="b-obs" placeholder="Informações relevantes sobre o beneficiário..."></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn-cancel" onclick="closeModal('benef')">Cancelar</button><button class="btn-save" onclick="savePessoa('benef')">Salvar Beneficiário</button></div>
+  </div>
+</div>
+
+<!-- MODAL VOLUNTÁRIO -->
+<div class="modal-overlay" id="modal-vol">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🤝 Novo Voluntário</div><button class="close-btn" onclick="closeModal('vol')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group span2"><label>Nome completo *</label><input id="v-nome" placeholder="Nome do voluntário"></div>
+      <div class="form-group"><label>Profissão / Formação</label><input id="v-prof" placeholder="Ex: Psicóloga, Artista visual..."></div>
+      <div class="form-group"><label>Área de atuação</label><select id="v-area"><option>Arte e Cultura</option><option>Saúde</option><option>Educação</option><option>Administrativo</option><option>Comunicação</option><option>Jurídico</option><option>Outro</option></select></div>
+      <div class="form-group"><label>Disponibilidade</label><select id="v-disp"><option>Semanal</option><option>Quinzenal</option><option>Mensal</option><option>Pontual / por projeto</option></select></div>
+      <div class="form-group"><label>Telefone / WhatsApp</label><input id="v-tel" placeholder="(21) 99999-9999"></div>
+      <div class="form-group"><label>E-mail</label><input id="v-email" placeholder="email@exemplo.com" type="email"></div>
+      <div class="form-group span2"><label>Observações</label><textarea id="v-obs" placeholder="Habilidades específicas, disponibilidade especial..."></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn-cancel" onclick="closeModal('vol')">Cancelar</button><button class="btn-save" onclick="savePessoa('vol')">Salvar Voluntário</button></div>
+  </div>
+</div>
+
+<!-- MODAL PARCEIRO -->
+<div class="modal-overlay" id="modal-parc">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🏢 Novo Parceiro</div><button class="close-btn" onclick="closeModal('parc')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group span2"><label>Nome da organização *</label><input id="p-nome" placeholder="Razão social ou nome fantasia"></div>
+      <div class="form-group"><label>Tipo</label><select id="p-tipo"><option>Patrocinador</option><option>Parceiro institucional</option><option>Doador</option><option>Apoiador</option><option>Poder público</option><option>Mídia</option></select></div>
+      <div class="form-group"><label>Projeto vinculado</label><select id="p-projeto"><option value="">— Selecione —</option></select></div>
+      <div class="form-group"><label>Responsável pelo contato</label><input id="p-resp" placeholder="Nome da pessoa de contato"></div>
+      <div class="form-group"><label>Telefone / WhatsApp</label><input id="p-tel" placeholder="(21) 99999-9999"></div>
+      <div class="form-group"><label>E-mail</label><input id="p-email" placeholder="contato@empresa.com" type="email"></div>
+      <div class="form-group span2"><label>Observações</label><textarea id="p-obs" placeholder="Tipo de apoio, histórico de parceria, próximos passos..."></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn-cancel" onclick="closeModal('parc')">Cancelar</button><button class="btn-save" onclick="savePessoa('parc')">Salvar Parceiro</button></div>
+  </div>
+</div>
+
+<!-- MODAL PROJETO -->
+<div class="modal-overlay" id="modal-proj">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">📁 Novo Projeto</div><button class="close-btn" onclick="closeModal('proj')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group span2"><label>Nome do projeto *</label><input id="pj-nome" placeholder="Ex: Mostra Cultural Humaniza e Acolhe 2025"></div>
+      <div class="form-group span2"><label>Descrição</label><textarea id="pj-desc" placeholder="O que é esse projeto? Qual o objetivo?"></textarea></div>
+      <div class="form-group"><label>Status</label><select id="pj-status"><option>Em andamento</option><option>Planejamento</option><option>Concluído</option><option>Pausado</option></select></div>
+      <div class="form-group"><label>Progresso (%)</label><input id="pj-prog" type="number" min="0" max="100" value="0"></div>
+      <div class="form-group"><label>Data de início</label><input id="pj-inicio" type="date"></div>
+      <div class="form-group"><label>Data prevista de término</label><input id="pj-fim" type="date"></div>
+      <div class="form-group"><label>Responsável principal</label><input id="pj-resp" placeholder="Nome do responsável"></div>
+      <div class="form-group"><label>Fonte de recursos</label><input id="pj-fonte" placeholder="Ex: Lei Rouanet, Editais, Doações..."></div>
+      <div class="form-group span2"><label>Observações</label><textarea id="pj-obs" placeholder="Informações adicionais, próximas etapas..."></textarea></div>
+    </div>
+    <div class="form-actions"><button class="btn-cancel" onclick="closeModal('proj')">Cancelar</button><button class="btn-save" onclick="saveProject()">Salvar Projeto</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let data = { benef: [], vol: [], parc: [], proj: [] };
+try { const s = localStorage.getItem('humaniza_v1'); if (s) data = JSON.parse(s); } catch(e) {}
+
+function persist() {
+  try { localStorage.setItem('humaniza_v1', JSON.stringify(data)); } catch(e) {}
+  renderDashboard();
+}
+
+function goPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'pessoas') renderTable('benef');
+  if (id === 'voluntarios') renderTable('vol');
+  if (id === 'parceiros') renderTable('parc');
+  if (id === 'projetos') renderProjects();
+}
+
+function openModal(type) {
+  updateProjectSelects();
+  document.getElementById('modal-' + type).classList.add('open');
+}
+function closeModal(type) { document.getElementById('modal-' + type).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+function updateProjectSelects() {
+  ['b-projeto','p-projeto'].forEach(id => {
+    const sel = document.getElementById(id); if (!sel) return;
+    const val = sel.value;
+    sel.innerHTML = '<option value="">— Selecione —</option>' + data.proj.map(p => `<option value="${p.nome}">${p.nome}</option>`).join('');
+    sel.value = val;
+  });
+}
+
+function savePessoa(type) {
+  let item = { id: Date.now(), data: new Date().toLocaleDateString('pt-BR') };
+  if (type === 'benef') {
+    const nome = document.getElementById('b-nome').value.trim();
+    if (!nome) { alert('Informe o nome do beneficiário.'); return; }
+    item = {...item, nome, nasc: document.getElementById('b-nasc').value, perfil: document.getElementById('b-perfil').value,
+      diag: document.getElementById('b-diag').value, bairro: document.getElementById('b-bairro').value,
+      tel: document.getElementById('b-tel').value, resp: document.getElementById('b-resp').value,
+      projeto: document.getElementById('b-projeto').value, obs: document.getElementById('b-obs').value};
+    ['b-nome','b-nasc','b-diag','b-bairro','b-tel','b-resp','b-obs'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('b-projeto').value = '';
+  } else if (type === 'vol') {
+    const nome = document.getElementById('v-nome').value.trim();
+    if (!nome) { alert('Informe o nome do voluntário.'); return; }
+    item = {...item, nome, prof: document.getElementById('v-prof').value, area: document.getElementById('v-area').value,
+      disp: document.getElementById('v-disp').value, tel: document.getElementById('v-tel').value,
+      email: document.getElementById('v-email').value, obs: document.getElementById('v-obs').value};
+    ['v-nome','v-prof','v-tel','v-email','v-obs'].forEach(i => document.getElementById(i).value = '');
+  } else if (type === 'parc') {
+    const nome = document.getElementById('p-nome').value.trim();
+    if (!nome) { alert('Informe o nome da organização.'); return; }
+    item = {...item, nome, tipo: document.getElementById('p-tipo').value, resp: document.getElementById('p-resp').value,
+      tel: document.getElementById('p-tel').value, email: document.getElementById('p-email').value,
+      projeto: document.getElementById('p-projeto').value, obs: document.getElementById('p-obs').value};
+    ['p-nome','p-resp','p-tel','p-email','p-obs'].forEach(i => document.getElementById(i).value = '');
+  }
+  data[type].push(item);
+  persist();
+  closeModal(type);
+  renderTable(type);
+  showToast('✅ Cadastro salvo!');
+}
+
+function saveProject() {
+  const nome = document.getElementById('pj-nome').value.trim();
+  if (!nome) { alert('Informe o nome do projeto.'); return; }
+  const item = { id: Date.now(), nome, desc: document.getElementById('pj-desc').value,
+    status: document.getElementById('pj-status').value, prog: parseInt(document.getElementById('pj-prog').value) || 0,
+    inicio: document.getElementById('pj-inicio').value, fim: document.getElementById('pj-fim').value,
+    resp: document.getElementById('pj-resp').value, fonte: document.getElementById('pj-fonte').value,
+    obs: document.getElementById('pj-obs').value, data: new Date().toLocaleDateString('pt-BR') };
+  ['pj-nome','pj-desc','pj-resp','pj-fonte','pj-obs'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('pj-prog').value = '0';
+  data.proj.push(item);
+  persist();
+  closeModal('proj');
+  renderProjects();
+  showToast('✅ Projeto salvo!');
+}
+
+function renderTable(type) {
+  const tbody = document.getElementById('table-' + type);
+  const empty = document.getElementById('empty-' + type);
+  const items = data[type];
+  if (!items.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  const av = (nome, cls) => `<div class="avatar ${cls}">${nome.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase()}</div>`;
+  if (type === 'benef') {
+    tbody.innerHTML = items.map(p => `<tr>
+      <td><div class="person-cell">${av(p.nome,'')}<div><div class="person-name">${p.nome}</div>${p.nasc?`<div class="person-email">${p.nasc}</div>`:''}</div></div></td>
+      <td><span class="badge badge-blue">${p.perfil}</span></td>
+      <td>${p.diag||'—'}</td>
+      <td>${p.bairro||'—'}</td>
+      <td>${p.tel||'—'}</td>
+      <td>${p.projeto?`<span class="badge badge-purple">${p.projeto}</span>`:'—'}</td>
+      <td><button class="action-btn" title="Remover" onclick="deleteItem('benef',${p.id})">🗑</button></td>
+    </tr>`).join('');
+  } else if (type === 'vol') {
+    tbody.innerHTML = items.map(p => `<tr>
+      <td><div class="person-cell">${av(p.nome,'orange')}<div><div class="person-name">${p.nome}</div>${p.prof?`<div class="person-email">${p.prof}</div>`:''}</div></div></td>
+      <td><span class="badge badge-orange">${p.area}</span></td>
+      <td><span class="badge badge-gray">${p.disp}</span></td>
+      <td>${p.tel||p.email||'—'}</td>
+      <td><button class="action-btn" onclick="deleteItem('vol',${p.id})">🗑</button></td>
+    </tr>`).join('');
+  } else if (type === 'parc') {
+    tbody.innerHTML = items.map(p => `<tr>
+      <td><div class="person-cell">${av(p.nome,'green')}<div class="person-name">${p.nome}</div></div></td>
+      <td><span class="badge badge-green">${p.tipo}</span></td>
+      <td>${p.resp||'—'}</td>
+      <td>${p.tel||p.email||'—'}</td>
+      <td>${p.projeto?`<span class="badge badge-purple">${p.projeto}</span>`:'—'}</td>
+      <td><button class="action-btn" onclick="deleteItem('parc',${p.id})">🗑</button></td>
+    </tr>`).join('');
+  }
+}
+
+function renderProjects(filter) {
+  const grid = document.getElementById('grid-projetos');
+  const empty = document.getElementById('empty-proj');
+  let items = data.proj;
+  if (filter && filter !== 'Todos') items = items.filter(p => p.status === filter);
+  if (!items.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  const sbc = s => s==='Em andamento'?'badge-blue':s==='Concluído'?'badge-green':s==='Planejamento'?'badge-orange':'badge-gray';
+  const bc = s => s==='Concluído'?'green':s==='Planejamento'?'orange':'';
+  const fd = d => { if(!d) return ''; const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
+  grid.innerHTML = items.map(p => `
+    <div class="project-card">
+      <div class="project-header"><div class="project-name">${p.nome}</div><span class="badge ${sbc(p.status)}">${p.status}</span></div>
+      <div class="project-desc">${p.desc||'Sem descrição.'}</div>
+      <div class="progress-label"><span>Progresso</span><span>${p.prog}%</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar ${bc(p.status)}" style="width:${p.prog}%"></div></div>
+      <div class="project-meta">
+        ${p.inicio?`<div class="meta-item">📅 ${fd(p.inicio)}</div>`:''}
+        ${p.fim?`<div class="meta-item">🏁 ${fd(p.fim)}</div>`:''}
+        ${p.resp?`<div class="meta-item">👤 ${p.resp}</div>`:''}
+        ${p.fonte?`<div class="meta-item">💰 ${p.fonte}</div>`:''}
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+        <button class="action-btn" onclick="deleteItem('proj',${p.id});renderProjects()">🗑 Remover</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderDashboard() {
+  document.getElementById('stat-benef').textContent = data.benef.length;
+  document.getElementById('stat-vol').textContent = data.vol.length;
+  document.getElementById('stat-parc').textContent = data.parc.length;
+  document.getElementById('stat-proj').textContent = data.proj.filter(p => p.status === 'Em andamento').length;
+  const recent = [...data.benef.map(x=>({...x,tipo:'Beneficiário'})),...data.vol.map(x=>({...x,tipo:'Voluntário'})),...data.parc.map(x=>({...x,tipo:'Parceiro'}))]
+    .sort((a,b)=>b.id-a.id).slice(0,6);
+  const tbody = document.getElementById('dash-recent');
+  const bc = t => t==='Beneficiário'?'badge-blue':t==='Voluntário'?'badge-orange':'badge-green';
+  tbody.innerHTML = recent.length
+    ? recent.map(r=>`<tr><td>${r.nome}</td><td><span class="badge ${bc(r.tipo)}">${r.tipo}</span></td><td>${r.data}</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:#999;padding:24px">Nenhum cadastro ainda. Comece por Beneficiários ou Voluntários.</td></tr>';
+  const pgrid = document.getElementById('dash-projects-grid');
+  const proj = data.proj.filter(p=>p.status!=='Concluído').slice(0,2);
+  const bc2 = s => s==='Planejamento'?'orange':'';
+  pgrid.innerHTML = proj.length
+    ? proj.map(p=>`<div class="project-card"><div class="project-header"><div class="project-name">${p.nome}</div><span class="badge badge-blue">${p.status}</span></div><div class="project-desc">${p.desc||''}</div><div class="progress-label"><span>Progresso</span><span>${p.prog}%</span></div><div class="progress-bar-bg"><div class="progress-bar ${bc2(p.status)}" style="width:${p.prog}%"></div></div></div>`).join('')
+    : '<p style="color:#999;font-size:0.82rem;grid-column:span 2;padding:16px 0">Nenhum projeto ativo. Vá em <strong>Projetos</strong> para cadastrar.</p>';
+}
+
+function filterTable(type, q) {
+  document.querySelectorAll(`#table-${type} tr`).forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'; });
+}
+function filterBadge(type, val, btn) {
+  document.querySelectorAll(`[onclick*="filterBadge('${type}'"]`).forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (type === 'proj') renderProjects(val);
+  if (type === 'benef') { renderTable('benef'); if (val !== 'Todos') document.querySelectorAll('#table-benef tr').forEach(r=>{ r.style.display = r.textContent.includes(val) || val==='Todos' ? '':'none'; }); }
+}
+function deleteItem(type, id) {
+  if (!confirm('Remover este cadastro?')) return;
+  data[type] = data[type].filter(x => x.id !== id);
+  persist(); renderTable(type);
+  showToast('Cadastro removido.');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Init: add Mostra Cultural as default project if empty
+if (!data.proj.length) {
+  data.proj.push({ id: 1, nome: 'Mostra Cultural Humaniza e Acolhe', desc: 'Arte e neurodiversidade na Rocinha. PRONAC 542.133. Realização: Rede Humaniza e Acolhe + Instituto Ama Vida.', status: 'Em andamento', prog: 45, inicio: '2025-06-01', fim: '2025-07-31', resp: 'Vanessa', fonte: 'Lei Rouanet', obs: '', data: '01/06/2025' });
+  persist();
+}
+renderDashboard();
+</script>
+</body>
+</html>
