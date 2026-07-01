@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro — Rede Humaniza e Acolhe</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --azul:#1B3D6F;--azul2:#2a5298;--laranja:#E8762B;--laranja2:#f5934a;
+  --bg:#f4f6fb;--white:#fff;--border:#e2e8f0;--text:#1a1a2e;--muted:#6b7280;--success:#10b981;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.header{background:linear-gradient(135deg,var(--azul),var(--azul2));color:white;padding:32px 24px;text-align:center;}
+.header-logo{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;opacity:0.85;margin-bottom:6px;}
+.header h1{font-family:'Poppins',sans-serif;font-size:1.4rem;font-weight:700;line-height:1.3;}
+.header p{font-size:0.83rem;opacity:0.8;margin-top:8px;line-height:1.6;}
+.form-container{max-width:620px;margin:0 auto;padding:20px 16px 48px;}
+.section-card{background:white;border-radius:14px;border:1px solid var(--border);padding:20px;margin-bottom:14px;}
+.section-title{font-family:'Poppins',sans-serif;font-size:0.93rem;font-weight:700;color:var(--azul);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.form-group{margin-bottom:13px;}
+label{display:block;font-size:0.77rem;font-weight:600;color:var(--azul);margin-bottom:5px;}
+label .req{color:var(--laranja);}
+input,select,textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:0.87rem;font-family:'Inter',sans-serif;outline:none;color:var(--text);transition:border 0.15s;background:white;}
+input:focus,select:focus,textarea:focus{border-color:var(--azul2);background:#fafbff;}
+textarea{resize:vertical;min-height:75px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.checkbox-group{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px;}
+.check-item{display:flex;align-items:center;gap:6px;padding:7px 11px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.79rem;transition:all 0.15s;background:white;user-select:none;}
+.check-item input[type=checkbox]{width:auto;padding:0;border:none;cursor:pointer;accent-color:var(--azul);flex-shrink:0;}
+.check-item.checked{background:#e8edf7;border-color:var(--azul);color:var(--azul);font-weight:600;}
+.lgpd-box{background:#f8faff;border:1px solid var(--border);border-radius:10px;padding:14px;font-size:0.77rem;color:var(--muted);line-height:1.6;margin-bottom:14px;}
+.lgpd-box strong{color:var(--azul);}
+.lgpd-check{display:flex;align-items:flex-start;gap:9px;margin-top:10px;cursor:pointer;}
+.lgpd-check input{width:auto;padding:0;border:none;flex-shrink:0;margin-top:2px;accent-color:var(--azul);}
+.lgpd-check span{font-size:0.79rem;color:var(--text);}
+.btn-submit{width:100%;padding:15px;background:linear-gradient(135deg,var(--laranja),var(--laranja2));color:white;border:none;border-radius:12px;font-size:0.97rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity 0.2s;margin-top:6px;}
+.btn-submit:hover{opacity:0.9;}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.sending-box{display:none;text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;}
+.sending-box .spinner{font-size:1.5rem;display:block;margin-bottom:8px;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.success-screen{display:none;text-align:center;padding:44px 20px;background:white;border-radius:14px;border:1px solid var(--border);}
+.success-icon{font-size:3rem;margin-bottom:14px;}
+.success-screen h2{font-family:'Poppins',sans-serif;font-size:1.2rem;color:var(--azul);margin-bottom:10px;}
+.success-screen p{font-size:0.85rem;color:var(--muted);line-height:1.7;}
+.btn-new{display:inline-block;margin-top:18px;padding:10px 24px;background:var(--azul);color:white;border:none;border-radius:8px;font-size:0.84rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+.error-box{background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:12px 14px;font-size:0.8rem;color:#dc2626;margin-bottom:14px;display:none;}
+@media(max-width:480px){
+  .form-row{grid-template-columns:1fr;}
+  .header{padding:24px 16px;}
+  .form-container{padding:14px 12px 40px;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🌐 Rede Humaniza e Acolhe</div>
+  <h1>Cadastro de Família</h1>
+  <p>Preencha o formulário para fazer parte da nossa rede.<br>Seus dados são confidenciais e protegidos.</p>
+</div>
+
+<div class="form-container">
+  <div id="form-area">
+
+    <div class="section-card">
+      <div class="section-title"><span>👤</span> Criança ou pessoa atípica</div>
+      <div class="form-group">
+        <label>Nome completo <span class="req">*</span></label>
+        <input id="f-nome" type="text" placeholder="Nome da criança, adolescente ou adulto">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data de nascimento</label>
+          <input id="f-nasc" type="date">
+        </div>
+        <div class="form-group">
+          <label>Sexo</label>
+          <select id="f-sexo">
+            <option value="">— Selecione —</option>
+            <option>Feminino</option>
+            <option>Masculino</option>
+            <option>Prefiro não informar</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Bairro <span class="req">*</span></label>
+          <input id="f-bairro" type="text" placeholder="Ex: Engenho Novo, Bangu...">
+        </div>
+        <div class="form-group">
+          <label>Cidade</label>
+          <input id="f-cidade" type="text" placeholder="Ex: Rio de Janeiro">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title"><span>👩</span> Responsável / Contato</div>
+      <div class="form-group">
+        <label>Nome do responsável <span class="req">*</span></label>
+        <input id="f-resp" type="text" placeholder="Nome completo">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>WhatsApp <span class="req">*</span></label>
+          <input id="f-tel" type="tel" placeholder="(21) 99999-9999">
+        </div>
+        <div class="form-group">
+          <label>Renda familiar</label>
+          <select id="f-renda">
+            <option value="">— Selecione —</option>
+            <option>Até 1 salário mínimo</option>
+            <option>1 a 2 salários mínimos</option>
+            <option>2 a 3 salários mínimos</option>
+            <option>Acima de 3 salários mínimos</option>
+            <option>Prefiro não informar</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Composição familiar</label>
+        <input id="f-comp" type="text" placeholder="Ex: Mãe solo, 2 filhos">
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title"><span>🧠</span> Condição atípica</div>
+      <div class="form-group">
+        <label>Há condição atípica na família? <span class="req">*</span></label>
+        <select id="f-temcond" onchange="toggleCond(this.value)">
+          <option value="">— Selecione —</option>
+          <option value="Sim">Sim</option>
+          <option value="Não">Não</option>
+          <option value="Em investigação">Em investigação / Aguardando diagnóstico</option>
+        </select>
+      </div>
+      <div id="cond-fields" style="display:none;">
+        <div class="form-group">
+          <label>Qual condição ou diagnóstico?</label>
+          <input id="f-cond" type="text" placeholder="Ex: TEA nível 2, TDAH, Síndrome de Down, doença rara...">
+        </div>
+        <div class="form-group">
+          <label>Idade da pessoa com essa condição</label>
+          <input id="f-idadecond" type="text" placeholder="Ex: 8 anos">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title"><span>💬</span> Necessidades e expectativas</div>
+      <div class="form-group">
+        <label>Maiores dificuldades da família</label>
+        <div class="checkbox-group">
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Saúde"> Saúde</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Escola/educação"> Escola / Educação</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Acessibilidade"> Acessibilidade</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Apoio emocional/psicológico"> Apoio emocional</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Direitos e benefícios"> Direitos e benefícios</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Preconceito/discriminação"> Preconceito</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Terapias"> Terapias</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>O que espera da Rede Humaniza e Acolhe?</label>
+        <div class="checkbox-group">
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Orientações sobre direitos e benefícios"> Orientações sobre direitos</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Apoio psicológico"> Apoio psicológico</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Grupo de convivência"> Grupo de convivência</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Atividades culturais e de lazer"> Atividades culturais</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="Indicação de profissionais"> Indicação de profissionais</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Necessidade específica que podemos ajudar</label>
+        <textarea id="f-nec" placeholder="Conte mais sobre o que você precisa..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Mensagem ou sugestão (opcional)</label>
+        <textarea id="f-msg" placeholder="Deixe uma mensagem para a equipe..."></textarea>
+      </div>
+    </div>
+
+    <div class="lgpd-box">
+      <strong>🔒 Proteção de Dados (LGPD)</strong><br>
+      As informações serão utilizadas apenas para organização das atividades da Rede Humaniza e Acolhe. Os dados não serão compartilhados sem sua autorização.
+      <label class="lgpd-check">
+        <input type="checkbox" id="f-lgpd">
+        <span>Li e concordo com o uso dos meus dados para os fins acima. <span class="req">*</span></span>
+      </label>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+
+    <button class="btn-submit" id="btn-submit" onclick="submitForm()">Enviar cadastro →</button>
+
+    <div class="sending-box" id="sending-box">
+      <span class="spinner">⏳</span>
+      Salvando seu cadastro... aguarde um momento.
+    </div>
+
+  </div>
+
+  <div class="success-screen" id="success-screen">
+    <div class="success-icon">🎉</div>
+    <h2>Cadastro realizado!</h2>
+    <p>Obrigada por fazer parte da Rede Humaniza e Acolhe.<br>
+    Em breve nossa equipe entrará em contato pelo WhatsApp.<br><br>
+    <strong>Humanizar é o nosso caminho. 💛</strong></p>
+    <button class="btn-new" onclick="resetForm()">Cadastrar outra família</button>
+  </div>
+
+</div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbyaqp3LlAzIhg0-e4UDKJqQ4CHEqZkS_9SjUezsc6osGv40g38AbRJuZUmwZZPsrmTKAA/exec';
+
+function toggleCond(val) {
+  document.getElementById('cond-fields').style.display = (val === 'Sim' || val === 'Em investigação') ? '' : 'none';
+}
+
+function toggleCheck(el) {
+  const cb = el.querySelector('input[type=checkbox]');
+  cb.checked = !cb.checked;
+  el.classList.toggle('checked', cb.checked);
+}
+
+function getChecked(group) {
+  return Array.from(document.querySelectorAll(group + ' input:checked'))
+    .map(i => i.value).join(', ');
+}
+
+function showError(msg) {
+  const box = document.getElementById('error-box');
+  box.textContent = msg;
+  box.style.display = '';
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideError() {
+  document.getElementById('error-box').style.display = 'none';
+}
+
+async function submitForm() {
+  hideError();
+
+  const nome = document.getElementById('f-nome').value.trim();
+  const resp = document.getElementById('f-resp').value.trim();
+  const tel = document.getElementById('f-tel').value.trim();
+  const bairro = document.getElementById('f-bairro').value.trim();
+  const temcond = document.getElementById('f-temcond').value;
+  const lgpd = document.getElementById('f-lgpd').checked;
+
+  if (!nome) { showError('⚠️ Informe o nome da criança ou pessoa.'); return; }
+  if (!resp) { showError('⚠️ Informe o nome do responsável.'); return; }
+  if (!tel) { showError('⚠️ Informe o WhatsApp para contato.'); return; }
+  if (!bairro) { showError('⚠️ Informe o bairro.'); return; }
+  if (!temcond) { showError('⚠️ Selecione se há condição atípica na família.'); return; }
+  if (!lgpd) { showError('⚠️ É necessário aceitar os termos de proteção de dados.'); return; }
+
+  const nasc = document.getElementById('f-nasc').value;
+  const nascFmt = nasc ? nasc.split('-').reverse().join('/') : '';
+
+  const linha = [
+    new Date().toLocaleDateString('pt-BR'),   // dataEntrada
+    nome,                                      // nome
+    nascFmt,                                   // nasc
+    document.getElementById('f-sexo').value,  // sexo
+    bairro,                                    // bairro
+    document.getElementById('f-cidade').value || 'Rio de Janeiro', // cidade
+    resp,                                      // responsavel
+    tel,                                       // tel
+    document.getElementById('f-comp').value,  // composicao
+    document.getElementById('f-renda').value, // renda
+    temcond,                                   // temCondicao
+    document.getElementById('f-cond').value,  // condicao
+    document.getElementById('f-idadecond').value, // idadeCondicao
+    getChecked('.checkbox-group:nth-of-type(1)'),  // dificuldades
+    getChecked('.checkbox-group:nth-of-type(2)'),  // expectativas
+    document.getElementById('f-nec').value,   // necessidade
+    document.getElementById('f-msg').value,   // mensagem
+    'Ativo',                                   // status
+    '[]',                                      // obsLog
+    '[]',                                      // eventos
+    '[]',                                      // encaminhamentos
+  ];
+
+  // Show loading
+  document.getElementById('btn-submit').style.display = 'none';
+  document.getElementById('sending-box').style.display = '';
+
+  try {
+    const r = await fetch(API, {
+      method: 'POST',
+      body: JSON.stringify({ acao: 'salvar', aba: 'Famílias', linha })
+    });
+    const d = await r.json();
+    if (d.erro) throw new Error(d.erro);
+
+    // Sucesso
+    document.getElementById('form-area').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    window.scrollTo(0, 0);
+
+  } catch(err) {
+    // Fallback: save locally
+    try {
+      let db = JSON.parse(localStorage.getItem('humaniza_v3') || '{"familias":[],"vol":[],"parc":[],"proj":[]}');
+      db.familias.push({
+        id: Date.now(), dataEntrada: new Date().toLocaleDateString('pt-BR'),
+        nome, nasc: nascFmt, sexo: document.getElementById('f-sexo').value,
+        bairro, cidade: document.getElementById('f-cidade').value||'Rio de Janeiro',
+        responsavel: resp, tel,
+        composicao: document.getElementById('f-comp').value,
+        renda: document.getElementById('f-renda').value,
+        temCondicao: temcond,
+        condicao: document.getElementById('f-cond').value,
+        idadeCondicao: document.getElementById('f-idadecond').value,
+        dificuldades: getChecked('.checkbox-group:nth-of-type(1)'),
+        expectativas: getChecked('.checkbox-group:nth-of-type(2)'),
+        necessidade: document.getElementById('f-nec').value,
+        mensagem: document.getElementById('f-msg').value,
+        status: 'Ativo', obsLog: [], eventos: [], encaminhamentos: []
+      });
+      localStorage.setItem('humaniza_v3', JSON.stringify(db));
+    } catch(e) {}
+
+    // Ainda mostra sucesso para a família
+    document.getElementById('form-area').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+}
+
+function resetForm() {
+  document.getElementById('form-area').style.display = '';
+  document.getElementById('success-screen').style.display = 'none';
+  document.getElementById('sending-box').style.display = 'none';
+  document.getElementById('btn-submit').style.display = '';
+  document.querySelectorAll('input[type=text],input[type=tel],input[type=date],textarea').forEach(el => el.value = '');
+  document.querySelectorAll('select').forEach(el => el.value = '');
+  document.querySelectorAll('input[type=checkbox]').forEach(el => el.checked = false);
+  document.querySelectorAll('.check-item').forEach(el => el.classList.remove('checked'));
+  document.getElementById('cond-fields').style.display = 'none';
+  document.getElementById('f-lgpd').checked = false;
+  hideError();
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
