@@ -5,51 +5,77 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Humaniza e Acolhe — Gestão</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
   --azul:#1B3D6F;--azul2:#2a5298;--azul-pale:#e8edf7;
-  --laranja:#E8762B;--laranja2:#f5934a;--laranja-pale:#fff4ec;
-  --text:#1a1a2e;--muted:#6b7280;--bg:#f4f6fb;--white:#fff;
+  --laranja:#E8762B;--laranja2:#f5934a;
+  --text:#1a1a2e;--muted:#6b7280;--bg:#f4f6fb;
   --border:#e2e8f0;--success:#10b981;--danger:#ef4444;
 }
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.layout{display:flex;min-height:100vh;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:70px;}
+
+/* TOPBAR (mobile) */
+.topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:var(--azul);color:white;padding:12px 16px;align-items:center;justify-content:space-between;}
+.topbar-title{font-family:'Poppins',sans-serif;font-size:0.9rem;font-weight:700;}
+.topbar-sync{font-size:0.7rem;display:flex;align-items:center;gap:5px;opacity:0.8;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#94a3b8;}
+.sync-dot.ok{background:var(--success);}
+.sync-dot.syncing{background:var(--laranja);animation:pulse 1s infinite;}
+.sync-dot.err{background:var(--danger);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* BOTTOM NAV (mobile) */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:white;border-top:1px solid var(--border);padding:6px 0 8px;}
+.bottom-nav-inner{display:flex;justify-content:space-around;align-items:center;}
+.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:4px 12px;border-radius:10px;transition:all 0.15s;min-width:52px;}
+.bnav-item.active{background:var(--azul-pale);}
+.bnav-icon{font-size:1.2rem;}
+.bnav-label{font-size:0.6rem;font-weight:600;color:var(--muted);}
+.bnav-item.active .bnav-label{color:var(--azul);}
+
+/* SIDEBAR (desktop) */
 .sidebar{width:220px;background:var(--azul);color:white;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;}
-.logo-area{padding:24px 20px 18px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.logo-area{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.1);}
 .logo-title{font-family:'Poppins',sans-serif;font-size:0.9rem;font-weight:700;line-height:1.3;}
 .logo-sub{font-size:0.65rem;opacity:0.55;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
-.sync-status{padding:10px 20px;font-size:0.68rem;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,0.1);}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:#94a3b8;flex-shrink:0;}
-.sync-dot.ok{background:var(--success);}
-.sync-dot.sync{background:var(--laranja);animation:pulse 1s infinite;}
-.sync-dot.err{background:var(--danger);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.nav{padding:14px 0;flex:1;}
+.desk-sync{padding:10px 20px;font-size:0.68rem;display:flex;align-items:center;gap:6px;border-bottom:1px solid rgba(255,255,255,0.1);}
+.btn-sync-desk{margin:8px 20px;padding:7px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:7px;font-size:0.72rem;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-sync-desk:hover{background:rgba(255,255,255,0.2);}
+.nav{padding:10px 0;flex:1;}
 .nav-section{padding:10px 20px 3px;font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;opacity:0.4;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:0.82rem;font-weight:500;transition:all 0.15s;border-left:3px solid transparent;opacity:0.75;}
 .nav-item:hover{background:rgba(255,255,255,0.08);opacity:1;}
 .nav-item.active{background:rgba(232,118,43,0.2);border-left-color:var(--laranja);opacity:1;}
 .nav-badge{margin-left:auto;background:rgba(255,255,255,0.2);padding:1px 7px;border-radius:10px;font-size:0.68rem;}
-.main{margin-left:220px;padding:24px 28px;flex:1;}
+
+/* MAIN */
+.main{margin-left:220px;padding:24px 28px;min-height:100vh;}
 .page{display:none;}.page.active{display:block;}
 .page-title{font-family:'Poppins',sans-serif;font-size:1.3rem;font-weight:700;color:var(--azul);margin-bottom:2px;}
-.page-sub{font-size:0.82rem;color:var(--muted);margin-bottom:22px;}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.page-sub{font-size:0.82rem;color:var(--muted);margin-bottom:20px;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
 .stat-card{background:white;border-radius:12px;padding:14px 16px;border:1px solid var(--border);}
 .stat-num{font-family:'Poppins',sans-serif;font-size:1.7rem;font-weight:700;color:var(--azul);}
 .stat-num.org{color:var(--laranja);}
 .stat-label{font-size:0.72rem;color:var(--muted);margin-top:1px;}
+
+/* TOOLBAR */
 .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;}
 .search-wrap{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
-.search-input{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.81rem;width:210px;outline:none;font-family:'Inter',sans-serif;}
+.search-input{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.81rem;width:200px;outline:none;font-family:'Inter',sans-serif;}
 .search-input:focus{border-color:var(--azul2);}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;}
 .filter-btn{padding:6px 11px;border-radius:8px;border:1px solid var(--border);background:white;font-size:0.74rem;cursor:pointer;font-family:'Inter',sans-serif;color:var(--muted);transition:all 0.15s;font-weight:500;}
 .filter-btn:hover,.filter-btn.active{background:var(--azul-pale);color:var(--azul);border-color:var(--azul2);}
-.btn-add{padding:8px 16px;background:var(--laranja);color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-add{padding:9px 18px;background:var(--laranja);color:white;border:none;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;}
 .btn-add:hover{background:var(--laranja2);}
+
+/* TABLE */
 .table-wrap{background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden;overflow-x:auto;}
-table{width:100%;border-collapse:collapse;min-width:600px;}
+table{width:100%;border-collapse:collapse;min-width:500px;}
 thead{background:var(--bg);}
 th{padding:9px 14px;text-align:left;font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);white-space:nowrap;}
 td{padding:10px 14px;font-size:0.8rem;border-bottom:1px solid var(--border);vertical-align:middle;}
@@ -70,45 +96,55 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 .badge-red{background:#fee2e2;color:#dc2626;}
 .action-btn{background:none;border:none;cursor:pointer;padding:4px 7px;border-radius:6px;font-size:0.78rem;color:var(--muted);}
 .action-btn:hover{background:var(--bg);color:var(--danger);}
+
+/* CARDS MOBILE */
+.family-cards{display:none;flex-direction:column;gap:10px;}
+.family-card{background:white;border-radius:12px;border:1px solid var(--border);padding:14px;cursor:pointer;transition:box-shadow 0.15s;}
+.family-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.family-card-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.family-card-name{font-weight:600;font-size:0.9rem;color:var(--azul);}
+.family-card-sub{font-size:0.75rem;color:var(--muted);}
+.family-card-row{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* FICHA */
 .ficha-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;z-index:998;}
 .ficha-overlay.open{display:block;}
 .ficha-panel{position:fixed;right:0;top:0;height:100vh;width:540px;max-width:100vw;background:white;box-shadow:-6px 0 32px rgba(0,0,0,0.12);overflow-y:auto;z-index:999;transform:translateX(100%);transition:transform 0.3s;}
 .ficha-panel.open{transform:translateX(0);}
-.ficha-header{background:linear-gradient(135deg,var(--azul),var(--azul2));color:white;padding:22px;}
-.ficha-name{font-family:'Poppins',sans-serif;font-size:1.05rem;font-weight:700;}
-.ficha-meta{font-size:0.76rem;opacity:0.75;margin-top:3px;}
-.ficha-tabs{display:flex;border-bottom:2px solid var(--border);background:white;padding:0 16px;overflow-x:auto;}
-.ficha-tab{padding:11px 14px;font-size:0.78rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;white-space:nowrap;}
+.ficha-header{background:linear-gradient(135deg,var(--azul),var(--azul2));color:white;padding:20px;}
+.ficha-name{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;}
+.ficha-meta{font-size:0.74rem;opacity:0.75;margin-top:3px;}
+.ficha-tabs{display:flex;border-bottom:2px solid var(--border);background:white;padding:0 12px;overflow-x:auto;}
+.ficha-tab{padding:10px 12px;font-size:0.76rem;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
 .ficha-tab.active{color:var(--azul);border-bottom-color:var(--azul);}
-.ficha-body{padding:18px;}
+.ficha-body{padding:16px;}
 .ficha-tab-content{display:none;}.ficha-tab-content.active{display:block;}
-.ficha-section{margin-bottom:16px;}
+.ficha-section{margin-bottom:14px;}
 .ficha-section-title{font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
 .field-full{margin-bottom:7px;}
 .field-label{font-size:0.69rem;font-weight:600;color:var(--azul);margin-bottom:2px;}
 .field-value{font-size:0.81rem;color:var(--text);line-height:1.5;}
-.inline-form{background:var(--bg);border-radius:10px;padding:13px;margin-bottom:13px;}
+.inline-form{background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px;}
 .inline-form label{font-size:0.71rem;font-weight:600;color:var(--azul);display:block;margin-bottom:4px;}
-.inline-form input,.inline-form select,.inline-form textarea{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.8rem;font-family:'Inter',sans-serif;outline:none;margin-bottom:7px;}
-.inline-form textarea{resize:vertical;min-height:55px;}
+.inline-form input,.inline-form select,.inline-form textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.81rem;font-family:'Inter',sans-serif;outline:none;margin-bottom:7px;}
+.inline-form textarea{resize:vertical;min-height:60px;}
 .inline-form .row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.btn-sm{padding:7px 14px;border-radius:7px;font-size:0.77rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:none;}
+.btn-sm{padding:8px 16px;border-radius:7px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;border:none;}
 .btn-sm-primary{background:var(--azul);color:white;}
 .timeline-item{display:flex;gap:11px;margin-bottom:12px;}
 .timeline-dot{width:9px;height:9px;border-radius:50%;background:var(--azul);margin-top:5px;flex-shrink:0;}
 .timeline-dot.org{background:var(--laranja);}
-.timeline-dot.green{background:var(--success);}
-.timeline-title{font-size:0.81rem;font-weight:600;color:var(--text);}
 .timeline-date{font-size:0.69rem;color:var(--muted);}
 .timeline-desc{font-size:0.77rem;color:var(--muted);margin-top:2px;line-height:1.4;}
-.enc-item{background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;}
-.enc-info{flex:1;}
+.enc-item{background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
 .enc-title{font-size:0.81rem;font-weight:600;}
 .enc-meta{font-size:0.71rem;color:var(--muted);margin-top:1px;}
-.status-select{padding:4px 8px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);font-size:0.71rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;outline:none;background:rgba(255,255,255,0.15);color:white;}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;overflow-y:auto;}
+.status-select{padding:4px 8px;border-radius:20px;border:1px solid rgba(255,255,255,0.3);font-size:0.7rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;outline:none;background:rgba(255,255,255,0.15);color:white;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:flex-start;justify-content:center;z-index:1000;padding:16px;overflow-y:auto;}
 .modal-overlay.open{display:flex;}
-.modal{background:white;border-radius:16px;width:560px;max-width:95vw;max-height:92vh;overflow-y:auto;padding:24px;margin:auto;}
+.modal{background:white;border-radius:16px;width:560px;max-width:100%;padding:22px;margin:auto;}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
 .modal-title{font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;color:var(--azul);}
 .close-btn{background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);}
@@ -116,53 +152,74 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 .form-group{display:flex;flex-direction:column;gap:4px;}
 .form-group.full{grid-column:span 2;}
 .form-group label{font-size:0.72rem;font-weight:600;color:var(--azul);}
-.form-group input,.form-group select,.form-group textarea{padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-size:0.8rem;font-family:'Inter',sans-serif;outline:none;color:var(--text);width:100%;}
-.form-group textarea{resize:vertical;min-height:58px;}
-.section-sep{font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:8px 0 3px;border-bottom:1px solid var(--border);grid-column:span 2;}
+.form-group input,.form-group select,.form-group textarea{padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:0.81rem;font-family:'Inter',sans-serif;outline:none;color:var(--text);width:100%;}
+.form-group textarea{resize:vertical;min-height:60px;}
+.section-sep{font-size:0.67rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);padding:8px 0 3px;border-bottom:1px solid var(--border);grid-column:span 2;margin-top:4px;}
 .form-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
-.btn-cancel{padding:8px 18px;border:1px solid var(--border);background:white;border-radius:8px;font-size:0.81rem;cursor:pointer;font-family:'Inter',sans-serif;}
-.btn-save{padding:8px 20px;background:var(--azul);color:white;border:none;border-radius:8px;font-size:0.81rem;font-weight:600;cursor:pointer;}
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.btn-cancel{padding:9px 18px;border:1px solid var(--border);background:white;border-radius:8px;font-size:0.81rem;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-save{padding:9px 20px;background:var(--azul);color:white;border:none;border-radius:8px;font-size:0.81rem;font-weight:600;cursor:pointer;}
+.btn-save:hover{background:var(--azul2);}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
 .chart-card{background:white;border-radius:12px;border:1px solid var(--border);padding:16px;}
 .chart-title{font-family:'Poppins',sans-serif;font-size:0.84rem;font-weight:600;color:var(--azul);margin-bottom:12px;}
 .bar-item{margin-bottom:6px;}
-.bar-label{display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text);margin-bottom:3px;}
+.bar-label{display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:3px;}
 .bar-bg{background:var(--bg);border-radius:4px;height:6px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--azul),var(--azul2));}
 .bar-fill.org{background:linear-gradient(90deg,var(--laranja),var(--laranja2));}
+
 .empty{text-align:center;padding:36px 20px;color:var(--muted);}
 .empty-icon{font-size:2rem;margin-bottom:8px;}
-.loading{text-align:center;padding:40px;color:var(--muted);font-size:0.85rem;}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--success);color:white;padding:11px 18px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:9999;transform:translateY(80px);opacity:0;transition:all 0.3s;max-width:280px;}
+.toast{position:fixed;bottom:80px;right:16px;background:var(--success);color:white;padding:11px 16px;border-radius:10px;font-size:0.82rem;font-weight:500;z-index:9999;transform:translateY(20px);opacity:0;transition:all 0.3s;max-width:260px;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.err{background:var(--danger);}
-.btn-sync{padding:6px 12px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:white;border-radius:7px;font-size:0.72rem;cursor:pointer;font-family:'Inter',sans-serif;margin:10px 20px;}
-.btn-sync:hover{background:rgba(255,255,255,0.25);}
+
+/* RESPONSIVE */
 @media(max-width:768px){
-  .sidebar{width:100%;height:auto;position:relative;}
-  .main{margin-left:0;padding:14px;}
-  .stats-row{grid-template-columns:1fr 1fr;}
+  .sidebar{display:none;}
+  .topbar{display:flex;}
+  .bottom-nav{display:block;}
+  .main{margin-left:0;padding:72px 14px 14px;}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
   .charts-grid{grid-template-columns:1fr;}
+  .table-wrap table{display:none;}
+  .family-cards{display:flex;}
   .form-grid{grid-template-columns:1fr;}
   .form-group.full{grid-column:span 1;}
   .section-sep{grid-column:span 1;}
-  .ficha-panel{width:100%;height:100%;}
+  .ficha-panel{width:100%;}
   .inline-form .row{grid-template-columns:1fr;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .search-wrap{flex-direction:column;}
+  .search-input{width:100%;}
+  .btn-add{width:100%;text-align:center;justify-content:center;padding:12px;}
 }
 </style>
 </head>
 <body>
-<div class="layout">
+
+<!-- TOPBAR MOBILE -->
+<div class="topbar">
+  <div class="topbar-title">Humaniza e Acolhe</div>
+  <div class="topbar-sync" onclick="syncAll()">
+    <div class="sync-dot" id="sync-dot-m"></div>
+    <span id="sync-txt-m">Sincronizar</span>
+  </div>
+</div>
+
+<!-- SIDEBAR DESKTOP -->
 <div class="sidebar">
   <div class="logo-area">
     <div class="logo-title">Humaniza e Acolhe</div>
     <div class="logo-sub">Painel de Gestão</div>
   </div>
-  <div class="sync-status">
-    <div class="sync-dot" id="sync-dot"></div>
-    <span id="sync-txt" style="opacity:0.7;font-size:0.68rem;">Carregando...</span>
+  <div class="desk-sync">
+    <div class="sync-dot" id="sync-dot-d"></div>
+    <span id="sync-txt-d" style="opacity:0.7;font-size:0.68rem;">Aguardando...</span>
   </div>
-  <button class="btn-sync" onclick="syncAll()">🔄 Sincronizar agora</button>
+  <button class="btn-sync-desk" onclick="syncAll()">🔄 Sincronizar</button>
   <nav class="nav">
     <div class="nav-section">Visão Geral</div>
     <div class="nav-item active" onclick="goPage('dashboard',this)"><span>🏠</span> Dashboard</div>
@@ -176,141 +233,161 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
   </nav>
 </div>
 
+<!-- BOTTOM NAV MOBILE -->
+<div class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <div class="bnav-item active" id="bnav-dashboard" onclick="goPageMobile('dashboard',this)">
+      <div class="bnav-icon">🏠</div><div class="bnav-label">Início</div>
+    </div>
+    <div class="bnav-item" id="bnav-familias" onclick="goPageMobile('familias',this)">
+      <div class="bnav-icon">👨‍👩‍👧</div><div class="bnav-label">Famílias</div>
+    </div>
+    <div class="bnav-item" id="bnav-voluntarios" onclick="goPageMobile('voluntarios',this)">
+      <div class="bnav-icon">🤝</div><div class="bnav-label">Voluntários</div>
+    </div>
+    <div class="bnav-item" id="bnav-parceiros" onclick="goPageMobile('parceiros',this)">
+      <div class="bnav-icon">🏢</div><div class="bnav-label">Parceiros</div>
+    </div>
+    <div class="bnav-item" id="bnav-projetos" onclick="goPageMobile('projetos',this)">
+      <div class="bnav-icon">📁</div><div class="bnav-label">Projetos</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
 <div class="main">
 
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <div class="page-title">Olá, Vanessa 👋</div>
-  <div class="page-sub">Painel da Rede Humaniza e Acolhe — dados sincronizados com Google Sheets</div>
+  <div class="page-sub">Rede Humaniza e Acolhe</div>
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-num" id="d-fam">–</div><div class="stat-label">Famílias cadastradas</div></div>
-    <div class="stat-card"><div class="stat-num org" id="d-cond">–</div><div class="stat-label">Com condição atípica</div></div>
-    <div class="stat-card"><div class="stat-num" id="d-bairros">–</div><div class="stat-label">Bairros atendidos</div></div>
-    <div class="stat-card"><div class="stat-num org" id="d-ativo">–</div><div class="stat-label">Famílias ativas</div></div>
+    <div class="stat-card"><div class="stat-num" id="d-fam">–</div><div class="stat-label">Famílias</div></div>
+    <div class="stat-card"><div class="stat-num org" id="d-cond">–</div><div class="stat-label">Com diagnóstico</div></div>
+    <div class="stat-card"><div class="stat-num" id="d-bairros">–</div><div class="stat-label">Bairros</div></div>
+    <div class="stat-card"><div class="stat-num org" id="d-ativo">–</div><div class="stat-label">Ativas</div></div>
   </div>
   <div class="charts-grid" id="charts-area"></div>
   <div class="chart-card">
-    <div class="chart-title">Últimas famílias cadastradas</div>
+    <div class="chart-title">Últimas famílias</div>
     <div class="table-wrap" style="box-shadow:none;border:none;"><table>
       <thead><tr><th>Nome</th><th>Bairro</th><th>Condição</th><th>Status</th></tr></thead>
       <tbody id="dash-recent"></tbody>
     </table></div>
+    <div id="dash-recent-cards" style="display:none;"></div>
   </div>
 </div>
 
 <!-- FAMÍLIAS -->
 <div id="page-familias" class="page">
-  <div class="page-title">Famílias Cadastradas</div>
-  <div class="page-sub">Clique em qualquer família para abrir a ficha completa</div>
+  <div class="page-title">Famílias</div>
+  <div class="page-sub">Toque em qualquer família para abrir a ficha</div>
   <div class="toolbar">
     <div class="search-wrap">
       <input class="search-input" placeholder="🔍 Nome, bairro, condição..." oninput="filterFam(this.value)">
-      <button class="filter-btn active" onclick="setTag('',this)">Todas</button>
-      <button class="filter-btn" onclick="setTag('Ativo',this)">Ativas</button>
-      <button class="filter-btn" onclick="setTag('TEA',this)">TEA</button>
-      <button class="filter-btn" onclick="setTag('TDAH',this)">TDAH</button>
-      <button class="filter-btn" onclick="setTag('Sim',this)">Com diagnóstico</button>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setTag('',this)">Todas</button>
+        <button class="filter-btn" onclick="setTag('TEA',this)">TEA</button>
+        <button class="filter-btn" onclick="setTag('TDAH',this)">TDAH</button>
+        <button class="filter-btn" onclick="setTag('Sim',this)">Diagnóstico</button>
+      </div>
     </div>
     <button class="btn-add" onclick="openModal('fam')">＋ Nova Família</button>
   </div>
-  <div id="loading-fam" class="loading">🔄 Carregando famílias do Google Sheets...</div>
-  <div class="table-wrap" id="wrap-fam" style="display:none">
+  <!-- Desktop table -->
+  <div class="table-wrap">
     <table>
       <thead><tr><th>Nome</th><th>Responsável</th><th>Bairro</th><th>Condição</th><th>Status</th><th>Entrada</th><th></th></tr></thead>
       <tbody id="table-fam"></tbody>
     </table>
     <div id="empty-fam" class="empty" style="display:none"><div class="empty-icon">👨‍👩‍👧</div><p>Nenhuma família encontrada.</p></div>
   </div>
+  <!-- Mobile cards -->
+  <div class="family-cards" id="cards-fam"></div>
 </div>
 
 <!-- VOLUNTÁRIOS -->
 <div id="page-voluntarios" class="page">
   <div class="page-title">Voluntários</div>
-  <div class="page-sub">Pessoas que contribuem com a Humaniza e Acolhe</div>
+  <div class="page-sub">Pessoas que contribuem com a Rede</div>
   <div class="toolbar">
     <input class="search-input" placeholder="🔍 Buscar...">
     <button class="btn-add" onclick="openModal('vol')">＋ Novo Voluntário</button>
   </div>
   <div class="table-wrap"><table>
-    <thead><tr><th>Nome</th><th>Área</th><th>Disponibilidade</th><th>Contato</th><th></th></tr></thead>
+    <thead><tr><th>Nome</th><th>Área</th><th>Disponibilidade</th><th>Contato</th></tr></thead>
     <tbody id="table-vol"></tbody>
   </table><div id="empty-vol" class="empty"><div class="empty-icon">🤝</div><p>Nenhum voluntário cadastrado.</p></div></div>
+  <div class="family-cards" id="cards-vol"></div>
 </div>
 
 <!-- PARCEIROS -->
 <div id="page-parceiros" class="page">
   <div class="page-title">Parceiros</div>
-  <div class="page-sub">Organizações que apoiam a Humaniza e Acolhe</div>
+  <div class="page-sub">Organizações que apoiam a Humaniza</div>
   <div class="toolbar">
     <input class="search-input" placeholder="🔍 Buscar...">
     <button class="btn-add" onclick="openModal('parc')">＋ Novo Parceiro</button>
   </div>
   <div class="table-wrap"><table>
-    <thead><tr><th>Organização</th><th>Tipo</th><th>Responsável</th><th>Contato</th><th></th></tr></thead>
+    <thead><tr><th>Organização</th><th>Tipo</th><th>Responsável</th><th>Contato</th></tr></thead>
     <tbody id="table-parc"></tbody>
   </table><div id="empty-parc" class="empty"><div class="empty-icon">🏢</div><p>Nenhum parceiro cadastrado.</p></div></div>
+  <div class="family-cards" id="cards-parc"></div>
 </div>
 
 <!-- PROJETOS -->
 <div id="page-projetos" class="page">
   <div class="page-title">Projetos</div>
-  <div class="page-sub">Acompanhe o andamento de cada iniciativa</div>
+  <div class="page-sub">Acompanhe cada iniciativa</div>
   <div class="toolbar"><div></div><button class="btn-add" onclick="openModal('proj')">＋ Novo Projeto</button></div>
-  <div id="grid-proj" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
+  <div id="grid-proj" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;"></div>
 </div>
 
-</div></div>
+</div><!-- /main -->
 
 <!-- FICHA INDIVIDUAL -->
 <div class="ficha-overlay" id="ficha-overlay" onclick="closeFicha()"></div>
 <div class="ficha-panel" id="ficha-panel">
   <div class="ficha-header">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-      <div style="flex:1;">
-        <div class="ficha-name" id="fp-nome"></div>
-        <div class="ficha-meta" id="fp-meta"></div>
-      </div>
-      <div style="display:flex;gap:7px;align-items:center;flex-shrink:0;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <div style="flex:1;min-width:0;"><div class="ficha-name" id="fp-nome"></div><div class="ficha-meta" id="fp-meta"></div></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
         <select class="status-select" id="fp-status" onchange="updateStatus(this.value)">
           <option value="Ativo">✅ Ativo</option>
           <option value="Em acompanhamento">🔄 Acompanhamento</option>
           <option value="Aguardando">⏳ Aguardando</option>
           <option value="Inativo">⭕ Inativo</option>
         </select>
-        <button onclick="closeFicha()" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:6px 10px;border-radius:8px;cursor:pointer;">✕</button>
+        <button onclick="closeFicha()" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;">✕</button>
       </div>
     </div>
   </div>
   <div class="ficha-tabs">
     <div class="ficha-tab active" onclick="switchTab('dados',this)">📋 Dados</div>
-    <div class="ficha-tab" onclick="switchTab('acomp',this)">📝 Acompanhamento</div>
+    <div class="ficha-tab" onclick="switchTab('acomp',this)">📝 Acomp.</div>
     <div class="ficha-tab" onclick="switchTab('eventos',this)">📅 Eventos</div>
-    <div class="ficha-tab" onclick="switchTab('enc',this)">🔗 Encaminhamentos</div>
+    <div class="ficha-tab" onclick="switchTab('enc',this)">🔗 Encam.</div>
   </div>
   <div class="ficha-body">
     <div id="tab-dados" class="ficha-tab-content active">
       <div id="fp-dados"></div>
-      <div style="margin-top:14px;">
-        <button class="btn-sm btn-sm-primary" onclick="openEditFicha()" style="width:100%;">✏️ Editar dados desta família</button>
-      </div>
+      <div style="margin-top:14px;"><button class="btn-sm btn-sm-primary" onclick="openEditFicha()" style="width:100%;padding:12px;">✏️ Editar dados desta família</button></div>
     </div>
     <div id="tab-acomp" class="ficha-tab-content">
       <div class="inline-form">
         <label>Nova atualização</label>
         <textarea id="new-obs" placeholder="Registre acompanhamento, situação atual, próximos passos..."></textarea>
-        <button class="btn-sm btn-sm-primary" onclick="addObs()">Salvar atualização</button>
+        <button class="btn-sm btn-sm-primary" onclick="addObs()" style="width:100%;padding:10px;">Salvar atualização</button>
       </div>
       <div id="obs-list"></div>
     </div>
     <div id="tab-eventos" class="ficha-tab-content">
       <div class="inline-form">
-        <label>Registrar participação em evento</label>
-        <div class="row">
-          <div><input id="new-ev-nome" placeholder="Nome do evento"></div>
-          <div><input id="new-ev-data" type="date"></div>
-        </div>
-        <input id="new-ev-local" placeholder="Local do evento" style="margin-bottom:7px;">
-        <button class="btn-sm btn-sm-primary" onclick="addEvento()">Salvar evento</button>
+        <label>Registrar evento</label>
+        <div class="row"><div><input id="new-ev-nome" placeholder="Nome do evento"></div><div><input id="new-ev-data" type="date"></div></div>
+        <input id="new-ev-local" placeholder="Local" style="margin-bottom:7px;">
+        <button class="btn-sm btn-sm-primary" onclick="addEvento()" style="width:100%;padding:10px;">Salvar evento</button>
       </div>
       <div id="eventos-list"></div>
     </div>
@@ -318,17 +395,15 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
       <div class="inline-form">
         <label>Novo encaminhamento</label>
         <div class="row">
-          <select id="new-enc-tipo" style="width:100%;padding:7px;border:1px solid var(--border);border-radius:7px;font-size:0.79rem;font-family:Inter,sans-serif;outline:none;">
-            <option>Psicólogo</option><option>Neurologista</option><option>Psiquiatra</option>
-            <option>Fonoaudiólogo</option><option>Terapeuta ocupacional</option>
-            <option>Assistente social</option><option>Jurídico</option><option>Escola</option><option>Outro</option>
+          <select id="new-enc-tipo" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:7px;font-size:0.79rem;font-family:Inter,sans-serif;outline:none;">
+            <option>Psicólogo</option><option>Neurologista</option><option>Psiquiatra</option><option>Fonoaudiólogo</option><option>Terapeuta ocupacional</option><option>Assistente social</option><option>Jurídico</option><option>Escola</option><option>Outro</option>
           </select>
           <input id="new-enc-data" type="date">
         </div>
         <input id="new-enc-inst" placeholder="Instituição ou profissional" style="margin-bottom:5px;">
         <input id="new-enc-obs" placeholder="Observação" style="margin-bottom:7px;">
         <div style="display:flex;gap:6px;">
-          <select id="new-enc-status" style="flex:1;padding:7px;border:1px solid var(--border);border-radius:7px;font-size:0.77rem;font-family:Inter,sans-serif;outline:none;">
+          <select id="new-enc-status" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:7px;font-size:0.77rem;font-family:Inter,sans-serif;outline:none;">
             <option>Encaminhado</option><option>Em andamento</option><option>Concluído</option><option>Sem retorno</option>
           </select>
           <button class="btn-sm btn-sm-primary" onclick="addEnc()">Salvar</button>
@@ -340,14 +415,13 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 </div>
 
 <!-- MODAIS -->
-<div class="modal-overlay" id="modal-fam">
-<div class="modal">
+<div class="modal-overlay" id="modal-fam"><div class="modal">
   <div class="modal-header"><div class="modal-title" id="modal-fam-title">👨‍👩‍👧 Nova Família</div><button class="close-btn" onclick="closeModal('fam')">✕</button></div>
   <input type="hidden" id="fam-edit-id">
   <div class="form-grid">
     <div class="section-sep">Criança / Pessoa atípica</div>
     <div class="form-group full"><label>Nome completo *</label><input id="fm-nome" placeholder="Nome da criança ou pessoa"></div>
-    <div class="form-group"><label>Nascimento / Idade</label><input id="fm-nasc" placeholder="Ex: 10/03/2018 ou 8 anos"></div>
+    <div class="form-group"><label>Nascimento / Idade</label><input id="fm-nasc" placeholder="Ex: 8 anos"></div>
     <div class="form-group"><label>Sexo</label><select id="fm-sexo"><option value="">—</option><option>Feminino</option><option>Masculino</option><option>Outro</option></select></div>
     <div class="form-group"><label>Bairro</label><input id="fm-bairro"></div>
     <div class="form-group"><label>Cidade</label><input id="fm-cidade" placeholder="Rio de Janeiro"></div>
@@ -359,16 +433,13 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="section-sep">Condição atípica</div>
     <div class="form-group"><label>Tem condição atípica?</label><select id="fm-temcond"><option value="">—</option><option>Sim</option><option>Não</option><option>Em investigação</option></select></div>
     <div class="form-group"><label>Idade</label><input id="fm-idadecond"></div>
-    <div class="form-group full"><label>Diagnóstico / Condição</label><input id="fm-cond" placeholder="Ex: TEA nível 2, TDAH, paralisia cerebral..."></div>
+    <div class="form-group full"><label>Diagnóstico / Condição</label><input id="fm-cond" placeholder="Ex: TEA, TDAH, Síndrome de Down..."></div>
     <div class="section-sep">Necessidades</div>
     <div class="form-group full"><label>Dificuldades</label><textarea id="fm-dific"></textarea></div>
     <div class="form-group full"><label>Expectativas</label><textarea id="fm-expect"></textarea></div>
     <div class="form-group full"><label>Necessidade específica</label><textarea id="fm-nec"></textarea></div>
   </div>
-  <div class="form-actions">
-    <button class="btn-cancel" onclick="closeModal('fam')">Cancelar</button>
-    <button class="btn-save" onclick="saveFam()">Salvar família</button>
-  </div>
+  <div class="form-actions"><button class="btn-cancel" onclick="closeModal('fam')">Cancelar</button><button class="btn-save" onclick="saveFam()">Salvar família</button></div>
 </div></div>
 
 <div class="modal-overlay" id="modal-vol"><div class="modal">
@@ -414,517 +485,264 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbyaqp3LlAzIhg0-e4UDKJqQ4CHEqZkS_9SjUezsc6osGv40g38AbRJuZUmwZZPsrmTKAA/exec';
-const IMPORT = [{"id": 1, "dataEntrada": "08/09/2025", "nome": "Vinicius Machado", "nasc": "8 anos", "tel": "21964177975", "bairro": "Engenheiro leal", "temCondicao": "Sim", "condicao": "TEA e TOD", "idadeCondicao": "8 anos", "dificuldades": "Apoio emocional/psicológico, Preconceito/discriminação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ajuda, acolhimento e perceria", "mensagem": "", "sexo": "feminino", "responsavel": "Sabrina Rosa de Melo Machado", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 2, "dataEntrada": "08/09/2025", "nome": "Thiago Gabriel de Andrade Teixeira", "nasc": "30/11/2015", "tel": "21988117297", "bairro": "Engenho Novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Luana Barbara Costa de Andrade", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 3, "dataEntrada": "08/09/2025", "nome": "Luan Henrique Maia Azevedo", "nasc": "13/01/2022", "tel": "21975042365", "bairro": "Andaraí", "temCondicao": "Sim", "condicao": "Luan, TEA", "idadeCondicao": "03 anos", "dificuldades": "", "expectativas": "Orientações sobre direitos e benefícios, Indicação de profissionais/parceiros", "necessidade": "Mas informações", "mensagem": "", "sexo": "Masculino", "responsavel": "Elisangela Venacio", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 4, "dataEntrada": "08/09/2025", "nome": "Laura de Luna Cruz", "nasc": "15 anos", "tel": "21979339165", "bairro": "Engenho Novo", "temCondicao": "Sim", "condicao": "Minha filha é autista", "idadeCondicao": "14 anos", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Cada vez mais  informação  e acolhimento", "mensagem": "Aproveito  para  agradecer a oportunidade  de fazer parte do grupo, fiquei  muito  emocionada no evento", "sexo": "Femenino", "responsavel": "Luciana luna", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 5, "dataEntrada": "09/09/2025", "nome": "Samuel Lucas Martins Ferreira de Sousa", "nasc": "03/11/2016", "tel": "21968674787", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "8 anos", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Orientações", "mensagem": "O meu filho precisa de orientação pois parece ter TEA.", "sexo": "Masculino", "responsavel": "Ana Paula Martins", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 6, "dataEntrada": "09/09/2025", "nome": "Everaldo Lúcio Silva", "nasc": "45 anos", "tel": "21971307504", "bairro": "Cascadura rj", "temCondicao": "Sim", "condicao": "Filho. . apresentar sintomas de TDH porém preciso de orientação", "idadeCondicao": "12 anos", "dificuldades": "Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Oportunidade", "mensagem": "Atendimento de vcs irá ajudar muitas famílias, avaliação neuropsicologica.", "sexo": "Masculino", "responsavel": "Atendimento para os filhos adotivos", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 7, "dataEntrada": "11/09/2025", "nome": "Richard Rodrigues dos Santos", "nasc": "24/08/2020", "tel": "21959249474", "bairro": "Quintino Bocaiúva", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "5 anos", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "masculino", "responsavel": "Vitoria Rodrigues", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 8, "dataEntrada": "11/09/2025", "nome": "Giovanna Barros de Oliveira", "nasc": "7 anos", "tel": "21994097323", "bairro": "Lins De Vasconcelos", "temCondicao": "Sim", "condicao": "Estamos estudando da minha pequena ter autismo e a minha de 7 ter destra atenção", "idadeCondicao": "2 e 7", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Aprender sobre tudo", "mensagem": "Eu sou nova e não entendo muito", "sexo": "Feminino", "responsavel": "Manoela Barros de Oliveira", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 9, "dataEntrada": "11/09/2025", "nome": "Jessyca Marques Clementino", "nasc": "18/05/1993", "tel": "2198388-1112", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Meus 2 filhos são Autistas", "idadeCondicao": "3 anos e 5 anos", "dificuldades": "Saúde, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Que sejam maravilhosos como o primeiro encontro que eu fui! 🥰🥰🥰", "mensagem": "Eu gostaria de trazer o Grupo aqui pra Thomas Coelho", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 10, "dataEntrada": "11/09/2025", "nome": "Samuel Nolasco Lombardi", "nasc": "01/03/2022", "tel": "21985190418", "bairro": "Centro", "temCondicao": "Sim", "condicao": "Minha mãe epilepsia e meu filho na condição de Altas habilidades/superdotação e Hiperatividade", "idadeCondicao": "Minha mãe 63 anos e meu filho 3 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Mais informações sobre altas habilidades", "mensagem": "", "sexo": "Feminino", "responsavel": "Renata Nolasco", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 11, "dataEntrada": "11/09/2025", "nome": "Lorenzo Davi Frederico Leão", "nasc": "06/09/2019", "tel": "021995739266", "bairro": "Lins de Vasconcelos", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ajuda sobre seletividade alimentar e sobre o que fazer em uma crise, e o que fazer quando meu filho tem uma atitude agressiva", "mensagem": "Ajuda sobre seletividade alimentar e sobre o que fazer em uma crise, e o que fazer quando meu filho tem uma atitude agressiva", "sexo": "masculino", "responsavel": "Ester Frederico Leão", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 12, "dataEntrada": "11/09/2025", "nome": "VANESSA DE LEMOS Ribeiro", "nasc": "16/07/1983", "tel": "21 977000544", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "10 anos", "dificuldades": "Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 13, "dataEntrada": "15/09/2025", "nome": "Davi Luiz dos Santos Arcanjo", "nasc": "11/10/2017", "tel": "219 8895 0569", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Filho tea,dawn", "idadeCondicao": "10 anos", "dificuldades": "Saúde", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Como ainda não participei, não tenho como fala", "mensagem": "Não", "sexo": "Masculino", "responsavel": "Katia Maria", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 14, "dataEntrada": "15/09/2025", "nome": "Taynara Cosme bomfim", "nasc": "03/08/1998", "tel": "21995169750", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 15, "dataEntrada": "16/09/2025", "nome": "Nathyelle Cristina Souza", "nasc": "23/09/1999", "tel": "21989044621", "bairro": "Encantado", "temCondicao": "Sim", "condicao": "Minha filha Maria Clara", "idadeCondicao": "4.0", "dificuldades": "Saúde", "expectativas": "Grupo de convivência e trocas entre famílias", "necessidade": "O melhor e sei também que irá nos acolher e tirar todas as dúvidas.", "mensagem": "Agradecer por ter nos acolhido.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 16, "dataEntrada": "23/09/2025", "nome": "Avasy Lameu dos Santos", "nasc": "04/09/1979", "tel": "21986-3121 75", "bairro": "Lins", "temCondicao": "Sim", "condicao": "Minha filha  Tod", "idadeCondicao": "13 anos", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Continua aprendendo", "mensagem": "Continua com os profissionais maravilhosos", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 17, "dataEntrada": "24/09/2025", "nome": "Viviane Floriana da Silva", "nasc": "18/10/1991", "tel": "21 99378-4673", "bairro": "Engenho novo", "temCondicao": "", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Ajuda", "mensagem": "Preciso de ajuda", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 18, "dataEntrada": "25/09/2025", "nome": "Emanuele Vitória Costa da Silva", "nasc": "15/05/2018", "tel": "21 97760-9326", "bairro": "Jardim bangu", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Apoio e aprendizado.", "mensagem": "Gostaria de ter um diagnóstico pra minha filha, uma conclusão.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 19, "dataEntrada": "30/09/2025", "nome": "Jayne Chrystyne Santos Chagas Silva", "nasc": "04/09/1998", "tel": "61 98407-3956", "bairro": "Higienópolis- Rio de Janeiro", "temCondicao": "Sim", "condicao": "Autismo, TDHA e TOD", "idadeCondicao": "8 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Obter informações sobre locais de terapias...", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 20, "dataEntrada": "01/10/2025", "nome": "Fernanda marriel Silva", "nasc": "15/03/1997", "tel": "21 97410-3831", "bairro": "Duque de Caxias", "temCondicao": "Sim", "condicao": "Autista", "idadeCondicao": "5 e 4", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Preconceito/discriminação, Terapias ele não faz", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros, Conseguir um lugar pra ele fazer terapias sem custos", "necessidade": "Ainda nao estive presente em nenhum .", "mensagem": "Terapias meu filho precisa muito ele é nivel 3", "sexo": "Masculino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 21, "dataEntrada": "02/10/2025", "nome": "Cauan Rafael de Miranda Francisco", "nasc": "23/01/2004", "tel": "21983584923", "bairro": "Bangu", "temCondicao": "Não", "condicao": "Não", "idadeCondicao": "21.0", "dificuldades": "", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Ajuda com terapias", "mensagem": "Não", "sexo": "Masculino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 22, "dataEntrada": "07/10/2025", "nome": "Karen vitoria Monteiro de França", "nasc": "05/04/2012", "tel": "21980624552", "bairro": "Inhauma", "temCondicao": "Sim", "condicao": "Deficiencia intelectual", "idadeCondicao": "13 anos", "dificuldades": "Saúde", "expectativas": "Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Que atenda  minhas expctatibas", "mensagem": "Apoio deconvovrmcia", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 23, "dataEntrada": "29/10/2025", "nome": "Erica Marcos Simão", "nasc": "22/06/1986", "tel": "21 990504390", "bairro": "Praça Seca", "temCondicao": "Sim", "condicao": "Sim", "idadeCondicao": "13.0", "dificuldades": "Saúde, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ajuda", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 24, "dataEntrada": "30/10/2025", "nome": "Maria Brandão Oliveira", "nasc": "", "tel": "21986621442", "bairro": "Tijuca", "temCondicao": "Sim", "condicao": "Autismo Cid 10  48.0", "idadeCondicao": "8.0", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Que o meu filho seja acolhido e aceito por todos", "mensagem": "Data de nascimento 08/06/1980 não consegui colocar lá em cima", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 25, "dataEntrada": "14/11/2025", "nome": "Veronica Martins", "nasc": "", "tel": "21983045152", "bairro": "Engenho Novo", "temCondicao": "Sim", "condicao": "TDAH", "idadeCondicao": "13 anos", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Informações sobre Neurodevirgente.", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 26, "dataEntrada": "14/11/2025", "nome": "Fernanda marriel", "nasc": "15/03/1997", "tel": "21 974972858", "bairro": "Vila sao Luis", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "4 e 5", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Abraços e dicas para o dia a dia como lidar com as crises emocionas", "mensagem": "Apoio psicólogico pra mim e para meus filhos pois estamos passando por um momento de separação.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 27, "dataEntrada": "14/11/2025", "nome": "Thaissa Alice Henriques", "nasc": "13/01/1989", "tel": "21982323234", "bairro": "Jacaré", "temCondicao": "Sim", "condicao": "Meu filho TDAH e em investigação de autismo", "idadeCondicao": "3 anos", "dificuldades": "Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Um encontro divertido pra distrair desse ano que foi tão dificil", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 28, "dataEntrada": "19/11/2025", "nome": "Gabriel Santos de Sousa", "nasc": "28/05/2019", "tel": "21970684802", "bairro": "Engenho Novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Conclusão da investigação", "mensagem": "", "sexo": "Masculino", "responsavel": "Raquel Cristina", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 29, "dataEntrada": "25/11/2025", "nome": "Thiago Matos Ferreira", "nasc": "28/05/2003", "tel": "21 99392-1330", "bairro": "Pilares", "temCondicao": "Sim", "condicao": "Meu filho autista suporte 3 deficiência intelectual", "idadeCondicao": "22 anos", "dificuldades": "Saúde, Acessibilidade, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Estou na expectativa Espero que eu corra tudo bem", "mensagem": "Então como meu filho é autista do nível 3 não verbal e deficiência intelectual Ele tem dificuldade de andar e pegar o ônibus sobre os encontros eu só posso ir em locais que fica mais próximo da minha residência por conta da dificuldade do meu filho andar", "sexo": "Feminino", "responsavel": "Maria Sonia Sousa Matos", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 30, "dataEntrada": "01/12/2025", "nome": "Hiago nunes da silva", "nasc": "20/11/2021", "tel": "21980106432", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Irmão e sobrinha", "idadeCondicao": "17/ 46", "dificuldades": "Ajuda para investigar se meu filho tem TEA, pois está no aguardo na Clinica da familia até hoje não foi chamada.", "expectativas": "Apoio psicológico", "necessidade": "Ajuda", "mensagem": "que todas as mães q são atipicas não desista que uma hora a ajuda chega .", "sexo": "", "responsavel": "Carla nunes maciel", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 31, "dataEntrada": "01/12/2025", "nome": "Felipe lima de Oliveira", "nasc": "08/12/1995", "tel": "21 98838-0178 / 21 96481-8340", "bairro": "Cavalcanti", "temCondicao": "Sim", "condicao": "Felipe sequela de meningite bacteriana aos 2 anos de idade", "idadeCondicao": "29 anos vai fazer 30 dia 08 /12", "dificuldades": "Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Parceria", "mensagem": "Espero que meu filho e eu sejamos bem acolhidos", "sexo": "Masculino", "responsavel": "Paula Eliza dos Santos lima", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 32, "dataEntrada": "04/12/2025", "nome": "Julia da Silva Trindade", "nasc": "02/10/2012", "tel": "21984110366", "bairro": "Olaria", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Acolhimento e troca de vivencias.", "mensagem": "", "sexo": "Feminino", "responsavel": "Rosangela da Silva Trindade", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 33, "dataEntrada": "04/12/2025", "nome": "Lorenzo Davi Frederico Leão", "nasc": "06/09/2019", "tel": "219957392266", "bairro": "Engenho Novo", "temCondicao": "Sim", "condicao": "irmão", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios", "necessidade": "informações sobre o autismo.", "mensagem": "", "sexo": "Masculino", "responsavel": "Ester Frederico Leão", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 34, "dataEntrada": "16/01/2026", "nome": "Ryan Rumasy Dias da silva", "nasc": "26/03/2018", "tel": "21996642097", "bairro": "Sepetiba", "temCondicao": "Sim", "condicao": "2 primos do Ryan", "idadeCondicao": "Rio de janeiro", "dificuldades": "Saúde, Acessibilidade, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Indicação de profissionais/parceiros", "necessidade": "Conseguir um laudo para , meu filho ter direto aí que ele necessita", "mensagem": "Ryan , é uma criança tá com 7 anos , não sabe ler , nem escrever só copiar , palavras para ele completa no máximo de 4 letras , Ryan tem tido crizes , do nada , em ambientes fechados , chora com a mão no ouvido e bate sua cabeça. Mim , se relaciona bem com amiguinhos, mas quando tá agitado ele fica um pouco agressivo, ele coloca tudo ao contrário, roupa ,sapato ,chinelo etc...", "sexo": "Masculino", "responsavel": "Michele Rumasy castro dos reis", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 35, "dataEntrada": "03/02/2026", "nome": "Micael de Oliveira Machado Cesar Soares", "nasc": "02/06/2014", "tel": "21994538643", "bairro": "Quintino Bocaiúva", "temCondicao": "Sim", "condicao": "Filho - TDAH", "idadeCondicao": "11.0", "dificuldades": "Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Thainá Glória de Oliveira Machado", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 36, "dataEntrada": "05/02/2026", "nome": "Pedro Henrique Monteiro da silva", "nasc": "23/07/2015", "tel": "21988737697", "bairro": "Grajaú", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "Curso robótica .", "sexo": "Masculino", "responsavel": "Bruna vieira da Silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 37, "dataEntrada": "05/02/2026", "nome": "Lavinia nunes cordeiro", "nasc": "17/09/2010", "tel": "21966969303", "bairro": "Duque de Caxias", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Terapia e psicológico", "mensagem": "", "sexo": "Masculino", "responsavel": "Diego cordeiro silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 38, "dataEntrada": "05/02/2026", "nome": "Cassio sacramento da Silva", "nasc": "05/02/2026", "tel": "2198623063", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico,", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Ajuda terapeutica", "mensagem": "Ajuda psicólogica", "sexo": "Masculino", "responsavel": "Cassio sacramento da Silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 39, "dataEntrada": "05/02/2026", "nome": "Viviane Vicente Carvalho Silva", "nasc": "05/05/1978", "tel": "21987842126", "bairro": "Engenheiro Leal", "temCondicao": "Sim", "condicao": "1 meu filho autista suporte 2  meu esposo que tem algum grau porém ainda não foi no médico pra saber", "idadeCondicao": "2 pessoas meu filho e meu esposo", "dificuldades": "Saúde, Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Um psicólogo que possa me ajudar", "mensagem": "No momento eu não trabalho, e gostaria de uma ajuda de um psicólogo, porém se possível só posso a tarde os horários 13.30 as 16 horas de segunda a sexta são os melhores horários que meu filho está na escola.", "sexo": "Feminino", "responsavel": "Viviane Vicente Carvalho Silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 40, "dataEntrada": "06/02/2026", "nome": "Vinícius da costa Barbosa", "nasc": "13/02/2021", "tel": "21 982560523", "bairro": "Engenho De Dentro", "temCondicao": "Sim", "condicao": "Meu filho, doença de hirschsprung e uma doença rara q afeta as células nervosa da parede do intestino.......... E Autismo", "idadeCondicao": "4.0", "dificuldades": "Saúde, Escola/educação, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Nossa,  eu me surpreendi, vcs são sem palavras. Cada encontro e perfeito.", "mensagem": "Tenho necessidade com profissionais para a continuação do tratamento do meu filho. Como esperar de exames e médicos..neuro pediatra , nutricionista exames bera com sedação, terapias ocupacional, terapia corponamental", "sexo": "Masculino", "responsavel": "Silvana Maria da costa Lopes", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 41, "dataEntrada": "06/02/2026", "nome": "Michelle Maria da Conceição Viana", "nasc": "17/08/1981", "tel": "021 979454345", "bairro": "São Cristóvão", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ser tão bem acolhida como já me senti pelo telefone.", "mensagem": "Uma amiga indicou a rede para que eu tentasse ajuda e acolhimento para mim e para minhas filhas. Tanto psicologicamente tanto quanto a duvida de um possível diagnostico para minhas filhas.Uma vez que até hj me encontro perdida na saúde publica buscando ajuda para as meninas que hj estão com 20, 18 e 11 anos. Sou mãe solo a qual tenho apenas observação prévia de alguns comportamentos.Neste momento luto com o tratamento com um tumor na cabeça e hipertensão intracraniana idiopatica(pressão alta no crânio).Só preciso tentar que els possam ficar bem . Muito obg.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 42, "dataEntrada": "10/02/2026", "nome": "Paula Eliza dos Santos Lima", "nasc": "06/11/1976", "tel": "21 988380178", "bairro": "Cavalcanti", "temCondicao": "Sim", "condicao": "Felipe lima de Oliveira", "idadeCondicao": "30 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "Paula Eliza dos Santos Lima", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 43, "dataEntrada": "13/02/2026", "nome": "Benjamin da Silvia Alves", "nasc": "11/09/2022", "tel": "21975587387", "bairro": "Campos Elíseos", "temCondicao": "Não", "condicao": "Não", "idadeCondicao": "Nenhum", "dificuldades": "Escola/educação", "expectativas": "Orientações sobre direitos e benefícios", "necessidade": "Resposta", "mensagem": "Sobre a adoção mais de 3 anos pra adota isso tá me prejudicando resolver as coisas pra criança", "sexo": "Feminino", "responsavel": "Adriana Felipe Ramos", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 44, "dataEntrada": "17/02/2026", "nome": "Pedro Henrique de Lima Castro", "nasc": "6/19/0008", "tel": "21975500803", "bairro": "Vila Emil", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "15 anos", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação,", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros,", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "JAQUELINE CIRILO DE LIMA", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 45, "dataEntrada": "24/02/2026", "nome": "Yan Gabriel Batista de Almeida Botelho", "nasc": "05/10/2026", "tel": "21998803844", "bairro": "Engenho de dentro", "temCondicao": "Não", "condicao": "", "idadeCondicao": "5 anos", "dificuldades": "Saúde", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "Meu filho previsa de terapia fono psicólogo psicopedagoga", "sexo": "Masculino", "responsavel": "Bianca batista de Almeida Botelho", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 46, "dataEntrada": "25/02/2026", "nome": "Kalleb Benício Baltar batista costa da Silva", "nasc": "18/10/2016", "tel": "+55 21 99758-0243", "bairro": "Nova Brasília", "temCondicao": "Não", "condicao": "Não", "idadeCondicao": "Não", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação, A falta de recursos e a compreensão das pessoas", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros, E importante te algo assim que apoia acolhe que compreende", "necessidade": "Ser surpreendida e o retorno que eu preciso", "mensagem": "Que foi incrível a manhã com eles e espero ter outras", "sexo": "Masculino", "responsavel": "Adriele batista costa da Silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 47, "dataEntrada": "02/03/2026", "nome": "Bernard Alexander Amaro de Freitas", "nasc": "12/07/2020", "tel": "(21)971138636", "bairro": "Bonsucesso", "temCondicao": "Sim", "condicao": "Tia ,Psiquiatra .", "idadeCondicao": "55 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Buscar entendimento e saber mais sobre.", "mensagem": "Não", "sexo": "Masculino", "responsavel": "Samara Amaro de Souza", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 48, "dataEntrada": "04/03/2026", "nome": "Mirella Andrade de Carvalho", "nasc": "24/04/2023", "tel": "21981874786", "bairro": "Comendador Soares", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Espero que seja acolhedor !", "mensagem": "Gostaria de suporte para com a minha filha!", "sexo": "Feminino", "responsavel": "THAIANE SOUZA DE ANDRADE", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 49, "dataEntrada": "04/03/2026", "nome": "Rafael italo correia dos Santos", "nasc": "05/07/2010", "tel": "21998683280", "bairro": "Lins de Vasconcelos", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "15 anos", "dificuldades": "Saúde", "expectativas": "Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Q seja maravilhoso como tem sido", "mensagem": "Neuro nas redes públicas q esta sem", "sexo": "Masculino", "responsavel": "Joice correia silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 50, "dataEntrada": "06/03/2026", "nome": "Josué de Carvalho Terra", "nasc": "17/01/1988", "tel": "21971569133", "bairro": "Higienópolis", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Atividades culturais e de lazer", "necessidade": "Desenvolvimento intelectual", "mensagem": "Mais contatos físicos e valorização da dificuldade de cada situação", "sexo": "Masculino", "responsavel": "Gláucia de Carvalho Terra", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 51, "dataEntrada": "13/03/2026", "nome": "Luiz Fernando evangelista reis", "nasc": "03/05/2015", "tel": "21998416029", "bairro": "Jacarepaguá", "temCondicao": "Sim", "condicao": "Meu filho Luiz Fernando ele tem paralisia cerebral", "idadeCondicao": "10 anos", "dificuldades": "Acessibilidade, Apoio emocional/psicológico, Terapias", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Gostaria que ele fizesse fisioterapia", "mensagem": "Não", "sexo": "", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 52, "dataEntrada": "13/03/2026", "nome": "Mariana Beatriz Souza Oliveira", "nasc": "08/06/2018", "tel": "21974544738", "bairro": "Rocha Miranda", "temCondicao": "Sim", "condicao": "Mariana Beatriz com TDAH tipo combinado", "idadeCondicao": "7 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Empatia para poder conseguir atendimento para minha filha.", "mensagem": "Atendimento com neurologista e psicólogo", "sexo": "Feminino", "responsavel": "Delma Cristina Souza da Rocha", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 53, "dataEntrada": "16/03/2026", "nome": "Emanuelly santiago de França", "nasc": "15/11/2015", "tel": "21975718399", "bairro": "Comendador Soares", "temCondicao": "Sim", "condicao": "Autista nIvel 2", "idadeCondicao": "6 anos", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Preconceito/discriminação,", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias,", "necessidade": "Esperro uma ajuda. Com neuropsicologia para minha filha espero esta ajuda", "mensagem": "Espero que me ajunde com minha filha ela presisa eu também  de ajuda  minha filha ela ve coisa covesa sozinha se treme  esta trabalhando ela na escola ela presisa de ajuda", "sexo": "Feminino", "responsavel": "Carolina Santiago da Silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 54, "dataEntrada": "16/03/2026", "nome": "Luís Miguel Gomes magalhaes", "nasc": "30/07/2023", "tel": "21984490568", "bairro": "Rua capitão Menezes  1657", "temCondicao": "Sim", "condicao": "Meu filho Luís Miguel", "idadeCondicao": "2 anos e meio", "dificuldades": "Saúde", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Uma ajuda para meu filho", "mensagem": "Ele precisa de fono de terapia ocupacional de musico terapia", "sexo": "Masculino", "responsavel": "Thaísa Gomes da Costa", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 55, "dataEntrada": "16/03/2026", "nome": "Levi Gabriel dos santos silva", "nasc": "04/05/2020", "tel": "21986448300", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Ser bem acolhida", "mensagem": "Minha filha precisa de Neurologista", "sexo": "Feminino", "responsavel": "Talita Nunes dos Santo", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 56, "dataEntrada": "16/03/2026", "nome": "Lilian Carla Silva Costa", "nasc": "28/11/1986", "tel": "21987737185", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Meu filho Lorenzo é autista nível 2 suporte", "idadeCondicao": "4.0", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Acolhimento, conselhos", "mensagem": "Me sinto muita sozinha cuidando do meu Lorenzo", "sexo": "Feminino", "responsavel": "Lilian Carla Silva Costa", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 57, "dataEntrada": "17/03/2026", "nome": "Esther Hadassa Morais de Oliveira", "nasc": "16/02/2002", "tel": "5521990015682", "bairro": "Olaria", "temCondicao": "Sim", "condicao": "Tenho um primo com autismo e minha irmã mais nova com autismo também", "idadeCondicao": "Minha irmã tem 13 meu primo tem 8", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos,", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros,", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 58, "dataEntrada": "20/03/2026", "nome": "Bernardo Lauro Teobaldo Conceicao", "nasc": "18/07/2017", "tel": "2199064-3481", "bairro": "Cavalcanti", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Gostaria de atendimento psicológico as crianças devido ao falecimento dos pais no ano passado", "mensagem": "", "sexo": "Masculino", "responsavel": "Cristiane Teobaldo Alves", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 59, "dataEntrada": "20/03/2026", "nome": "Theo Miguel Teobaldo Conceicao", "nasc": "28/12/2018", "tel": "2199064-3481", "bairro": "Cavalcanti", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Gostaria de auxílio Psicológico as crianças devido a perda de seus pais no ano passado", "mensagem": "", "sexo": "Masculino", "responsavel": "Cristiane Teobaldo Alves", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 60, "dataEntrada": "23/03/2026", "nome": "Samuel dos Santos Carvalho", "nasc": "24/05/2013", "tel": "21980905235", "bairro": "Cascadura", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "", "expectativas": "Apoio psicológico,", "necessidade": "Cuidado e atendimento ao meu filho", "mensagem": "", "sexo": "Masculino", "responsavel": "Rebeca dos Santos evangelista", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 61, "dataEntrada": "30/03/2026", "nome": "Emanuelle Vitória Rodrigues dos santos", "nasc": "06/02/2012", "tel": "21992177047", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Meu sobrinho e autista", "idadeCondicao": "7 anos", "dificuldades": "Saúde, Escola/educação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Eu espero pode trocar experiências  com os outros familiares", "mensagem": "No momento não pos esta sendo tudo muito novo pra mim", "sexo": "Feminino", "responsavel": "Larissa Rodrigues Lucas Felipe", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 62, "dataEntrada": "05/04/2026", "nome": "Gael Alves Guimarães", "nasc": "06/12/2024", "tel": "4599697320", "bairro": "Campo grande", "temCondicao": "Sim", "condicao": "Deficiência, tdh autismo", "idadeCondicao": "11 a criança 52 anos a suficiente", "dificuldades": "Saúde, Acessibilidade, Apoio emocional/psicológico, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Wedja kiaria Alves Guimarães", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 63, "dataEntrada": "06/04/2026", "nome": "Antonio ravi máximo de melo", "nasc": "14/07/2024", "tel": "21988152402", "bairro": "Jacarepaguá .rio das pedra", "temCondicao": "Sim", "condicao": "Tem meu avo mudo", "idadeCondicao": "70.0", "dificuldades": "Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios", "necessidade": "Ajuda", "mensagem": "", "sexo": "Masculino", "responsavel": "Antonia de cassia máximo de melo", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 64, "dataEntrada": "10/04/2026", "nome": "Andrielly  Victoria vieira Barboza", "nasc": "13/01/2016", "tel": "21983061548", "bairro": "Coelho neto", "temCondicao": "Sim", "condicao": "Autismo filha", "idadeCondicao": "10 anos", "dificuldades": "Saúde, Apoio emocional/psicológico, Preconceito/discriminação, Falta de tratamento médico", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Apoio ajuda", "mensagem": "", "sexo": "Feminino", "responsavel": "Karla simone Vieira silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 65, "dataEntrada": "10/04/2026", "nome": "Samuel dos Santos Carvalho", "nasc": "24/05/2013", "tel": "21980905235", "bairro": "Cascadura", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Samuel tem uns “desligamentos “ no dia a dia, quando tem alguma dificuldade na escola chora e se isola não aceita uma conversa. A escola já fez o Relato de ajuda com ele.", "mensagem": "", "sexo": "Feminino", "responsavel": "Rebeca dos Santos evangelista", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 66, "dataEntrada": "10/04/2026", "nome": "Miguel dos Santos Carvalho", "nasc": "05/06/2015", "tel": "21980905235", "bairro": "Cascadura", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Atividades culturais e de lazer", "necessidade": "Miguel é uma criança muito agitada que sempre a escola relata uma dispersão em atenção, como saídas pra ir ao banheiro pra nao conseguir executar as atividades. Sempre querem atenção ao extremo, uma criança muito agitada muito inquieta.", "mensagem": "", "sexo": "Feminino", "responsavel": "Rebeca dos Santos evangelista", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 67, "dataEntrada": "16/04/2026", "nome": "Anna Clara Telles Fagundes", "nasc": "05/08/2026", "tel": "21976983554", "bairro": "Inhaúma", "temCondicao": "Não", "condicao": "", "idadeCondicao": "11 anos", "dificuldades": "Apoio emocional/psicológico, Preconceito/discriminação", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "A minha maior necessidade específica e de ajuda para minha filha e na área psicológica e emocional e discriminação racial", "sexo": "Feminino", "responsavel": "Ana Paula Telles Barbosa", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 68, "dataEntrada": "28/04/2026", "nome": "João Gabriel de Lima Pereira", "nasc": "27/09/2018", "tel": "21982773504", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Geisa Pereira Amaro", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 69, "dataEntrada": "28/04/2026", "nome": "José Daniel de Lima Pereira", "nasc": "04/04/2015", "tel": "21982773504", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Geisa Pereira Amaro", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 70, "dataEntrada": "11/05/2026", "nome": "Milena Cordeiro dos Santos", "nasc": "14/12/2019", "tel": "21990906991", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Autismo sobrinho", "idadeCondicao": "5 anos", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico", "necessidade": "Resolver a minha necessidade,😘", "mensagem": "", "sexo": "Feminino", "responsavel": "Raiza Carla dos Santos", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 71, "dataEntrada": "13/05/2026", "nome": "Bernardo Luis Rodrigues Paula", "nasc": "18/06/2018", "tel": "21992177047", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Autista", "idadeCondicao": "7 anos", "dificuldades": "Escola/educação", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "", "responsavel": "Larissa Rodrigues Lucas Felipe", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 72, "dataEntrada": "22/05/2026", "nome": "Gabriel Barbosa da Silva", "nasc": "06/10/2018", "tel": "21998755777", "bairro": "Del Castilho", "temCondicao": "Sim", "condicao": "TDHA e Autismo toc.", "idadeCondicao": "31.0", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Minha 1 vez", "mensagem": "", "sexo": "Feminino", "responsavel": "Helena da Silva Barbosa", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 73, "dataEntrada": "27/05/2026", "nome": "Samuel Lucas Martins Ferreira de Sousa", "nasc": "03/11/2016", "tel": "21968674787", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Depressão psicotica", "idadeCondicao": "33.0", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico", "necessidade": "Orientações", "mensagem": "", "sexo": "Feminino", "responsavel": "Ana Paula Martins Ferreira", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 74, "dataEntrada": "10/06/2026", "nome": "Lavínia de sa santos", "nasc": "07/09/2016", "tel": "21968402021", "bairro": "Engenho novo 98", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Trazer melhorias mentalmente", "mensagem": "", "sexo": "Feminino", "responsavel": "Thiago Santos", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 75, "dataEntrada": "10/06/2026", "nome": "Maria Fernanda Rodrigues Pereira", "nasc": "21/07/2018", "tel": "21996791363", "bairro": "Engenho da rainha", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos,", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "Daniele Rodrigues Pereira de Souza", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 76, "dataEntrada": "18/06/2026", "nome": "Pedro Henrique Ramos Pereira", "nasc": "23/07/2015", "tel": "21968015934", "bairro": "Realengo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Que ajude meu filho psicologicamente", "mensagem": "", "sexo": "Masculino", "responsavel": "Thaiane Ramos Ferreira", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}, {"id": 77, "dataEntrada": "24/06/2026", "nome": "João Maurício Souza Fonseca", "nasc": "09/07/2021", "tel": "21992490500", "bairro": "Cachambi", "temCondicao": "Sim", "condicao": "João Maurício Souza Fonseca", "idadeCondicao": "Autista nível 2", "dificuldades": "Saúde, Escola/educação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "Marcela Souza Silva", "composicao": "", "renda": "", "situacao": "", "obs": "", "eventos": [], "status": "Ativo", "encaminhamentos": [], "obsLog": []}];
+const IMPORT = [{"id": 1, "dataEntrada": "08/09/2025", "nome": "Vinicius Machado", "nasc": "8 anos", "tel": "21964177975", "bairro": "Engenheiro leal", "temCondicao": "Sim", "condicao": "TEA e TOD", "idadeCondicao": "8 anos", "dificuldades": "Apoio emocional/psicológico, Preconceito/discriminação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ajuda, acolhimento e perceria", "mensagem": "", "sexo": "feminino", "responsavel": "Sabrina Rosa de Melo Machado", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 2, "dataEntrada": "08/09/2025", "nome": "Thiago Gabriel de Andrade Teixeira", "nasc": "30/11/2015", "tel": "21988117297", "bairro": "Engenho Novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Luana Barbara Costa de Andrade", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 3, "dataEntrada": "08/09/2025", "nome": "Luan Henrique Maia Azevedo", "nasc": "13/01/2022", "tel": "21975042365", "bairro": "Andaraí", "temCondicao": "Sim", "condicao": "Luan, TEA", "idadeCondicao": "03 anos", "dificuldades": "", "expectativas": "Orientações sobre direitos e benefícios, Indicação de profissionais/parceiros", "necessidade": "Mas informações", "mensagem": "", "sexo": "Masculino", "responsavel": "Elisangela Venacio", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 4, "dataEntrada": "08/09/2025", "nome": "Laura de Luna Cruz", "nasc": "15 anos", "tel": "21979339165", "bairro": "Engenho Novo", "temCondicao": "Sim", "condicao": "Minha filha é autista", "idadeCondicao": "14 anos", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Cada vez mais  informação  e acolhimento", "mensagem": "Aproveito  para  agradecer a oportunidade  de fazer parte do grupo, fiquei  muito  emocionada no evento", "sexo": "Femenino", "responsavel": "Luciana luna", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 5, "dataEntrada": "09/09/2025", "nome": "Samuel Lucas Martins Ferreira de Sousa", "nasc": "03/11/2016", "tel": "21968674787", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "8 anos", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Orientações", "mensagem": "O meu filho precisa de orientação pois parece ter TEA.", "sexo": "Masculino", "responsavel": "Ana Paula Martins", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 6, "dataEntrada": "09/09/2025", "nome": "Everaldo Lúcio Silva", "nasc": "45 anos", "tel": "21971307504", "bairro": "Cascadura rj", "temCondicao": "Sim", "condicao": "Filho. . apresentar sintomas de TDH porém preciso de orientação", "idadeCondicao": "12 anos", "dificuldades": "Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Oportunidade", "mensagem": "Atendimento de vcs irá ajudar muitas famílias, avaliação neuropsicologica.", "sexo": "Masculino", "responsavel": "Atendimento para os filhos adotivos", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 7, "dataEntrada": "11/09/2025", "nome": "Richard Rodrigues dos Santos", "nasc": "24/08/2020", "tel": "21959249474", "bairro": "Quintino Bocaiúva", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "5 anos", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "masculino", "responsavel": "Vitoria Rodrigues", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 8, "dataEntrada": "11/09/2025", "nome": "Giovanna Barros de Oliveira", "nasc": "7 anos", "tel": "21994097323", "bairro": "Lins De Vasconcelos", "temCondicao": "Sim", "condicao": "Estamos estudando da minha pequena ter autismo e a minha de 7 ter destra atenção", "idadeCondicao": "2 e 7", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Aprender sobre tudo", "mensagem": "Eu sou nova e não entendo muito", "sexo": "Feminino", "responsavel": "Manoela Barros de Oliveira", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 9, "dataEntrada": "11/09/2025", "nome": "Jessyca Marques Clementino", "nasc": "18/05/1993", "tel": "2198388-1112", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Meus 2 filhos são Autistas", "idadeCondicao": "3 anos e 5 anos", "dificuldades": "Saúde, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Que sejam maravilhosos como o primeiro encontro que eu fui! 🥰🥰🥰", "mensagem": "Eu gostaria de trazer o Grupo aqui pra Thomas Coelho", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 10, "dataEntrada": "11/09/2025", "nome": "Samuel Nolasco Lombardi", "nasc": "01/03/2022", "tel": "21985190418", "bairro": "Centro", "temCondicao": "Sim", "condicao": "Minha mãe epilepsia e meu filho na condição de Altas habilidades/superdotação e Hiperatividade", "idadeCondicao": "Minha mãe 63 anos e meu filho 3 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Mais informações sobre altas habilidades", "mensagem": "", "sexo": "Feminino", "responsavel": "Renata Nolasco", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 11, "dataEntrada": "11/09/2025", "nome": "Lorenzo Davi Frederico Leão", "nasc": "06/09/2019", "tel": "021995739266", "bairro": "Lins de Vasconcelos", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ajuda sobre seletividade alimentar e sobre o que fazer em uma crise, e o que fazer quando meu filho tem uma atitude agressiva", "mensagem": "Ajuda sobre seletividade alimentar e sobre o que fazer em uma crise, e o que fazer quando meu filho tem uma atitude agressiva", "sexo": "masculino", "responsavel": "Ester Frederico Leão", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 12, "dataEntrada": "11/09/2025", "nome": "VANESSA DE LEMOS Ribeiro", "nasc": "16/07/1983", "tel": "21 977000544", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "10 anos", "dificuldades": "Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 13, "dataEntrada": "15/09/2025", "nome": "Davi Luiz dos Santos Arcanjo", "nasc": "11/10/2017", "tel": "219 8895 0569", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Filho tea,dawn", "idadeCondicao": "10 anos", "dificuldades": "Saúde", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Como ainda não participei, não tenho como fala", "mensagem": "Não", "sexo": "Masculino", "responsavel": "Katia Maria", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 14, "dataEntrada": "15/09/2025", "nome": "Taynara Cosme bomfim", "nasc": "03/08/1998", "tel": "21995169750", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 15, "dataEntrada": "16/09/2025", "nome": "Nathyelle Cristina Souza", "nasc": "23/09/1999", "tel": "21989044621", "bairro": "Encantado", "temCondicao": "Sim", "condicao": "Minha filha Maria Clara", "idadeCondicao": "4.0", "dificuldades": "Saúde", "expectativas": "Grupo de convivência e trocas entre famílias", "necessidade": "O melhor e sei também que irá nos acolher e tirar todas as dúvidas.", "mensagem": "Agradecer por ter nos acolhido.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 16, "dataEntrada": "23/09/2025", "nome": "Avasy Lameu dos Santos", "nasc": "04/09/1979", "tel": "21986-3121 75", "bairro": "Lins", "temCondicao": "Sim", "condicao": "Minha filha  Tod", "idadeCondicao": "13 anos", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Continua aprendendo", "mensagem": "Continua com os profissionais maravilhosos", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 17, "dataEntrada": "24/09/2025", "nome": "Viviane Floriana da Silva", "nasc": "18/10/1991", "tel": "21 99378-4673", "bairro": "Engenho novo", "temCondicao": "", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Ajuda", "mensagem": "Preciso de ajuda", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 18, "dataEntrada": "25/09/2025", "nome": "Emanuele Vitória Costa da Silva", "nasc": "15/05/2018", "tel": "21 97760-9326", "bairro": "Jardim bangu", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Apoio e aprendizado.", "mensagem": "Gostaria de ter um diagnóstico pra minha filha, uma conclusão.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 19, "dataEntrada": "30/09/2025", "nome": "Jayne Chrystyne Santos Chagas Silva", "nasc": "04/09/1998", "tel": "61 98407-3956", "bairro": "Higienópolis- Rio de Janeiro", "temCondicao": "Sim", "condicao": "Autismo, TDHA e TOD", "idadeCondicao": "8 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Obter informações sobre locais de terapias...", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 20, "dataEntrada": "01/10/2025", "nome": "Fernanda marriel Silva", "nasc": "15/03/1997", "tel": "21 97410-3831", "bairro": "Duque de Caxias", "temCondicao": "Sim", "condicao": "Autista", "idadeCondicao": "5 e 4", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Preconceito/discriminação, Terapias ele não faz", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros, Conseguir um lugar pra ele fazer terapias sem custos", "necessidade": "Ainda nao estive presente em nenhum .", "mensagem": "Terapias meu filho precisa muito ele é nivel 3", "sexo": "Masculino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 21, "dataEntrada": "02/10/2025", "nome": "Cauan Rafael de Miranda Francisco", "nasc": "23/01/2004", "tel": "21983584923", "bairro": "Bangu", "temCondicao": "Não", "condicao": "Não", "idadeCondicao": "21.0", "dificuldades": "", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Ajuda com terapias", "mensagem": "Não", "sexo": "Masculino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 22, "dataEntrada": "07/10/2025", "nome": "Karen vitoria Monteiro de França", "nasc": "05/04/2012", "tel": "21980624552", "bairro": "Inhauma", "temCondicao": "Sim", "condicao": "Deficiencia intelectual", "idadeCondicao": "13 anos", "dificuldades": "Saúde", "expectativas": "Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Que atenda  minhas expctatibas", "mensagem": "Apoio deconvovrmcia", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 23, "dataEntrada": "29/10/2025", "nome": "Erica Marcos Simão", "nasc": "22/06/1986", "tel": "21 990504390", "bairro": "Praça Seca", "temCondicao": "Sim", "condicao": "Sim", "idadeCondicao": "13.0", "dificuldades": "Saúde, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ajuda", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 24, "dataEntrada": "30/10/2025", "nome": "Maria Brandão Oliveira", "nasc": "", "tel": "21986621442", "bairro": "Tijuca", "temCondicao": "Sim", "condicao": "Autismo Cid 10  48.0", "idadeCondicao": "8.0", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Que o meu filho seja acolhido e aceito por todos", "mensagem": "Data de nascimento 08/06/1980 não consegui colocar lá em cima", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 25, "dataEntrada": "14/11/2025", "nome": "Veronica Martins", "nasc": "", "tel": "21983045152", "bairro": "Engenho Novo", "temCondicao": "Sim", "condicao": "TDAH", "idadeCondicao": "13 anos", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Informações sobre Neurodevirgente.", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 26, "dataEntrada": "14/11/2025", "nome": "Fernanda marriel", "nasc": "15/03/1997", "tel": "21 974972858", "bairro": "Vila sao Luis", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "4 e 5", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Abraços e dicas para o dia a dia como lidar com as crises emocionas", "mensagem": "Apoio psicólogico pra mim e para meus filhos pois estamos passando por um momento de separação.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 27, "dataEntrada": "14/11/2025", "nome": "Thaissa Alice Henriques", "nasc": "13/01/1989", "tel": "21982323234", "bairro": "Jacaré", "temCondicao": "Sim", "condicao": "Meu filho TDAH e em investigação de autismo", "idadeCondicao": "3 anos", "dificuldades": "Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Um encontro divertido pra distrair desse ano que foi tão dificil", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 28, "dataEntrada": "19/11/2025", "nome": "Gabriel Santos de Sousa", "nasc": "28/05/2019", "tel": "21970684802", "bairro": "Engenho Novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Conclusão da investigação", "mensagem": "", "sexo": "Masculino", "responsavel": "Raquel Cristina", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 29, "dataEntrada": "25/11/2025", "nome": "Thiago Matos Ferreira", "nasc": "28/05/2003", "tel": "21 99392-1330", "bairro": "Pilares", "temCondicao": "Sim", "condicao": "Meu filho autista suporte 3 deficiência intelectual", "idadeCondicao": "22 anos", "dificuldades": "Saúde, Acessibilidade, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Estou na expectativa Espero que eu corra tudo bem", "mensagem": "Então como meu filho é autista do nível 3 não verbal e deficiência intelectual Ele tem dificuldade de andar e pegar o ônibus sobre os encontros eu só posso ir em locais que fica mais próximo da minha residência por conta da dificuldade do meu filho andar", "sexo": "Feminino", "responsavel": "Maria Sonia Sousa Matos", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 30, "dataEntrada": "01/12/2025", "nome": "Hiago nunes da silva", "nasc": "20/11/2021", "tel": "21980106432", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Irmão e sobrinha", "idadeCondicao": "17/ 46", "dificuldades": "Ajuda para investigar se meu filho tem TEA, pois está no aguardo na Clinica da familia até hoje não foi chamada.", "expectativas": "Apoio psicológico", "necessidade": "Ajuda", "mensagem": "que todas as mães q são atipicas não desista que uma hora a ajuda chega .", "sexo": "", "responsavel": "Carla nunes maciel", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 31, "dataEntrada": "01/12/2025", "nome": "Felipe lima de Oliveira", "nasc": "08/12/1995", "tel": "21 98838-0178 / 21 96481-8340", "bairro": "Cavalcanti", "temCondicao": "Sim", "condicao": "Felipe sequela de meningite bacteriana aos 2 anos de idade", "idadeCondicao": "29 anos vai fazer 30 dia 08 /12", "dificuldades": "Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Parceria", "mensagem": "Espero que meu filho e eu sejamos bem acolhidos", "sexo": "Masculino", "responsavel": "Paula Eliza dos Santos lima", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 32, "dataEntrada": "04/12/2025", "nome": "Julia da Silva Trindade", "nasc": "02/10/2012", "tel": "21984110366", "bairro": "Olaria", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Acolhimento e troca de vivencias.", "mensagem": "", "sexo": "Feminino", "responsavel": "Rosangela da Silva Trindade", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 33, "dataEntrada": "04/12/2025", "nome": "Lorenzo Davi Frederico Leão", "nasc": "06/09/2019", "tel": "219957392266", "bairro": "Engenho Novo", "temCondicao": "Sim", "condicao": "irmão", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios", "necessidade": "informações sobre o autismo.", "mensagem": "", "sexo": "Masculino", "responsavel": "Ester Frederico Leão", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 34, "dataEntrada": "16/01/2026", "nome": "Ryan Rumasy Dias da silva", "nasc": "26/03/2018", "tel": "21996642097", "bairro": "Sepetiba", "temCondicao": "Sim", "condicao": "2 primos do Ryan", "idadeCondicao": "Rio de janeiro", "dificuldades": "Saúde, Acessibilidade, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Indicação de profissionais/parceiros", "necessidade": "Conseguir um laudo para , meu filho ter direto aí que ele necessita", "mensagem": "Ryan , é uma criança tá com 7 anos , não sabe ler , nem escrever só copiar , palavras para ele completa no máximo de 4 letras , Ryan tem tido crizes , do nada , em ambientes fechados , chora com a mão no ouvido e bate sua cabeça. Mim , se relaciona bem com amiguinhos, mas quando tá agitado ele fica um pouco agressivo, ele coloca tudo ao contrário, roupa ,sapato ,chinelo etc...", "sexo": "Masculino", "responsavel": "Michele Rumasy castro dos reis", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 35, "dataEntrada": "03/02/2026", "nome": "Micael de Oliveira Machado Cesar Soares", "nasc": "02/06/2014", "tel": "21994538643", "bairro": "Quintino Bocaiúva", "temCondicao": "Sim", "condicao": "Filho - TDAH", "idadeCondicao": "11.0", "dificuldades": "Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Thainá Glória de Oliveira Machado", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 36, "dataEntrada": "05/02/2026", "nome": "Pedro Henrique Monteiro da silva", "nasc": "23/07/2015", "tel": "21988737697", "bairro": "Grajaú", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "Curso robótica .", "sexo": "Masculino", "responsavel": "Bruna vieira da Silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 37, "dataEntrada": "05/02/2026", "nome": "Lavinia nunes cordeiro", "nasc": "17/09/2010", "tel": "21966969303", "bairro": "Duque de Caxias", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Terapia e psicológico", "mensagem": "", "sexo": "Masculino", "responsavel": "Diego cordeiro silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 38, "dataEntrada": "05/02/2026", "nome": "Cassio sacramento da Silva", "nasc": "05/02/2026", "tel": "2198623063", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico,", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "Ajuda terapeutica", "mensagem": "Ajuda psicólogica", "sexo": "Masculino", "responsavel": "Cassio sacramento da Silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 39, "dataEntrada": "05/02/2026", "nome": "Viviane Vicente Carvalho Silva", "nasc": "05/05/1978", "tel": "21987842126", "bairro": "Engenheiro Leal", "temCondicao": "Sim", "condicao": "1 meu filho autista suporte 2  meu esposo que tem algum grau porém ainda não foi no médico pra saber", "idadeCondicao": "2 pessoas meu filho e meu esposo", "dificuldades": "Saúde, Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Um psicólogo que possa me ajudar", "mensagem": "No momento eu não trabalho, e gostaria de uma ajuda de um psicólogo, porém se possível só posso a tarde os horários 13.30 as 16 horas de segunda a sexta são os melhores horários que meu filho está na escola.", "sexo": "Feminino", "responsavel": "Viviane Vicente Carvalho Silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 40, "dataEntrada": "06/02/2026", "nome": "Vinícius da costa Barbosa", "nasc": "13/02/2021", "tel": "21 982560523", "bairro": "Engenho De Dentro", "temCondicao": "Sim", "condicao": "Meu filho, doença de hirschsprung e uma doença rara q afeta as células nervosa da parede do intestino.......... E Autismo", "idadeCondicao": "4.0", "dificuldades": "Saúde, Escola/educação, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Nossa,  eu me surpreendi, vcs são sem palavras. Cada encontro e perfeito.", "mensagem": "Tenho necessidade com profissionais para a continuação do tratamento do meu filho. Como esperar de exames e médicos..neuro pediatra , nutricionista exames bera com sedação, terapias ocupacional, terapia corponamental", "sexo": "Masculino", "responsavel": "Silvana Maria da costa Lopes", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 41, "dataEntrada": "06/02/2026", "nome": "Michelle Maria da Conceição Viana", "nasc": "17/08/1981", "tel": "021 979454345", "bairro": "São Cristóvão", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Ser tão bem acolhida como já me senti pelo telefone.", "mensagem": "Uma amiga indicou a rede para que eu tentasse ajuda e acolhimento para mim e para minhas filhas. Tanto psicologicamente tanto quanto a duvida de um possível diagnostico para minhas filhas.Uma vez que até hj me encontro perdida na saúde publica buscando ajuda para as meninas que hj estão com 20, 18 e 11 anos. Sou mãe solo a qual tenho apenas observação prévia de alguns comportamentos.Neste momento luto com o tratamento com um tumor na cabeça e hipertensão intracraniana idiopatica(pressão alta no crânio).Só preciso tentar que els possam ficar bem . Muito obg.", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 42, "dataEntrada": "10/02/2026", "nome": "Paula Eliza dos Santos Lima", "nasc": "06/11/1976", "tel": "21 988380178", "bairro": "Cavalcanti", "temCondicao": "Sim", "condicao": "Felipe lima de Oliveira", "idadeCondicao": "30 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "Paula Eliza dos Santos Lima", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 43, "dataEntrada": "13/02/2026", "nome": "Benjamin da Silvia Alves", "nasc": "11/09/2022", "tel": "21975587387", "bairro": "Campos Elíseos", "temCondicao": "Não", "condicao": "Não", "idadeCondicao": "Nenhum", "dificuldades": "Escola/educação", "expectativas": "Orientações sobre direitos e benefícios", "necessidade": "Resposta", "mensagem": "Sobre a adoção mais de 3 anos pra adota isso tá me prejudicando resolver as coisas pra criança", "sexo": "Feminino", "responsavel": "Adriana Felipe Ramos", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 44, "dataEntrada": "17/02/2026", "nome": "Pedro Henrique de Lima Castro", "nasc": "6/19/0008", "tel": "21975500803", "bairro": "Vila Emil", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "15 anos", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação,", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros,", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "JAQUELINE CIRILO DE LIMA", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 45, "dataEntrada": "24/02/2026", "nome": "Yan Gabriel Batista de Almeida Botelho", "nasc": "05/10/2026", "tel": "21998803844", "bairro": "Engenho de dentro", "temCondicao": "Não", "condicao": "", "idadeCondicao": "5 anos", "dificuldades": "Saúde", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "Meu filho previsa de terapia fono psicólogo psicopedagoga", "sexo": "Masculino", "responsavel": "Bianca batista de Almeida Botelho", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 46, "dataEntrada": "25/02/2026", "nome": "Kalleb Benício Baltar batista costa da Silva", "nasc": "18/10/2016", "tel": "+55 21 99758-0243", "bairro": "Nova Brasília", "temCondicao": "Não", "condicao": "Não", "idadeCondicao": "Não", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação, A falta de recursos e a compreensão das pessoas", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros, E importante te algo assim que apoia acolhe que compreende", "necessidade": "Ser surpreendida e o retorno que eu preciso", "mensagem": "Que foi incrível a manhã com eles e espero ter outras", "sexo": "Masculino", "responsavel": "Adriele batista costa da Silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 47, "dataEntrada": "02/03/2026", "nome": "Bernard Alexander Amaro de Freitas", "nasc": "12/07/2020", "tel": "(21)971138636", "bairro": "Bonsucesso", "temCondicao": "Sim", "condicao": "Tia ,Psiquiatra .", "idadeCondicao": "55 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Buscar entendimento e saber mais sobre.", "mensagem": "Não", "sexo": "Masculino", "responsavel": "Samara Amaro de Souza", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 48, "dataEntrada": "04/03/2026", "nome": "Mirella Andrade de Carvalho", "nasc": "24/04/2023", "tel": "21981874786", "bairro": "Comendador Soares", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Espero que seja acolhedor !", "mensagem": "Gostaria de suporte para com a minha filha!", "sexo": "Feminino", "responsavel": "THAIANE SOUZA DE ANDRADE", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 49, "dataEntrada": "04/03/2026", "nome": "Rafael italo correia dos Santos", "nasc": "05/07/2010", "tel": "21998683280", "bairro": "Lins de Vasconcelos", "temCondicao": "Sim", "condicao": "Autismo", "idadeCondicao": "15 anos", "dificuldades": "Saúde", "expectativas": "Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Q seja maravilhoso como tem sido", "mensagem": "Neuro nas redes públicas q esta sem", "sexo": "Masculino", "responsavel": "Joice correia silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 50, "dataEntrada": "06/03/2026", "nome": "Josué de Carvalho Terra", "nasc": "17/01/1988", "tel": "21971569133", "bairro": "Higienópolis", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Atividades culturais e de lazer", "necessidade": "Desenvolvimento intelectual", "mensagem": "Mais contatos físicos e valorização da dificuldade de cada situação", "sexo": "Masculino", "responsavel": "Gláucia de Carvalho Terra", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 51, "dataEntrada": "13/03/2026", "nome": "Luiz Fernando evangelista reis", "nasc": "03/05/2015", "tel": "21998416029", "bairro": "Jacarepaguá", "temCondicao": "Sim", "condicao": "Meu filho Luiz Fernando ele tem paralisia cerebral", "idadeCondicao": "10 anos", "dificuldades": "Acessibilidade, Apoio emocional/psicológico, Terapias", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Indicação de profissionais/parceiros", "necessidade": "Gostaria que ele fizesse fisioterapia", "mensagem": "Não", "sexo": "", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 52, "dataEntrada": "13/03/2026", "nome": "Mariana Beatriz Souza Oliveira", "nasc": "08/06/2018", "tel": "21974544738", "bairro": "Rocha Miranda", "temCondicao": "Sim", "condicao": "Mariana Beatriz com TDAH tipo combinado", "idadeCondicao": "7 anos", "dificuldades": "Saúde, Escola/educação, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Empatia para poder conseguir atendimento para minha filha.", "mensagem": "Atendimento com neurologista e psicólogo", "sexo": "Feminino", "responsavel": "Delma Cristina Souza da Rocha", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 53, "dataEntrada": "16/03/2026", "nome": "Emanuelly santiago de França", "nasc": "15/11/2015", "tel": "21975718399", "bairro": "Comendador Soares", "temCondicao": "Sim", "condicao": "Autista nIvel 2", "idadeCondicao": "6 anos", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Preconceito/discriminação,", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias,", "necessidade": "Esperro uma ajuda. Com neuropsicologia para minha filha espero esta ajuda", "mensagem": "Espero que me ajunde com minha filha ela presisa eu também  de ajuda  minha filha ela ve coisa covesa sozinha se treme  esta trabalhando ela na escola ela presisa de ajuda", "sexo": "Feminino", "responsavel": "Carolina Santiago da Silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 54, "dataEntrada": "16/03/2026", "nome": "Luís Miguel Gomes magalhaes", "nasc": "30/07/2023", "tel": "21984490568", "bairro": "Rua capitão Menezes  1657", "temCondicao": "Sim", "condicao": "Meu filho Luís Miguel", "idadeCondicao": "2 anos e meio", "dificuldades": "Saúde", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Uma ajuda para meu filho", "mensagem": "Ele precisa de fono de terapia ocupacional de musico terapia", "sexo": "Masculino", "responsavel": "Thaísa Gomes da Costa", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 55, "dataEntrada": "16/03/2026", "nome": "Levi Gabriel dos santos silva", "nasc": "04/05/2020", "tel": "21986448300", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Ser bem acolhida", "mensagem": "Minha filha precisa de Neurologista", "sexo": "Feminino", "responsavel": "Talita Nunes dos Santo", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 56, "dataEntrada": "16/03/2026", "nome": "Lilian Carla Silva Costa", "nasc": "28/11/1986", "tel": "21987737185", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Meu filho Lorenzo é autista nível 2 suporte", "idadeCondicao": "4.0", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Acolhimento, conselhos", "mensagem": "Me sinto muita sozinha cuidando do meu Lorenzo", "sexo": "Feminino", "responsavel": "Lilian Carla Silva Costa", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 57, "dataEntrada": "17/03/2026", "nome": "Esther Hadassa Morais de Oliveira", "nasc": "16/02/2002", "tel": "5521990015682", "bairro": "Olaria", "temCondicao": "Sim", "condicao": "Tenho um primo com autismo e minha irmã mais nova com autismo também", "idadeCondicao": "Minha irmã tem 13 meu primo tem 8", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos,", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros,", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 58, "dataEntrada": "20/03/2026", "nome": "Bernardo Lauro Teobaldo Conceicao", "nasc": "18/07/2017", "tel": "2199064-3481", "bairro": "Cavalcanti", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Gostaria de atendimento psicológico as crianças devido ao falecimento dos pais no ano passado", "mensagem": "", "sexo": "Masculino", "responsavel": "Cristiane Teobaldo Alves", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 59, "dataEntrada": "20/03/2026", "nome": "Theo Miguel Teobaldo Conceicao", "nasc": "28/12/2018", "tel": "2199064-3481", "bairro": "Cavalcanti", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Gostaria de auxílio Psicológico as crianças devido a perda de seus pais no ano passado", "mensagem": "", "sexo": "Masculino", "responsavel": "Cristiane Teobaldo Alves", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 60, "dataEntrada": "23/03/2026", "nome": "Samuel dos Santos Carvalho", "nasc": "24/05/2013", "tel": "21980905235", "bairro": "Cascadura", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "", "expectativas": "Apoio psicológico,", "necessidade": "Cuidado e atendimento ao meu filho", "mensagem": "", "sexo": "Masculino", "responsavel": "Rebeca dos Santos evangelista", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 61, "dataEntrada": "30/03/2026", "nome": "Emanuelle Vitória Rodrigues dos santos", "nasc": "06/02/2012", "tel": "21992177047", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Meu sobrinho e autista", "idadeCondicao": "7 anos", "dificuldades": "Saúde, Escola/educação", "expectativas": "Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer", "necessidade": "Eu espero pode trocar experiências  com os outros familiares", "mensagem": "No momento não pos esta sendo tudo muito novo pra mim", "sexo": "Feminino", "responsavel": "Larissa Rodrigues Lucas Felipe", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 62, "dataEntrada": "05/04/2026", "nome": "Gael Alves Guimarães", "nasc": "06/12/2024", "tel": "4599697320", "bairro": "Campo grande", "temCondicao": "Sim", "condicao": "Deficiência, tdh autismo", "idadeCondicao": "11 a criança 52 anos a suficiente", "dificuldades": "Saúde, Acessibilidade, Apoio emocional/psicológico, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Wedja kiaria Alves Guimarães", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 63, "dataEntrada": "06/04/2026", "nome": "Antonio ravi máximo de melo", "nasc": "14/07/2024", "tel": "21988152402", "bairro": "Jacarepaguá .rio das pedra", "temCondicao": "Sim", "condicao": "Tem meu avo mudo", "idadeCondicao": "70.0", "dificuldades": "Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios", "necessidade": "Ajuda", "mensagem": "", "sexo": "Masculino", "responsavel": "Antonia de cassia máximo de melo", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 64, "dataEntrada": "10/04/2026", "nome": "Andrielly  Victoria vieira Barboza", "nasc": "13/01/2016", "tel": "21983061548", "bairro": "Coelho neto", "temCondicao": "Sim", "condicao": "Autismo filha", "idadeCondicao": "10 anos", "dificuldades": "Saúde, Apoio emocional/psicológico, Preconceito/discriminação, Falta de tratamento médico", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "Apoio ajuda", "mensagem": "", "sexo": "Feminino", "responsavel": "Karla simone Vieira silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 65, "dataEntrada": "10/04/2026", "nome": "Samuel dos Santos Carvalho", "nasc": "24/05/2013", "tel": "21980905235", "bairro": "Cascadura", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Samuel tem uns “desligamentos “ no dia a dia, quando tem alguma dificuldade na escola chora e se isola não aceita uma conversa. A escola já fez o Relato de ajuda com ele.", "mensagem": "", "sexo": "Feminino", "responsavel": "Rebeca dos Santos evangelista", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 66, "dataEntrada": "10/04/2026", "nome": "Miguel dos Santos Carvalho", "nasc": "05/06/2015", "tel": "21980905235", "bairro": "Cascadura", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Apoio psicológico, Atividades culturais e de lazer", "necessidade": "Miguel é uma criança muito agitada que sempre a escola relata uma dispersão em atenção, como saídas pra ir ao banheiro pra nao conseguir executar as atividades. Sempre querem atenção ao extremo, uma criança muito agitada muito inquieta.", "mensagem": "", "sexo": "Feminino", "responsavel": "Rebeca dos Santos evangelista", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 67, "dataEntrada": "16/04/2026", "nome": "Anna Clara Telles Fagundes", "nasc": "05/08/2026", "tel": "21976983554", "bairro": "Inhaúma", "temCondicao": "Não", "condicao": "", "idadeCondicao": "11 anos", "dificuldades": "Apoio emocional/psicológico, Preconceito/discriminação", "expectativas": "Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "A minha maior necessidade específica e de ajuda para minha filha e na área psicológica e emocional e discriminação racial", "sexo": "Feminino", "responsavel": "Ana Paula Telles Barbosa", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 68, "dataEntrada": "28/04/2026", "nome": "João Gabriel de Lima Pereira", "nasc": "27/09/2018", "tel": "21982773504", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Geisa Pereira Amaro", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 69, "dataEntrada": "28/04/2026", "nome": "José Daniel de Lima Pereira", "nasc": "04/04/2015", "tel": "21982773504", "bairro": "Engenho novo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "", "mensagem": "", "sexo": "Masculino", "responsavel": "Geisa Pereira Amaro", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 70, "dataEntrada": "11/05/2026", "nome": "Milena Cordeiro dos Santos", "nasc": "14/12/2019", "tel": "21990906991", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Autismo sobrinho", "idadeCondicao": "5 anos", "dificuldades": "Escola/educação, Apoio emocional/psicológico", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico", "necessidade": "Resolver a minha necessidade,😘", "mensagem": "", "sexo": "Feminino", "responsavel": "Raiza Carla dos Santos", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 71, "dataEntrada": "13/05/2026", "nome": "Bernardo Luis Rodrigues Paula", "nasc": "18/06/2018", "tel": "21992177047", "bairro": "Engenho novo", "temCondicao": "Sim", "condicao": "Autista", "idadeCondicao": "7 anos", "dificuldades": "Escola/educação", "expectativas": "Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "", "responsavel": "Larissa Rodrigues Lucas Felipe", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 72, "dataEntrada": "22/05/2026", "nome": "Gabriel Barbosa da Silva", "nasc": "06/10/2018", "tel": "21998755777", "bairro": "Del Castilho", "temCondicao": "Sim", "condicao": "TDHA e Autismo toc.", "idadeCondicao": "31.0", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos, Preconceito/discriminação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "Minha 1 vez", "mensagem": "", "sexo": "Feminino", "responsavel": "Helena da Silva Barbosa", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 73, "dataEntrada": "27/05/2026", "nome": "Samuel Lucas Martins Ferreira de Sousa", "nasc": "03/11/2016", "tel": "21968674787", "bairro": "Thomas Coelho", "temCondicao": "Sim", "condicao": "Depressão psicotica", "idadeCondicao": "33.0", "dificuldades": "Apoio emocional/psicológico, Informações e orientações sobre direitos", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico", "necessidade": "Orientações", "mensagem": "", "sexo": "Feminino", "responsavel": "Ana Paula Martins Ferreira", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 74, "dataEntrada": "10/06/2026", "nome": "Lavínia de sa santos", "nasc": "07/09/2016", "tel": "21968402021", "bairro": "Engenho novo 98", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Trazer melhorias mentalmente", "mensagem": "", "sexo": "Feminino", "responsavel": "Thiago Santos", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 75, "dataEntrada": "10/06/2026", "nome": "Maria Fernanda Rodrigues Pereira", "nasc": "21/07/2018", "tel": "21996791363", "bairro": "Engenho da rainha", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Saúde, Escola/educação, Acessibilidade, Apoio emocional/psicológico, Informações e orientações sobre direitos,", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "Daniele Rodrigues Pereira de Souza", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 76, "dataEntrada": "18/06/2026", "nome": "Pedro Henrique Ramos Pereira", "nasc": "23/07/2015", "tel": "21968015934", "bairro": "Realengo", "temCondicao": "Não", "condicao": "", "idadeCondicao": "", "dificuldades": "Apoio emocional/psicológico", "expectativas": "Apoio psicológico", "necessidade": "Que ajude meu filho psicologicamente", "mensagem": "", "sexo": "Masculino", "responsavel": "Thaiane Ramos Ferreira", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}, {"id": 77, "dataEntrada": "24/06/2026", "nome": "João Maurício Souza Fonseca", "nasc": "09/07/2021", "tel": "21992490500", "bairro": "Cachambi", "temCondicao": "Sim", "condicao": "João Maurício Souza Fonseca", "idadeCondicao": "Autista nível 2", "dificuldades": "Saúde, Escola/educação", "expectativas": "Orientações sobre direitos e benefícios, Apoio psicológico, Grupo de convivência e trocas entre famílias, Atividades culturais e de lazer, Indicação de profissionais/parceiros", "necessidade": "", "mensagem": "", "sexo": "Feminino", "responsavel": "Marcela Souza Silva", "composicao": "", "renda": "", "status": "Ativo", "obsLog": [], "eventos": [], "encaminhamentos": []}];
+let db = {familias:[],vol:[],parc:[],proj:[]};
+let currentId=null, searchQ='', tagQ='', _cbN=0;
 
-let db = {familias:[], vol:[], parc:[], proj:[]};
-let currentId = null;
-let searchQ = '', tagQ = '';
-
-// ---- SYNC ----
-function setSyncStatus(state, msg) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-txt');
-  dot.className = 'sync-dot ' + state;
-  txt.textContent = msg;
-}
-
-async function apiGet(aba) {
-  const r = await fetch(`${API}?aba=${aba}`);
-  const d = await r.json();
-  if (d.erro) throw new Error(d.erro);
-  return d.dados || [];
-}
-
-async function apiPost(aba, linha) {
-  const r = await fetch(API, {
-    method: 'POST',
-    body: JSON.stringify({acao:'salvar', aba, linha})
+function jsonpGet(params) {
+  return new Promise((resolve,reject) => {
+    const cb='__hcb'+(++_cbN);
+    const to=setTimeout(()=>{ delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); reject(new Error('Timeout')); },20000);
+    window[cb]=(data)=>{ clearTimeout(to); delete window[cb]; const s=document.getElementById(cb); if(s)s.remove(); resolve(data); };
+    const qs=Object.entries({...params,callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    const s=document.createElement('script'); s.id=cb; s.src=API+'?'+qs;
+    s.onerror=()=>{ clearTimeout(to); delete window[cb]; reject(new Error('Erro de rede')); };
+    document.head.appendChild(s);
   });
-  const d = await r.json();
-  if (d.erro) throw new Error(d.erro);
-  return d;
+}
+async function apiGet(aba){ const d=await jsonpGet({aba}); if(d.erro) throw new Error(d.erro); return d.dados||[]; }
+async function apiSave(aba,linha){ const d=await jsonpGet({acao:'salvar',aba,linha:JSON.stringify(linha)}); if(d.erro) throw new Error(d.erro); return d; }
+
+function setSyncStatus(state,msg){
+  ['d','m'].forEach(k=>{
+    const dot=document.getElementById('sync-dot-'+k);
+    const txt=document.getElementById('sync-txt-'+k);
+    if(dot) dot.className='sync-dot '+state;
+    if(txt) txt.textContent=msg;
+  });
 }
 
-function rowToFamilia(row, idx) {
-  if (!row[0]) return null;
-  return {
-    id: idx + 1,
-    dataEntrada: row[0]||'', nome: row[1]||'', nasc: row[2]||'',
-    sexo: row[3]||'', bairro: row[4]||'', cidade: row[5]||'',
-    responsavel: row[6]||'', tel: row[7]||'', composicao: row[8]||'',
-    renda: row[9]||'', temCondicao: row[10]||'', condicao: row[11]||'',
-    idadeCondicao: row[12]||'', dificuldades: row[13]||'',
-    expectativas: row[14]||'', necessidade: row[15]||'',
-    mensagem: row[16]||'', status: row[17]||'Ativo',
-    obsLog: tryParse(row[18]), eventos: tryParse(row[19]),
-    encaminhamentos: tryParse(row[20]),
-  };
+function tryParse(s){ try{return JSON.parse(s||'[]');}catch(e){return [];} }
+
+function rowToFam(row,idx){
+  if(!row[0]&&!row[1]) return null;
+  return {id:idx+1,dataEntrada:String(row[0]||''),nome:String(row[1]||''),nasc:String(row[2]||''),sexo:String(row[3]||''),bairro:String(row[4]||''),cidade:String(row[5]||''),responsavel:String(row[6]||''),tel:String(row[7]||''),composicao:String(row[8]||''),renda:String(row[9]||''),temCondicao:String(row[10]||''),condicao:String(row[11]||''),idadeCondicao:String(row[12]||''),dificuldades:String(row[13]||''),expectativas:String(row[14]||''),necessidade:String(row[15]||''),mensagem:String(row[16]||''),status:String(row[17]||'Ativo'),obsLog:tryParse(row[18]),eventos:tryParse(row[19]),encaminhamentos:tryParse(row[20])};
+}
+function famToRow(f){
+  return [f.dataEntrada||new Date().toLocaleDateString('pt-BR'),f.nome||'',f.nasc||'',f.sexo||'',f.bairro||'',f.cidade||'Rio de Janeiro',f.responsavel||'',f.tel||'',f.composicao||'',f.renda||'',f.temCondicao||'',f.condicao||'',f.idadeCondicao||'',f.dificuldades||'',f.expectativas||'',f.necessidade||'',f.mensagem||'',f.status||'Ativo',JSON.stringify(f.obsLog||[]),JSON.stringify(f.eventos||[]),JSON.stringify(f.encaminhamentos||[])];
 }
 
-function familiaToRow(f) {
-  return [
-    f.dataEntrada||new Date().toLocaleDateString('pt-BR'),
-    f.nome||'', f.nasc||'', f.sexo||'', f.bairro||'', f.cidade||'',
-    f.responsavel||'', f.tel||'', f.composicao||'', f.renda||'',
-    f.temCondicao||'', f.condicao||'', f.idadeCondicao||'',
-    f.dificuldades||'', f.expectativas||'', f.necessidade||'',
-    f.mensagem||'', f.status||'Ativo',
-    JSON.stringify(f.obsLog||[]),
-    JSON.stringify(f.eventos||[]),
-    JSON.stringify(f.encaminhamentos||[]),
-  ];
-}
-
-function tryParse(s) {
-  try { return JSON.parse(s||'[]'); } catch(e) { return []; }
-}
-
-async function syncAll() {
-  setSyncStatus('sync', 'Sincronizando...');
-  try {
-    // Load famílias
-    const rows = await apiGet('Famílias');
-    if (rows.length <= 1) {
-      // Sheet is empty — populate with imported data
-      setSyncStatus('sync', 'Importando dados iniciais...');
-      for (const f of IMPORT) {
-        f.status = f.status||'Ativo';
-        f.obsLog = f.obsLog||[];
-        f.eventos = f.eventos||[];
-        f.encaminhamentos = f.encaminhamentos||[];
-        await apiPost('Famílias', familiaToRow(f));
-      }
-      db.familias = IMPORT;
+async function syncAll(){
+  setSyncStatus('syncing','Sincronizando...');
+  try{
+    const rows=await apiGet('Famílias');
+    if(rows.length<=1){
+      setSyncStatus('syncing','Importando dados...');
+      for(const f of IMPORT){ f.status='Ativo';f.obsLog=[];f.eventos=[];f.encaminhamentos=[]; await apiSave('Famílias',famToRow(f)); }
+      db.familias=[...IMPORT];
     } else {
-      db.familias = rows.slice(1).map((r,i)=>rowToFamilia(r,i)).filter(Boolean);
+      db.familias=rows.slice(1).map((r,i)=>rowToFam(r,i)).filter(Boolean);
     }
-
-    // Load outros
-    const vrows = await apiGet('Voluntários');
-    db.vol = vrows.slice(1).filter(r=>r[0]).map((r,i)=>{
-      return {id:i+1,nome:r[0]||'',prof:r[1]||'',area:r[2]||'',disp:r[3]||'',tel:r[4]||'',obs:r[5]||''};
-    });
-
-    const prows = await apiGet('Parceiros');
-    db.parc = prows.slice(1).filter(r=>r[0]).map((r,i)=>{
-      return {id:i+1,nome:r[0]||'',tipo:r[1]||'',resp:r[2]||'',tel:r[3]||'',obs:r[4]||''};
-    });
-
-    const projrows = await apiGet('Projetos');
-    db.proj = projrows.slice(1).filter(r=>r[0]).map((r,i)=>{
-      return {id:i+1,nome:r[0]||'',desc:r[1]||'',status:r[2]||'',prog:parseInt(r[3])||0,ini:r[4]||'',fim:r[5]||'',resp:r[6]||''};
-    });
-    if(!db.proj.length) {
-      db.proj=[
-        {id:1,nome:'Mostra Cultural Humaniza e Acolhe',desc:'Arte e neurodiversidade. PRONAC 542.133 — Lei Rouanet.',status:'Em andamento',prog:45,ini:'2025-06-01',fim:'2025-07-31',resp:'Vanessa'},
-        {id:2,nome:'Librelon em Movimento',desc:'Parceria permanente com ações mensais de inclusão.',status:'Em andamento',prog:70,ini:'2025-11-01',fim:'',resp:'Vanessa'},
-      ];
-    }
-
-    setSyncStatus('ok', 'Sincronizado ✓');
-    updateUI();
-    showToast('✅ Dados sincronizados!');
-  } catch(err) {
-    setSyncStatus('err', 'Erro de conexão');
-    showToast('⚠️ Sem conexão com Sheets. Usando dados locais.', true);
-    // Fallback to imported data
-    if(!db.familias.length) {
-      db.familias = IMPORT.map(f=>{
-        return {...f,status:'Ativo',obsLog:[],eventos:[],encaminhamentos:[]};
-      });
-    }
+    const vr=await apiGet('Voluntários'); db.vol=vr.slice(1).filter(r=>r[0]).map((r,i)=>{return {id:i+1,nome:String(r[0]),prof:String(r[1]||''),area:String(r[2]||''),disp:String(r[3]||''),tel:String(r[4]||''),obs:String(r[5]||'')}});
+    const pr=await apiGet('Parceiros'); db.parc=pr.slice(1).filter(r=>r[0]).map((r,i)=>{return {id:i+1,nome:String(r[0]),tipo:String(r[1]||''),resp:String(r[2]||''),tel:String(r[3]||''),obs:String(r[4]||'')}});
+    const pjr=await apiGet('Projetos'); db.proj=pjr.slice(1).filter(r=>r[0]).map((r,i)=>{return {id:i+1,nome:String(r[0]),desc:String(r[1]||''),status:String(r[2]||''),prog:parseInt(r[3])||0,ini:String(r[4]||''),fim:String(r[5]||''),resp:String(r[6]||'')}});
+    if(!db.proj.length) db.proj=[{id:1,nome:'Mostra Cultural Humaniza e Acolhe',desc:'Arte e neurodiversidade. PRONAC 542.133 — Lei Rouanet.',status:'Em andamento',prog:45,ini:'2025-06-01',fim:'2025-07-31',resp:'Vanessa'},{id:2,nome:'Librelon em Movimento',desc:'Parceria permanente com ações mensais de inclusão.',status:'Em andamento',prog:70,ini:'2025-11-01',fim:'',resp:'Vanessa'}];
+    setSyncStatus('ok','Sincronizado ✓'); updateUI(); showToast('✅ Sincronizado!');
+  } catch(err){
+    setSyncStatus('err','Erro de conexão');
+    showToast('⚠️ '+err.message.substring(0,40),true);
+    if(!db.familias.length) db.familias=IMPORT.map(f=>{return {...f,status:'Ativo',obsLog:[],eventos:[],encaminhamentos:[]}});
     updateUI();
   }
 }
 
-function updateUI() {
-  updateDash();
-  renderFam();
-  renderVol();
-  renderParc();
-  renderProj();
-  document.getElementById('badge-fam').textContent = db.familias.length;
-  document.getElementById('loading-fam').style.display = 'none';
-  document.getElementById('wrap-fam').style.display = '';
-}
+function updateUI(){ updateDash();renderFam();renderVol();renderParc();renderProj();document.getElementById('badge-fam').textContent=db.familias.length; }
 
-// ---- NAV ----
-function goPage(id,el) {
+function goPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+}
+function goPageMobile(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bnav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   el.classList.add('active');
 }
 
-function openModal(t) { document.getElementById('modal-'+t).classList.add('open'); }
-function closeModal(t) { document.getElementById('modal-'+t).classList.remove('open'); }
+function openModal(t){ document.getElementById('modal-'+t).classList.add('open'); }
+function closeModal(t){ document.getElementById('modal-'+t).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
 
-// ---- FAMÍLIAS ----
-async function saveFam() {
-  const nome = document.getElementById('fm-nome').value.trim();
-  if (!nome) { alert('Informe o nome.'); return; }
-  const eid = document.getElementById('fam-edit-id').value;
-  const item = {
-    id: eid ? parseInt(eid) : Date.now(),
-    dataEntrada: new Date().toLocaleDateString('pt-BR'),
-    nome, nasc: document.getElementById('fm-nasc').value,
-    sexo: document.getElementById('fm-sexo').value,
-    bairro: document.getElementById('fm-bairro').value,
-    cidade: document.getElementById('fm-cidade').value,
-    responsavel: document.getElementById('fm-resp').value,
-    tel: document.getElementById('fm-tel').value,
-    composicao: document.getElementById('fm-comp').value,
-    renda: document.getElementById('fm-renda').value,
-    temCondicao: document.getElementById('fm-temcond').value,
-    condicao: document.getElementById('fm-cond').value,
-    idadeCondicao: document.getElementById('fm-idadecond').value,
-    dificuldades: document.getElementById('fm-dific').value,
-    expectativas: document.getElementById('fm-expect').value,
-    necessidade: document.getElementById('fm-nec').value,
-    mensagem: '', status: 'Ativo', obsLog: [], eventos: [], encaminhamentos: [],
-  };
-
-  if (eid) {
-    const old = db.familias.find(f=>f.id==eid);
-    if (old) {
-      item.obsLog=old.obsLog||[]; item.eventos=old.eventos||[];
-      item.encaminhamentos=old.encaminhamentos||[]; item.status=old.status||'Ativo';
-      item.dataEntrada=old.dataEntrada||item.dataEntrada;
-    }
-    db.familias = db.familias.map(f=>f.id==eid?item:f);
-  } else {
-    db.familias.push(item);
-  }
-
-  closeModal('fam');
-  renderFam(); updateDash();
-  showToast('💾 Salvando no Sheets...');
-
-  try {
-    await apiPost('Famílias', familiaToRow(item));
-    setSyncStatus('ok','Sincronizado ✓');
-    showToast('✅ Família salva no Sheets!');
-  } catch(e) {
-    setSyncStatus('err','Erro ao salvar');
-    showToast('⚠️ Salvo localmente. Sincronize depois.', true);
-  }
-
+async function saveFam(){
+  const nome=document.getElementById('fm-nome').value.trim();
+  if(!nome){alert('Informe o nome.');return;}
+  const eid=document.getElementById('fam-edit-id').value;
+  const old=eid?db.familias.find(f=>f.id==eid):null;
+  const item={id:eid?parseInt(eid):Date.now(),dataEntrada:old?old.dataEntrada:new Date().toLocaleDateString('pt-BR'),nome,nasc:document.getElementById('fm-nasc').value,sexo:document.getElementById('fm-sexo').value,bairro:document.getElementById('fm-bairro').value,cidade:document.getElementById('fm-cidade').value||'Rio de Janeiro',responsavel:document.getElementById('fm-resp').value,tel:document.getElementById('fm-tel').value,composicao:document.getElementById('fm-comp').value,renda:document.getElementById('fm-renda').value,temCondicao:document.getElementById('fm-temcond').value,condicao:document.getElementById('fm-cond').value,idadeCondicao:document.getElementById('fm-idadecond').value,dificuldades:document.getElementById('fm-dific').value,expectativas:document.getElementById('fm-expect').value,necessidade:document.getElementById('fm-nec').value,mensagem:old?old.mensagem:'',status:old?old.status:'Ativo',obsLog:old?old.obsLog:[],eventos:old?old.eventos:[],encaminhamentos:old?old.encaminhamentos:[]};
+  if(eid) db.familias=db.familias.map(f=>f.id==eid?item:f); else db.familias.push(item);
+  closeModal('fam'); renderFam(); updateDash();
   document.getElementById('fam-edit-id').value='';
+  showToast('💾 Salvando...');
+  try{ await apiSave('Famílias',famToRow(item)); setSyncStatus('ok','Sincronizado ✓'); showToast('✅ Família salva!'); }
+  catch(e){ setSyncStatus('err','Erro ao salvar'); showToast('⚠️ Salvo localmente.',true); }
   ['fm-nome','fm-nasc','fm-bairro','fm-cidade','fm-resp','fm-tel','fm-comp','fm-cond','fm-idadecond','fm-dific','fm-expect','fm-nec'].forEach(id=>document.getElementById(id).value='');
 }
 
-function renderFam() {
-  let items = db.familias;
-  if (tagQ==='Ativo') items=items.filter(f=>f.status==='Ativo');
-  else if (tagQ==='TEA') items=items.filter(f=>(f.condicao||'').toLowerCase().includes('tea')||(f.condicao||'').toLowerCase().includes('autis'));
-  else if (tagQ==='TDAH') items=items.filter(f=>(f.condicao||'').toLowerCase().includes('tdah')||(f.condicao||'').toLowerCase().includes('tdh'));
-  else if (tagQ==='Sim') items=items.filter(f=>f.temCondicao==='Sim');
-  if (searchQ) items=items.filter(f=>(f.nome+f.bairro+f.condicao+f.responsavel).toLowerCase().includes(searchQ.toLowerCase()));
-
+function renderFam(){
+  let items=db.familias;
+  if(tagQ==='TEA') items=items.filter(f=>(f.condicao||'').toLowerCase().includes('tea')||(f.condicao||'').toLowerCase().includes('autis'));
+  else if(tagQ==='TDAH') items=items.filter(f=>(f.condicao||'').toLowerCase().includes('tdah')||(f.condicao||'').toLowerCase().includes('tdh'));
+  else if(tagQ==='Sim') items=items.filter(f=>f.temCondicao==='Sim');
+  if(searchQ) items=items.filter(f=>(f.nome+f.bairro+f.condicao+f.responsavel).toLowerCase().includes(searchQ.toLowerCase()));
   const tbody=document.getElementById('table-fam');
   const empty=document.getElementById('empty-fam');
-  if (!items.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  const cards=document.getElementById('cards-fam');
+  if(!items.length){tbody.innerHTML='';if(cards)cards.innerHTML='';empty.style.display='';return;}
   empty.style.display='none';
-
-  const stB=s=>{
-    if(s==='Ativo') return '<span class="badge badge-green">Ativo</span>';
-    if(s==='Em acompanhamento') return '<span class="badge badge-blue">Acompanhamento</span>';
-    if(s==='Aguardando') return '<span class="badge badge-yellow">Aguardando</span>';
-    return '<span class="badge badge-gray">Inativo</span>';
-  };
-
+  const stB=s=>{if(s==='Ativo')return'<span class="badge badge-green">Ativo</span>';if(s==='Em acompanhamento')return'<span class="badge badge-blue">Acomp.</span>';if(s==='Aguardando')return'<span class="badge badge-yellow">Aguardando</span>';return'<span class="badge badge-gray">Inativo</span>';};
   tbody.innerHTML=items.map(f=>{
-    const cond=(f.condicao||'').substring(0,26)+(f.condicao&&f.condicao.length>26?'...':'');
-    return `<tr class="clickable" onclick="openFicha(${f.id})">
-      <td><div class="person-cell"><div class="avatar">${ini(f.nome)}</div><div><div class="person-name">${f.nome}</div><div class="person-sub">${f.nasc||''}</div></div></div></td>
-      <td style="font-size:0.78rem">${f.responsavel||'—'}</td>
-      <td style="font-size:0.78rem">${f.bairro||'—'}</td>
-      <td><span class="badge ${f.temCondicao==='Sim'?'badge-org':'badge-gray'}">${cond||f.temCondicao||'—'}</span></td>
-      <td>${stB(f.status||'Ativo')}</td>
-      <td style="font-size:0.71rem;color:var(--muted)">${f.dataEntrada||'—'}</td>
-      <td><button class="action-btn" onclick="event.stopPropagation();deleteFam(${f.id})">🗑</button></td>
-    </tr>`;
+    const cond=(f.condicao||'').substring(0,24)+((f.condicao||'').length>24?'...':'');
+    return `<tr class="clickable" onclick="openFicha(${f.id})"><td><div class="person-cell"><div class="avatar">${ini(f.nome)}</div><div><div class="person-name">${f.nome}</div><div class="person-sub">${f.nasc||''}</div></div></div></td><td style="font-size:0.78rem">${f.responsavel||'—'}</td><td style="font-size:0.78rem">${f.bairro||'—'}</td><td><span class="badge badge-org">${cond||f.temCondicao||'—'}</span></td><td>${stB(f.status||'Ativo')}</td><td style="font-size:0.71rem;color:var(--muted)">${f.dataEntrada||'—'}</td><td><button class="action-btn" onclick="event.stopPropagation();deleteFam(${f.id})">🗑</button></td></tr>`;
+  }).join('');
+  // Mobile cards
+  if(cards) cards.innerHTML=items.map(f=>{
+    const cond=(f.condicao||'').substring(0,35)+((f.condicao||'').length>35?'...':'');
+    return `<div class="family-card" onclick="openFicha(${f.id})">
+      <div class="family-card-header"><div class="avatar">${ini(f.nome)}</div><div><div class="family-card-name">${f.nome}</div><div class="family-card-sub">${f.responsavel||''}${f.bairro?' · '+f.bairro:''}</div></div></div>
+      <div class="family-card-row">${f.condicao?`<span class="badge badge-org">${cond}</span>`:''}${stB(f.status||'Ativo')}<span class="badge badge-gray" style="font-size:0.65rem">${f.dataEntrada||''}</span></div>
+    </div>`;
   }).join('');
 }
+function filterFam(q){searchQ=q;renderFam();}
+function setTag(t,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');tagQ=t;renderFam();}
+function deleteFam(id){if(!confirm('Remover esta família?'))return;db.familias=db.familias.filter(f=>f.id!==id);renderFam();updateDash();showToast('Família removida.');}
 
-function filterFam(q) { searchQ=q; renderFam(); }
-function setTag(t,btn) {
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); tagQ=t; renderFam();
-}
-function deleteFam(id) {
-  if (!confirm('Remover esta família?')) return;
-  db.familias=db.familias.filter(f=>f.id!==id);
-  renderFam(); updateDash(); showToast('Família removida (sincronize para atualizar o Sheets).');
-}
-
-// ---- FICHA ----
-function openFicha(id) {
-  currentId=id;
-  const f=db.familias.find(f=>f.id==id);
-  if (!f) return;
+function openFicha(id){
+  currentId=id; const f=db.familias.find(f=>f.id==id); if(!f) return;
   document.getElementById('fp-nome').textContent=f.nome;
-  document.getElementById('fp-meta').textContent=[f.bairro,f.cidade,f.responsavel,f.tel].filter(Boolean).join(' · ');
+  document.getElementById('fp-meta').textContent=[f.bairro,f.responsavel,f.tel].filter(Boolean).join(' · ');
   document.getElementById('fp-status').value=f.status||'Ativo';
-
-  const sec=(title,fields)=>{
-    const rows=fields.filter(([,v])=>v);
-    if (!rows.length) return '';
-    return `<div class="ficha-section"><div class="ficha-section-title">${title}</div>
-      ${rows.map(([l,v])=>`<div class="field-full"><div class="field-label">${l}</div><div class="field-value">${v}</div></div>`).join('')}
-    </div>`;
-  };
-
-  document.getElementById('fp-dados').innerHTML=
-    sec('Criança / Pessoa atípica',[['Nome',f.nome],['Nascimento / Idade',f.nasc],['Sexo',f.sexo]])+
-    sec('Responsável e contato',[['Responsável',f.responsavel],['WhatsApp',f.tel],['Bairro',f.bairro],['Cidade',f.cidade||'Rio de Janeiro'],['Composição familiar',f.composicao],['Renda familiar',f.renda]])+
-    sec('Condição atípica',[['Tem condição atípica?',f.temCondicao],['Diagnóstico / Condição',f.condicao],['Idade da pessoa',f.idadeCondicao]])+
-    sec('Necessidades',[['Principais dificuldades',f.dificuldades],['Expectativas em relação à Rede',f.expectativas],['Necessidade específica',f.necessidade],['Mensagem do formulário',f.mensagem]]);
-
-  renderObsList(f); renderEventosList(f); renderEncList(f);
+  const sec=(title,fields)=>{const rows=fields.filter(([,v])=>v);if(!rows.length)return'';return`<div class="ficha-section"><div class="ficha-section-title">${title}</div>${rows.map(([l,v])=>`<div class="field-full"><div class="field-label">${l}</div><div class="field-value">${v}</div></div>`).join('')}</div>`;};
+  document.getElementById('fp-dados').innerHTML=sec('Criança / Pessoa',[['Nome',f.nome],['Nascimento / Idade',f.nasc],['Sexo',f.sexo]])+sec('Contato',[['Responsável',f.responsavel],['WhatsApp',f.tel],['Bairro',f.bairro],['Cidade',f.cidade],['Composição familiar',f.composicao],['Renda familiar',f.renda]])+sec('Condição atípica',[['Tem condição atípica?',f.temCondicao],['Diagnóstico',f.condicao],['Idade',f.idadeCondicao]])+sec('Necessidades',[['Dificuldades',f.dificuldades],['Expectativas',f.expectativas],['Necessidade específica',f.necessidade],['Mensagem',f.mensagem]]);
+  renderObsList(f);renderEventosList(f);renderEncList(f);
   document.getElementById('ficha-overlay').classList.add('open');
   document.getElementById('ficha-panel').classList.add('open');
-  switchTab('dados', document.querySelector('.ficha-tab'));
+  switchTab('dados',document.querySelector('.ficha-tab'));
 }
-
-function closeFicha() {
-  document.getElementById('ficha-overlay').classList.remove('open');
-  document.getElementById('ficha-panel').classList.remove('open');
-  currentId=null;
-}
-
-function switchTab(id, el) {
+function closeFicha(){document.getElementById('ficha-overlay').classList.remove('open');document.getElementById('ficha-panel').classList.remove('open');currentId=null;}
+function switchTab(id,el){
   document.querySelectorAll('.ficha-tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.ficha-tab-content').forEach(t=>t.classList.remove('active'));
-  const tabs=['dados','acomp','eventos','enc'];
-  const idx=tabs.indexOf(id);
-  if (el) el.classList.add('active');
-  else if (idx>=0) document.querySelectorAll('.ficha-tab')[idx].classList.add('active');
+  if(el) el.classList.add('active'); else document.querySelectorAll('.ficha-tab')[['dados','acomp','eventos','enc'].indexOf(id)].classList.add('active');
   document.getElementById('tab-'+id).classList.add('active');
 }
-
-async function updateStatus(val) {
-  const f=db.familias.find(f=>f.id==currentId);
-  if (!f) return;
-  f.status=val; renderFam();
-  showToast('Status atualizado!');
-  try {
-    await apiPost('Famílias', familiaToRow(f));
-    setSyncStatus('ok','Sincronizado ✓');
-  } catch(e) { setSyncStatus('err','Erro ao salvar'); }
-}
-
-function openEditFicha() {
-  const f=db.familias.find(f=>f.id==currentId);
-  if (!f) return;
-  closeFicha();
+async function updateStatus(val){const f=db.familias.find(f=>f.id==currentId);if(!f)return;f.status=val;renderFam();showToast('Status atualizado!');try{await apiSave('Famílias',famToRow(f));setSyncStatus('ok','Sincronizado ✓');}catch(e){setSyncStatus('err','Erro ao salvar');}}
+function openEditFicha(){
+  const f=db.familias.find(f=>f.id==currentId);if(!f)return;closeFicha();
   document.getElementById('fam-edit-id').value=f.id;
   document.getElementById('modal-fam-title').textContent='✏️ Editar Família';
-  ['nome','nasc','bairro','cidade','tel','comp','cond','idadecond','dific','expect','nec'].forEach(k=>{
-    const map={nome:'nome',nasc:'nasc',bairro:'bairro',cidade:'cidade',tel:'tel',comp:'composicao',cond:'condicao',idadecond:'idadeCondicao',dific:'dificuldades',expect:'expectativas',nec:'necessidade'};
-    const el=document.getElementById('fm-'+k);
-    if(el) el.value=f[map[k]]||'';
-  });
-  document.getElementById('fm-resp').value=f.responsavel||'';
-  document.getElementById('fm-sexo').value=f.sexo||'';
-  document.getElementById('fm-renda').value=f.renda||'';
-  document.getElementById('fm-temcond').value=f.temCondicao||'';
+  document.getElementById('fm-nome').value=f.nome||'';document.getElementById('fm-nasc').value=f.nasc||'';document.getElementById('fm-sexo').value=f.sexo||'';document.getElementById('fm-bairro').value=f.bairro||'';document.getElementById('fm-cidade').value=f.cidade||'';document.getElementById('fm-resp').value=f.responsavel||'';document.getElementById('fm-tel').value=f.tel||'';document.getElementById('fm-comp').value=f.composicao||'';document.getElementById('fm-renda').value=f.renda||'';document.getElementById('fm-temcond').value=f.temCondicao||'';document.getElementById('fm-cond').value=f.condicao||'';document.getElementById('fm-idadecond').value=f.idadeCondicao||'';document.getElementById('fm-dific').value=f.dificuldades||'';document.getElementById('fm-expect').value=f.expectativas||'';document.getElementById('fm-nec').value=f.necessidade||'';
   document.getElementById('modal-fam').classList.add('open');
 }
 
-// ---- OBS ----
-async function addObs() {
-  const txt=document.getElementById('new-obs').value.trim();
-  if (!txt) return;
-  const f=db.familias.find(f=>f.id==currentId);
-  if (!f) return;
-  if (!f.obsLog) f.obsLog=[];
-  const entry={id:Date.now(),texto:txt,data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})};
-  f.obsLog.unshift(entry);
-  document.getElementById('new-obs').value='';
-  renderObsList(f);
-  showToast('💾 Salvando...');
-  try {
-    await apiPost('Famílias', familiaToRow(f));
-    showToast('✅ Atualização salva!');
-    setSyncStatus('ok','Sincronizado ✓');
-  } catch(e) { showToast('⚠️ Salvo localmente.', true); }
+async function addObs(){
+  const txt=document.getElementById('new-obs').value.trim();if(!txt)return;
+  const f=db.familias.find(f=>f.id==currentId);if(!f)return;
+  if(!f.obsLog)f.obsLog=[];
+  f.obsLog.unshift({id:Date.now(),texto:txt,data:new Date().toLocaleDateString('pt-BR'),hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
+  document.getElementById('new-obs').value='';renderObsList(f);
+  try{await apiSave('Famílias',famToRow(f));showToast('✅ Atualização salva!');setSyncStatus('ok','Sincronizado ✓');}catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
-function renderObsList(f) {
-  const el=document.getElementById('obs-list');
-  const logs=f.obsLog||[];
-  if (!logs.length) { el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon">📝</div><p>Nenhuma atualização ainda.</p></div>'; return; }
-  el.innerHTML=logs.map(l=>`
-    <div class="timeline-item">
-      <div class="timeline-dot"></div>
-      <div style="flex:1">
-        <div class="timeline-date">${l.data} às ${l.hora}</div>
-        <div class="timeline-desc">${l.texto}</div>
-      </div>
-    </div>`).join('');
+function renderObsList(f){
+  const el=document.getElementById('obs-list');const logs=f.obsLog||[];
+  if(!logs.length){el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon">📝</div><p>Nenhuma atualização ainda.</p></div>';return;}
+  el.innerHTML=logs.map(l=>`<div class="timeline-item"><div class="timeline-dot"></div><div style="flex:1"><div class="timeline-date">${l.data} às ${l.hora}</div><div class="timeline-desc">${l.texto}</div></div></div>`).join('');
 }
-
-// ---- EVENTOS ----
-async function addEvento() {
-  const nome=document.getElementById('new-ev-nome').value.trim();
-  if (!nome) return;
-  const f=db.familias.find(f=>f.id==currentId);
-  if (!f) return;
-  if (!f.eventos) f.eventos=[];
+async function addEvento(){
+  const nome=document.getElementById('new-ev-nome').value.trim();if(!nome)return;
+  const f=db.familias.find(f=>f.id==currentId);if(!f)return;
+  if(!f.eventos)f.eventos=[];
   f.eventos.unshift({id:Date.now(),nome,data:document.getElementById('new-ev-data').value,local:document.getElementById('new-ev-local').value});
   ['new-ev-nome','new-ev-data','new-ev-local'].forEach(id=>document.getElementById(id).value='');
-  renderEventosList(f);
-  try { await apiPost('Famílias',familiaToRow(f)); showToast('✅ Evento salvo!'); } catch(e) { showToast('⚠️ Salvo localmente.',true); }
+  renderEventosList(f);try{await apiSave('Famílias',famToRow(f));showToast('✅ Evento salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
-function renderEventosList(f) {
-  const el=document.getElementById('eventos-list');
-  const evs=f.eventos||[];
-  if (!evs.length) { el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon">📅</div><p>Nenhum evento registrado.</p></div>'; return; }
-  el.innerHTML=evs.map(e=>`
-    <div class="timeline-item">
-      <div class="timeline-dot org"></div>
-      <div style="flex:1">
-        <div class="timeline-title">${e.nome}</div>
-        <div class="timeline-date">${e.data||'—'}${e.local?' · '+e.local:''}</div>
-      </div>
-    </div>`).join('');
+function renderEventosList(f){
+  const el=document.getElementById('eventos-list');const evs=f.eventos||[];
+  if(!evs.length){el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon">📅</div><p>Nenhum evento registrado.</p></div>';return;}
+  el.innerHTML=evs.map(e=>`<div class="timeline-item"><div class="timeline-dot org"></div><div style="flex:1"><div style="font-weight:600;font-size:0.81rem">${e.nome}</div><div class="timeline-date">${e.data||'—'}${e.local?' · '+e.local:''}</div></div></div>`).join('');
 }
-
-// ---- ENCAMINHAMENTOS ----
-async function addEnc() {
-  const tipo=document.getElementById('new-enc-tipo').value;
-  const f=db.familias.find(f=>f.id==currentId);
-  if (!f) return;
-  if (!f.encaminhamentos) f.encaminhamentos=[];
+async function addEnc(){
+  const tipo=document.getElementById('new-enc-tipo').value;const f=db.familias.find(f=>f.id==currentId);if(!f)return;
+  if(!f.encaminhamentos)f.encaminhamentos=[];
   f.encaminhamentos.unshift({id:Date.now(),tipo,inst:document.getElementById('new-enc-inst').value,data:document.getElementById('new-enc-data').value,obs:document.getElementById('new-enc-obs').value,status:document.getElementById('new-enc-status').value});
   ['new-enc-inst','new-enc-obs','new-enc-data'].forEach(id=>document.getElementById(id).value='');
-  renderEncList(f);
-  try { await apiPost('Famílias',familiaToRow(f)); showToast('✅ Encaminhamento salvo!'); } catch(e) { showToast('⚠️ Salvo localmente.',true); }
+  renderEncList(f);try{await apiSave('Famílias',famToRow(f));showToast('✅ Encaminhamento salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
-function renderEncList(f) {
-  const el=document.getElementById('enc-list');
-  const encs=f.encaminhamentos||[];
-  if (!encs.length) { el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon">🔗</div><p>Nenhum encaminhamento.</p></div>'; return; }
+function renderEncList(f){
+  const el=document.getElementById('enc-list');const encs=f.encaminhamentos||[];
+  if(!encs.length){el.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon">🔗</div><p>Nenhum encaminhamento.</p></div>';return;}
   const stc=s=>s==='Concluído'?'badge-green':s==='Em andamento'?'badge-blue':s==='Sem retorno'?'badge-red':'badge-gray';
-  el.innerHTML=encs.map(e=>`
-    <div class="enc-item">
-      <div class="enc-info">
-        <div class="enc-title">${e.tipo}${e.inst?' — '+e.inst:''}</div>
-        <div class="enc-meta">${e.data||'—'}${e.obs?' · '+e.obs:''}</div>
-        <span class="badge ${stc(e.status)}" style="margin-top:4px;display:inline-block">${e.status}</span>
-      </div>
-    </div>`).join('');
+  el.innerHTML=encs.map(e=>`<div class="enc-item"><div class="enc-title">${e.tipo}${e.inst?' — '+e.inst:''}</div><div class="enc-meta">${e.data||'—'}${e.obs?' · '+e.obs:''}</div><span class="badge ${stc(e.status)}" style="margin-top:4px;display:inline-block">${e.status}</span></div>`).join('');
 }
 
-// ---- VOLUNTÁRIOS ----
-async function saveVol() {
-  const nome=document.getElementById('v-nome').value.trim();
-  if (!nome) { alert('Informe o nome.'); return; }
+async function saveVol(){
+  const nome=document.getElementById('v-nome').value.trim();if(!nome){alert('Informe o nome.');return;}
   const item={id:Date.now(),nome,prof:document.getElementById('v-prof').value,area:document.getElementById('v-area').value,disp:document.getElementById('v-disp').value,tel:document.getElementById('v-tel').value,obs:document.getElementById('v-obs').value};
-  db.vol.push(item);
-  ['v-nome','v-prof','v-tel','v-obs'].forEach(id=>document.getElementById(id).value='');
-  closeModal('vol'); renderVol();
-  try { await apiPost('Voluntários',[item.nome,item.prof,item.area,item.disp,item.tel,item.obs]); showToast('✅ Voluntário salvo!'); } catch(e) { showToast('⚠️ Salvo localmente.',true); }
+  db.vol.push(item);['v-nome','v-prof','v-tel','v-obs'].forEach(id=>document.getElementById(id).value='');
+  closeModal('vol');renderVol();try{await apiSave('Voluntários',[item.nome,item.prof,item.area,item.disp,item.tel,item.obs]);showToast('✅ Voluntário salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
-function renderVol() {
-  const tbody=document.getElementById('table-vol');
-  const empty=document.getElementById('empty-vol');
-  if (!db.vol.length) { tbody.innerHTML=''; empty.style.display=''; return; }
-  empty.style.display='none';
-  tbody.innerHTML=db.vol.map(v=>`<tr><td><div class="person-cell"><div class="avatar org">${ini(v.nome)}</div><div><div class="person-name">${v.nome}</div><div class="person-sub">${v.prof||''}</div></div></div></td><td><span class="badge badge-org">${v.area}</span></td><td><span class="badge badge-gray">${v.disp}</span></td><td>${v.tel||'—'}</td><td></td></tr>`).join('');
+function renderVol(){
+  const tbody=document.getElementById('table-vol');const empty=document.getElementById('empty-vol');const cards=document.getElementById('cards-vol');
+  if(!db.vol.length){tbody.innerHTML='';if(cards)cards.innerHTML='';empty.style.display='';return;}empty.style.display='none';
+  tbody.innerHTML=db.vol.map(v=>`<tr><td><div class="person-cell"><div class="avatar org">${ini(v.nome)}</div><div><div class="person-name">${v.nome}</div><div class="person-sub">${v.prof||''}</div></div></div></td><td><span class="badge badge-org">${v.area}</span></td><td><span class="badge badge-gray">${v.disp}</span></td><td>${v.tel||'—'}</td></tr>`).join('');
+  if(cards) cards.innerHTML=db.vol.map(v=>`<div class="family-card"><div class="family-card-header"><div class="avatar org">${ini(v.nome)}</div><div><div class="family-card-name">${v.nome}</div><div class="family-card-sub">${v.prof||''}</div></div></div><div class="family-card-row"><span class="badge badge-org">${v.area}</span><span class="badge badge-gray">${v.disp}</span>${v.tel?`<span class="badge badge-gray">${v.tel}</span>`:''}</div></div>`).join('');
 }
-
-// ---- PARCEIROS ----
-async function saveParc() {
-  const nome=document.getElementById('p-nome').value.trim();
-  if (!nome) { alert('Informe o nome.'); return; }
+async function saveParc(){
+  const nome=document.getElementById('p-nome').value.trim();if(!nome){alert('Informe o nome.');return;}
   const item={id:Date.now(),nome,tipo:document.getElementById('p-tipo').value,resp:document.getElementById('p-resp').value,tel:document.getElementById('p-tel').value,obs:document.getElementById('p-obs').value};
-  db.parc.push(item);
-  ['p-nome','p-resp','p-tel','p-obs'].forEach(id=>document.getElementById(id).value='');
-  closeModal('parc'); renderParc();
-  try { await apiPost('Parceiros',[item.nome,item.tipo,item.resp,item.tel,item.obs]); showToast('✅ Parceiro salvo!'); } catch(e) { showToast('⚠️ Salvo localmente.',true); }
+  db.parc.push(item);['p-nome','p-resp','p-tel','p-obs'].forEach(id=>document.getElementById(id).value='');
+  closeModal('parc');renderParc();try{await apiSave('Parceiros',[item.nome,item.tipo,item.resp,item.tel,item.obs]);showToast('✅ Parceiro salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
-function renderParc() {
-  const tbody=document.getElementById('table-parc');
-  const empty=document.getElementById('empty-parc');
-  if (!db.parc.length) { tbody.innerHTML=''; empty.style.display=''; return; }
-  empty.style.display='none';
-  tbody.innerHTML=db.parc.map(p=>`<tr><td><div class="person-cell"><div class="avatar green">${ini(p.nome)}</div><div class="person-name">${p.nome}</div></div></td><td><span class="badge badge-green">${p.tipo}</span></td><td>${p.resp||'—'}</td><td>${p.tel||'—'}</td><td></td></tr>`).join('');
+function renderParc(){
+  const tbody=document.getElementById('table-parc');const empty=document.getElementById('empty-parc');const cards=document.getElementById('cards-parc');
+  if(!db.parc.length){tbody.innerHTML='';if(cards)cards.innerHTML='';empty.style.display='';return;}empty.style.display='none';
+  tbody.innerHTML=db.parc.map(p=>`<tr><td><div class="person-cell"><div class="avatar green">${ini(p.nome)}</div><div class="person-name">${p.nome}</div></div></td><td><span class="badge badge-green">${p.tipo}</span></td><td>${p.resp||'—'}</td><td>${p.tel||'—'}</td></tr>`).join('');
+  if(cards) cards.innerHTML=db.parc.map(p=>`<div class="family-card"><div class="family-card-header"><div class="avatar green">${ini(p.nome)}</div><div><div class="family-card-name">${p.nome}</div><div class="family-card-sub">${p.resp||''}</div></div></div><div class="family-card-row"><span class="badge badge-green">${p.tipo}</span>${p.tel?`<span class="badge badge-gray">${p.tel}</span>`:''}</div></div>`).join('');
 }
-
-// ---- PROJETOS ----
-async function saveProj() {
-  const nome=document.getElementById('pj-nome').value.trim();
-  if (!nome) { alert('Informe o nome.'); return; }
+async function saveProj(){
+  const nome=document.getElementById('pj-nome').value.trim();if(!nome){alert('Informe o nome.');return;}
   const item={id:Date.now(),nome,desc:document.getElementById('pj-desc').value,status:document.getElementById('pj-status').value,prog:parseInt(document.getElementById('pj-prog').value)||0,ini:document.getElementById('pj-ini').value,fim:document.getElementById('pj-fim').value,resp:document.getElementById('pj-resp').value};
-  db.proj.push(item);
-  closeModal('proj'); renderProj();
-  try { await apiPost('Projetos',[item.nome,item.desc,item.status,item.prog,item.ini,item.fim,item.resp]); showToast('✅ Projeto salvo!'); } catch(e) { showToast('⚠️ Salvo localmente.',true); }
+  db.proj.push(item);closeModal('proj');renderProj();try{await apiSave('Projetos',[item.nome,item.desc,item.status,item.prog,item.ini,item.fim,item.resp]);showToast('✅ Projeto salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
-function renderProj() {
-  const grid=document.getElementById('grid-proj');
-  const bc=s=>s==='Concluído'?'badge-green':s==='Planejamento'?'badge-org':'badge-blue';
-  if (!db.proj.length) { grid.innerHTML='<div class="empty"><div class="empty-icon">📁</div><p>Nenhum projeto.</p></div>'; return; }
-  grid.innerHTML=db.proj.map(p=>`
-    <div style="background:white;border-radius:12px;border:1px solid var(--border);padding:18px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-family:Poppins,sans-serif;font-size:0.9rem;font-weight:600;color:var(--azul);flex:1;margin-right:8px;">${p.nome}</div>
-        <span class="badge ${bc(p.status)}">${p.status}</span>
-      </div>
-      <div style="font-size:0.77rem;color:var(--muted);margin-bottom:10px;">${p.desc||''}</div>
-      <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-bottom:3px;"><span>Progresso</span><span>${p.prog}%</span></div>
-      <div style="background:var(--bg);border-radius:4px;height:6px;overflow:hidden;"><div style="height:100%;border-radius:4px;background:var(--azul);width:${p.prog}%"></div></div>
-      ${p.resp?`<div style="font-size:0.7rem;color:var(--muted);margin-top:8px;">👤 ${p.resp}</div>`:''}
-    </div>`).join('');
+function renderProj(){
+  const grid=document.getElementById('grid-proj');const bc=s=>s==='Concluído'?'badge-green':s==='Planejamento'?'badge-org':'badge-blue';
+  if(!db.proj.length){grid.innerHTML='<div class="empty"><div class="empty-icon">📁</div><p>Nenhum projeto.</p></div>';return;}
+  grid.innerHTML=db.proj.map(p=>`<div style="background:white;border-radius:12px;border:1px solid var(--border);padding:18px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="font-family:Poppins,sans-serif;font-size:0.9rem;font-weight:600;color:var(--azul);flex:1;margin-right:8px;">${p.nome}</div><span class="badge ${bc(p.status)}">${p.status}</span></div><div style="font-size:0.77rem;color:var(--muted);margin-bottom:10px;">${p.desc||''}</div><div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-bottom:3px;"><span>Progresso</span><span>${p.prog}%</span></div><div style="background:var(--bg);border-radius:4px;height:6px;overflow:hidden;"><div style="height:100%;border-radius:4px;background:var(--azul);width:${p.prog}%"></div></div>${p.resp?`<div style="font-size:0.7rem;color:var(--muted);margin-top:8px;">👤 ${p.resp}</div>`:''}</div>`).join('');
 }
 
-// ---- DASHBOARD ----
-function updateDash() {
+function updateDash(){
   const fams=db.familias;
   document.getElementById('d-fam').textContent=fams.length;
   document.getElementById('d-cond').textContent=fams.filter(f=>f.temCondicao==='Sim').length;
   document.getElementById('d-bairros').textContent=new Set(fams.map(f=>f.bairro?.trim().toLowerCase()).filter(Boolean)).size;
   document.getElementById('d-ativo').textContent=fams.filter(f=>!f.status||f.status==='Ativo').length;
   document.getElementById('badge-fam').textContent=fams.length;
-
-  const condC={};
-  fams.forEach(f=>{if(f.condicao){const c=f.condicao.substring(0,22);condC[c]=(condC[c]||0)+1;}});
+  const condC={};fams.forEach(f=>{if(f.condicao){const c=f.condicao.substring(0,22);condC[c]=(condC[c]||0)+1;}});
   const topC=Object.entries(condC).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const bairroC={};
-  fams.forEach(f=>{if(f.bairro){const b=f.bairro.trim();bairroC[b]=(bairroC[b]||0)+1;}});
+  const bairroC={};fams.forEach(f=>{if(f.bairro){const b=f.bairro.trim();bairroC[b]=(bairroC[b]||0)+1;}});
   const topB=Object.entries(bairroC).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const tot=fams.length||1;
-
-  document.getElementById('charts-area').innerHTML=`
-    <div class="chart-card">
-      <div class="chart-title">Condições mais frequentes</div>
-      ${topC.map(([c,n])=>`<div class="bar-item"><div class="bar-label"><span>${c}</span><span>${n}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(n/tot*100)}%"></div></div></div>`).join('')||'<p style="font-size:0.78rem;color:var(--muted)">Sem dados ainda</p>'}
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Bairros com mais famílias</div>
-      ${topB.map(([b,n])=>`<div class="bar-item"><div class="bar-label"><span>${b}</span><span>${n}</span></div><div class="bar-bg"><div class="bar-fill org" style="width:${Math.round(n/tot*100)}%"></div></div></div>`).join('')||'<p style="font-size:0.78rem;color:var(--muted)">Sem dados ainda</p>'}
-    </div>`;
-
+  document.getElementById('charts-area').innerHTML=`<div class="chart-card"><div class="chart-title">Condições mais frequentes</div>${topC.map(([c,n])=>`<div class="bar-item"><div class="bar-label"><span>${c}</span><span>${n}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(n/tot*100)}%"></div></div></div>`).join('')||'<p style="font-size:0.78rem;color:var(--muted)">Sem dados</p>'}</div><div class="chart-card"><div class="chart-title">Bairros com mais famílias</div>${topB.map(([b,n])=>`<div class="bar-item"><div class="bar-label"><span>${b}</span><span>${n}</span></div><div class="bar-bg"><div class="bar-fill org" style="width:${Math.round(n/tot*100)}%"></div></div></div>`).join('')||'<p style="font-size:0.78rem;color:var(--muted)">Sem dados</p>'}</div>`;
   const recent=[...fams].slice(-5).reverse();
   const stc=s=>s==='Ativo'?'badge-green':s==='Em acompanhamento'?'badge-blue':'badge-gray';
-  document.getElementById('dash-recent').innerHTML=recent.map(f=>`
-    <tr class="clickable" onclick="openFicha(${f.id})">
-      <td><div class="person-cell"><div class="avatar" style="width:26px;height:26px;font-size:0.6rem">${ini(f.nome)}</div><div class="person-name" style="font-size:0.79rem">${f.nome}</div></div></td>
-      <td style="font-size:0.77rem">${f.bairro||'—'}</td>
-      <td><span class="badge badge-org" style="font-size:0.65rem">${(f.condicao||'—').substring(0,22)}</span></td>
-      <td><span class="badge ${stc(f.status||'Ativo')}" style="font-size:0.65rem">${f.status||'Ativo'}</span></td>
-    </tr>`).join('');
+  document.getElementById('dash-recent').innerHTML=recent.map(f=>`<tr class="clickable" onclick="openFicha(${f.id})"><td><div class="person-cell"><div class="avatar" style="width:26px;height:26px;font-size:0.6rem">${ini(f.nome)}</div><div class="person-name" style="font-size:0.79rem">${f.nome}</div></div></td><td style="font-size:0.77rem">${f.bairro||'—'}</td><td><span class="badge badge-org" style="font-size:0.65rem">${(f.condicao||'—').substring(0,20)}</span></td><td><span class="badge ${stc(f.status||'Ativo')}" style="font-size:0.65rem">${f.status||'Ativo'}</span></td></tr>`).join('');
+  const drc=document.getElementById('dash-recent-cards');
+  if(drc) drc.innerHTML=recent.map(f=>`<div class="family-card" onclick="openFicha(${f.id})"><div class="family-card-header"><div class="avatar" style="width:26px;height:26px;font-size:0.6rem">${ini(f.nome)}</div><div><div class="family-card-name" style="font-size:0.85rem">${f.nome}</div><div class="family-card-sub">${f.bairro||''}</div></div></div></div>`).join('');
 }
 
-function ini(nome){return(nome||'?').split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase();}
-function showToast(msg,err){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast'+(err?' err':'');
-  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3500);
-}
+function ini(n){return(n||'?').split(' ').slice(0,2).map(x=>x[0]||'').join('').toUpperCase();}
+function showToast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 
-// INIT
+// Mobile: show recent cards
+window.addEventListener('resize',()=>{
+  const drc=document.getElementById('dash-recent-cards');
+  const drt=document.querySelector('#page-dashboard .table-wrap');
+  if(window.innerWidth<=768){if(drc)drc.style.display='';if(drt)drt.style.display='none';}
+  else{if(drc)drc.style.display='none';if(drt)drt.style.display='';}
+});
+
 syncAll();
 </script>
 </body>
