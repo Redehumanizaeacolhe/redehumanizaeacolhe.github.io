@@ -457,7 +457,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
         <option>acolhimento e suporte emocional</option>
       </select>
       <div class="rel-btns">
-        <button class="rel-btn rel-btn-pdf" onclick="gerarRel('encaminhamento','imprimir')">📄 PDF / Imprimir</button>
+        <button class="rel-btn rel-btn-pdf" onclick="gerarEncImprime()">📄 PDF / Imprimir</button>
         <button class="rel-btn rel-btn-tela" onclick="gerarRel('encaminhamento','tela')">👁 Visualizar</button>
       </div>
     </div>
@@ -742,7 +742,7 @@ async function syncAll(){
     db.parc=parcRows.filter(r=>{const n=String(r[0]).toLowerCase().trim();if(parcSeen.has(n))return false;parcSeen.add(n);return true;}).map((r,i)=>({id:i+1,nome:String(r[0]),tipo:String(r[1]||''),resp:String(r[2]||''),tel:String(r[3]||''),obs:String(r[4]||'')}));
     const pjr=await apiGet('Projetos');db.proj=pjr.slice(1).filter(r=>r[0]).map((r,i)=>({id:i+1,nome:String(r[0]),desc:String(r[1]||''),status:String(r[2]||''),prog:parseInt(r[3])||0,ini:String(r[4]||''),fim:String(r[5]||''),resp:String(r[6]||'')}));
     if(!db.proj.length)db.proj=[{id:1,nome:'Mostra Cultural Humaniza e Acolhe',desc:'Arte e neurodiversidade. PRONAC 542.133.',status:'Em andamento',prog:45,resp:'Equipe'},{id:2,nome:'Librelon em Movimento',desc:'Parceria permanente com ações mensais.',status:'Em andamento',prog:70,resp:'Equipe'}];
-    setSyncStatus('ok','Sincronizado ✓');updateUI();showToast('✅ Sincronizado! '+db.familias.length+' famílias.');
+    setSyncStatus('ok','Sincronizado ✓');updateUI();showToast('✅ Sincronizado! '+db.familias.length+' famílias · '+db.parc.length+' parceiros.');
   }catch(err){
     setSyncStatus('err','Erro de conexão');showToast('⚠️ '+err.message.substring(0,40),true);
     if(!db.familias.length)db.familias=[...IMPORT];
@@ -1255,27 +1255,40 @@ function gerarRel(tipo,formato){
 
 function imprimirRelatorio(){
   const conteudo = document.getElementById('report-content').innerHTML;
-  const janela = window.open('','_blank','width=800,height=600');
-  janela.document.write(`<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <title>Impressão</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Times New Roman',serif;background:white;padding:20mm 18mm;color:#1a1a2e;}
-  .enc-doc{max-width:100%;line-height:1.6;}
-  img{max-width:100%;height:auto;}
-  @media print{
-    @page{margin:10mm;size:A4 portrait;}
-    body{padding:0;}
-  }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Times New Roman',serif;
+  background:white;
+  color:#1a1a2e;
+  padding:15mm 20mm;
+  font-size:12pt;
+  line-height:1.6;
+}
+img{display:block;height:auto;}
+@media print{
+  @page{margin:12mm;size:A4 portrait;}
+  body{padding:0;}
+}
 </style>
 </head>
-<body>` + conteudo + `</body></html>`);
-  janela.document.close();
-  janela.onload = function(){ janela.print(); };
+<body>` + conteudo + `
+<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+</body></html>`;
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+
+function gerarEncImprime(){
+  gerarRel('encaminhamento','tela');
+  setTimeout(()=>imprimirRelatorio(), 300);
 }
 
 function exportarExcel(){
