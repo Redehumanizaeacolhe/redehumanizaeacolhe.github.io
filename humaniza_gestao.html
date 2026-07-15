@@ -457,7 +457,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
         <option>acolhimento e suporte emocional</option>
       </select>
       <div class="rel-btns">
-        <button class="rel-btn rel-btn-pdf" onclick="gerarRel('encaminhamento','pdf')">📄 PDF / Imprimir</button>
+        <button class="rel-btn rel-btn-pdf" onclick="gerarRel('encaminhamento','imprimir')">📄 PDF / Imprimir</button>
         <button class="rel-btn rel-btn-tela" onclick="gerarRel('encaminhamento','tela')">👁 Visualizar</button>
       </div>
     </div>
@@ -466,7 +466,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="report-header">
       <div class="report-title-el" id="report-title">Relatório</div>
       <div class="report-actions">
-        <button class="rel-btn rel-btn-pdf" onclick="window.print()">🖨️ Imprimir / PDF</button>
+        <button class="rel-btn rel-btn-pdf" onclick="imprimirRelatorio()">🖨️ Imprimir / PDF</button>
         <button class="rel-btn rel-btn-xls" id="btn-xls-report" onclick="exportarExcel()" style="display:none;">📊 Excel</button>
         <button class="rel-btn" style="background:var(--bg);color:var(--muted);" onclick="document.getElementById('report-area').classList.remove('open')">✕ Fechar</button>
       </div>
@@ -735,7 +735,11 @@ async function syncAll(){
       });
     }
     const vr=await apiGet('Voluntários');db.vol=vr.slice(1).filter(r=>r[0]).map((r,i)=>({id:i+1,nome:String(r[0]),prof:String(r[1]||''),area:String(r[2]||''),disp:String(r[3]||''),tel:String(r[4]||''),obs:String(r[5]||'')}));
-    const pr=await apiGet('Parceiros');db.parc=pr.slice(1).filter(r=>r[0]).map((r,i)=>({id:i+1,nome:String(r[0]),tipo:String(r[1]||''),resp:String(r[2]||''),tel:String(r[3]||''),obs:String(r[4]||'')}));
+    const pr=await apiGet('Parceiros');
+    const parcRows=pr.slice(1).filter(r=>r[0]);
+    // Deduplica por nome, mantém o primeiro
+    const parcSeen=new Set();
+    db.parc=parcRows.filter(r=>{const n=String(r[0]).toLowerCase().trim();if(parcSeen.has(n))return false;parcSeen.add(n);return true;}).map((r,i)=>({id:i+1,nome:String(r[0]),tipo:String(r[1]||''),resp:String(r[2]||''),tel:String(r[3]||''),obs:String(r[4]||'')}));
     const pjr=await apiGet('Projetos');db.proj=pjr.slice(1).filter(r=>r[0]).map((r,i)=>({id:i+1,nome:String(r[0]),desc:String(r[1]||''),status:String(r[2]||''),prog:parseInt(r[3])||0,ini:String(r[4]||''),fim:String(r[5]||''),resp:String(r[6]||'')}));
     if(!db.proj.length)db.proj=[{id:1,nome:'Mostra Cultural Humaniza e Acolhe',desc:'Arte e neurodiversidade. PRONAC 542.133.',status:'Em andamento',prog:45,resp:'Equipe'},{id:2,nome:'Librelon em Movimento',desc:'Parceria permanente com ações mensais.',status:'Em andamento',prog:70,resp:'Equipe'}];
     setSyncStatus('ok','Sincronizado ✓');updateUI();showToast('✅ Sincronizado! '+db.familias.length+' famílias.');
@@ -1041,6 +1045,8 @@ function renderVol(){
 }
 async function saveParc(){
   const nome=document.getElementById('p-nome').value.trim();if(!nome){alert('Informe o nome.');return;}
+  // Evita duplicata local
+  if(db.parc.some(p=>p.nome.toLowerCase()===nome.toLowerCase())){showToast('⚠️ Parceiro já cadastrado.',true);closeModal('parc');return;}
   const item={id:Date.now(),nome,tipo:document.getElementById('p-tipo').value,resp:document.getElementById('p-resp').value,tel:document.getElementById('p-tel').value,obs:document.getElementById('p-obs').value};
   db.parc.push(item);['p-nome','p-resp','p-tel','p-obs'].forEach(id=>document.getElementById(id).value='');
   closeModal('parc');renderParc();try{await apiSave('Parceiros',[item.nome,item.tipo,item.resp,item.tel,item.obs]);showToast('✅ Parceiro salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
@@ -1243,8 +1249,33 @@ function gerarRel(tipo,formato){
   content.innerHTML=html;
   area.classList.add('open');
   area.scrollIntoView({behavior:'smooth',block:'start'});
-  if(formato==='pdf')setTimeout(()=>window.print(),800);
+  if(formato==='pdf'||formato==='imprimir')setTimeout(()=>imprimirRelatorio(),600);
   if(formato==='xls')exportarExcel();
+}
+
+function imprimirRelatorio(){
+  const conteudo = document.getElementById('report-content').innerHTML;
+  const janela = window.open('','_blank','width=800,height=600');
+  janela.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Impressão</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Times New Roman',serif;background:white;padding:20mm 18mm;color:#1a1a2e;}
+  .enc-doc{max-width:100%;line-height:1.6;}
+  img{max-width:100%;height:auto;}
+  @media print{
+    @page{margin:10mm;size:A4 portrait;}
+    body{padding:0;}
+  }
+</style>
+</head>
+<body>` + conteudo + `</body></html>`);
+  janela.document.close();
+  janela.onload = function(){ janela.print(); };
 }
 
 function exportarExcel(){
