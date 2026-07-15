@@ -229,10 +229,9 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
   .inline-form .row2{grid-template-columns:1fr;}
 }
 @media print{
-  .sidebar,.topbar,.bottom-nav,.modal-overlay,.toast,.toolbar,.btn-add,.action-btn,.pront-tabs,.report-actions,.pront-overlay{display:none!important;}
-  .main{margin-left:0;padding:0;}
-  .pront-panel{position:static;transform:none;box-shadow:none;width:100%;}
-  body{background:white;}
+  body > *{display:none!important;}
+  #print-area{display:block!important;position:fixed;inset:0;background:white;z-index:99999;padding:32px;overflow:visible;}
+  #print-area *{display:revert;}
 }
 </style>
 
@@ -640,6 +639,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 </div></div>
 
 <div class="toast" id="toast"></div>
+<div id="print-area" style="display:none;"></div>
 
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbyaqp3LlAzIhg0-e4UDKJqQ4CHEqZkS_9SjUezsc6osGv40g38AbRJuZUmwZZPsrmTKAA/exec';
@@ -1485,8 +1485,17 @@ function gerarRel(tipo,formato){
   content.innerHTML=html;
   area.classList.add('open');
   area.scrollIntoView({behavior:'smooth',block:'start'});
-  if(formato==='pdf')setTimeout(()=>window.print(),600);
+  if(formato==='pdf')setTimeout(()=>imprimirRelatorio(),600);
   if(formato==='xls')exportarExcel();
+}
+
+function imprimirRelatorio(){
+  const content = document.getElementById('report-content').innerHTML;
+  const printArea = document.getElementById('print-area');
+  printArea.innerHTML = content;
+  printArea.style.display = 'block';
+  window.print();
+  setTimeout(()=>{ printArea.style.display='none'; printArea.innerHTML=''; }, 1000);
 }
 
 function exportarExcel(){
