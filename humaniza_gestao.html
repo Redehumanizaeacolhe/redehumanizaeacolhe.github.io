@@ -218,19 +218,27 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 
 /* IMPRESSÃO — mostra apenas o relatório */
 @media print{
+  @page{
+    margin:1.5cm;
+    size:A4;
+  }
   body *{visibility:hidden;}
   #report-content,#report-content *{visibility:visible;}
   #report-content{
     position:fixed;
     top:0;left:0;
     width:100%;
-    padding:24px;
+    padding:20px;
     background:white;
   }
   .report-area,.report-area.open{
     position:static;
     border:none;
     padding:0;
+  }
+  .enc-doc{
+    page-break-inside:avoid;
+    max-width:100%!important;
   }
 }
 </style>
@@ -1199,14 +1207,10 @@ function gerarRel(tipo,formato){
         para possíveis terapias e demais acompanhamentos que se fizerem necessários.</p>
       </div>
       <div style="text-align:center;font-family:'Times New Roman',serif;">
-        <p style="font-weight:700;margin-bottom:10px;">Atenciosamente,</p>
-        <img src="${LOGO_SRC}" alt="Logo" style="width:75px;height:auto;display:block;margin:0 auto 8px;opacity:0.85;">
-        <p style="font-weight:700;font-size:1.05rem;color:#1B3D6F;">Rede Humaniza e Acolhe</p>
-        <p style="font-size:0.82rem;color:#6b7280;margin-top:4px;">redehumanizaeacolhe@gmail.com · (21) 96873-5446</p>
-        <div style="margin-top:56px;display:flex;justify-content:center;gap:60px;">
-          <div style="text-align:center;"><div style="border-top:1px solid #999;padding-top:6px;width:180px;font-size:0.8rem;color:#6b7280;">Assinatura</div></div>
-          <div style="text-align:center;"><div style="border-top:1px solid #999;padding-top:6px;width:180px;font-size:0.8rem;color:#6b7280;">Carimbo</div></div>
-        </div>
+        <p style="font-weight:700;margin-bottom:16px;">Atenciosamente,</p>
+        <img src="${LOGO_SRC}" alt="Logo" style="width:90px;height:auto;display:block;margin:0 auto 10px;opacity:0.9;">
+        <p style="font-weight:700;font-size:1.1rem;color:#1B3D6F;">Rede Humaniza e Acolhe</p>
+        <p style="font-size:0.85rem;color:#6b7280;margin-top:6px;">redehumanizaeacolhe@gmail.com · (21) 96873-5446</p>
       </div>
     </div>`;
     rows=[];
