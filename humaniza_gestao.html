@@ -219,7 +219,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 /* IMPRESSÃO — mostra apenas o relatório */
 @media print{
   @page{
-    margin:0;
+    margin:10mm;
     size:A4 portrait;
   }
   body *{visibility:hidden;}
@@ -227,12 +227,13 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
   #report-content{
     position:fixed;
     top:0;left:0;
-    width:210mm;
-    height:297mm;
-    padding:12mm 18mm;
+    width:190mm;
     background:white;
-    overflow:hidden;
-    box-sizing:border-box;
+    padding:0;
+    font-size:11pt;
+    transform:scale(0.82);
+    transform-origin:top left;
+    width:122%;
   }
   .enc-doc{
     max-width:100%!important;
@@ -242,7 +243,10 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     max-width:70px!important;
   }
   .enc-doc p{
-    margin-bottom:8px!important;
+    margin-bottom:6px!important;
+  }
+  .enc-doc div{
+    margin-bottom:4px!important;
   }
 }
 </style>
@@ -441,7 +445,8 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
       <div class="rel-desc">Documento oficial da Rede — preenchido automaticamente</div>
       <input id="rel-enc-busca" placeholder="Buscar pessoa / família..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:10px;" oninput="buscarEncRel(this.value)">
       <div id="rel-enc-lista" style="max-height:80px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px;display:none;background:white;"></div>
-      <input id="rel-enc-parceiro" placeholder="Instituição / parceiro destinatário" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;">
+      <input id="rel-enc-parceiro" placeholder="Instituição / parceiro destinatário" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;" oninput="buscarParceiros(this.value)" autocomplete="off">
+      <div id="rel-parc-lista" style="max-height:80px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px;display:none;background:white;"></div>
       <select id="rel-enc-tipo" style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;">
         <option>avaliação e identificação de necessidades</option>
         <option>acompanhamento psicológico</option>
@@ -1111,6 +1116,18 @@ function buscarEncRel(q){
   });
   if(!results.length){lista.style.display='none';return;}lista.style.display='';
   lista.innerHTML=results.slice(0,6).map(r=>`<div style="padding:6px 10px;font-size:0.8rem;cursor:pointer;border-bottom:1px solid var(--border);" onclick="selecionarEncRel(${r.famId},'${r.nome.replace(/'/g,"\\'")}','${r.role.replace(/'/g,"\\'")}' )">${r.nome} <span style="color:var(--muted);font-size:0.72rem">· ${r.role}</span></div>`).join('');
+}
+function buscarParceiros(q){
+  const lista=document.getElementById('rel-parc-lista');
+  if(!q){lista.style.display='none';return;}
+  const its=db.parc.filter(p=>p.nome.toLowerCase().includes(q.toLowerCase())).slice(0,6);
+  if(!its.length){lista.style.display='none';return;}
+  lista.style.display='';
+  lista.innerHTML=its.map(p=>`<div style="padding:6px 10px;font-size:0.8rem;cursor:pointer;border-bottom:1px solid var(--border);" onclick="selecionarParceiro('${p.nome.replace(/'/g,"\\'")}','${(p.tipo||'').replace(/'/g,"\\'")}' )">${p.nome} <span style="color:var(--muted);font-size:0.72rem">· ${p.tipo||''}</span></div>`).join('');
+}
+function selecionarParceiro(nome,tipo){
+  document.getElementById('rel-enc-parceiro').value=nome;
+  document.getElementById('rel-parc-lista').style.display='none';
 }
 function selecionarEncRel(famId,nome,role){relEncFamIdSel=famId;relEncPessoaSel={nome,role};document.getElementById('rel-enc-busca').value=nome+' ('+role+')';document.getElementById('rel-enc-lista').style.display='none';}
 function gerarEncDirecto(){
