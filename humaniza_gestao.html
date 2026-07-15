@@ -700,7 +700,8 @@ async function syncAll(){
     const rows=await apiGet('Famílias');
     if(rows.length<=1){
       setSyncStatus('syncing','Importando '+IMPORT.length+' famílias...');
-      for(const f of IMPORT){await apiSave('Famílias',famToRow(f),f.responsavel?.nome||'');}
+      const linhas=IMPORT.map(f=>famToRow(f));
+      await jsonpGet({acao:'importar_lote',aba:'Famílias',linhas:JSON.stringify(linhas)});
       db.familias=[...IMPORT];
     }else{
       db.familias=rows.slice(1).map((r,i)=>rowToFam(r,i)).filter(f=>f&&f.responsavel&&f.responsavel.nome);
