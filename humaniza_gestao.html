@@ -520,7 +520,8 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="pront-tab" onclick="switchProntTab('responsavel',this)">👤 Responsável</div>
     <div class="pront-tab" onclick="switchProntTab('conjuge',this)">💑 Cônjuge</div>
     <div class="pront-tab" onclick="switchProntTab('membros',this)">👨‍👩‍👧 Dependentes</div>
-    <div class="pront-tab" onclick="switchProntTab('triagem',this)">📋 Triagem</div>
+    <div class="pront-tab" onclick="switchProntTab('atendimentos',this)">📋 Atendimentos</div>
+    <div class="pront-tab" onclick="switchProntTab('triagem',this)">🎯 Triagem</div>
   </div>
   <div class="pront-body">
     <div id="ptab-geral" class="pront-tab-content active">
@@ -534,6 +535,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div id="ptab-responsavel" class="pront-tab-content"><div id="pp-resp-content"></div></div>
     <div id="ptab-conjuge" class="pront-tab-content"><div id="pp-conj-content"></div></div>
     <div id="ptab-membros" class="pront-tab-content"><div id="pp-membros-content"></div></div>
+    <div id="ptab-atendimentos" class="pront-tab-content"><div id="pp-atend-content"></div></div>
     <div id="ptab-triagem" class="pront-tab-content"><div id="pp-triagem-content"></div></div>
   </div>
 </div>
@@ -596,11 +598,25 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 <div class="modal-overlay" id="modal-at">
 <div class="modal" style="max-width:520px;">
   <div class="modal-header"><div class="modal-title" id="modal-at-title">📋 Novo Atendimento</div><button class="close-btn" onclick="closeModal('at')">✕</button></div>
-  <input type="hidden" id="at-fam-id"><input type="hidden" id="at-pessoa-tipo"><input type="hidden" id="at-membro-idx">
+  <input type="hidden" id="at-fam-id"><input type="hidden" id="at-pessoa-tipo"><input type="hidden" id="at-membro-idx"><input type="hidden" id="at-edit-id">
+  <div class="form-group full" id="at-mover-area" style="display:none;background:#fff4ec;border:1px solid #f5934a;border-radius:8px;padding:10px;margin-bottom:4px;">
+    <label style="color:var(--laranja)">Mover este atendimento para:</label>
+    <select id="at-mover-para" style="margin-top:4px;">
+      <option value="">— Manter na pessoa atual —</option>
+    </select>
+  </div>
   <div class="form-grid">
     <div class="form-group"><label>Data</label><input id="at-data" type="date"></div>
     <div class="form-group"><label>Tipo de atendimento</label><input id="at-tipo" placeholder="Ex: Psicólogo, Neurologista..."></div>
-    <div class="form-group full"><label>Responsável pelo atendimento</label><input id="at-resp"></div>
+    <div class="form-group full">
+      <label>Responsável pelo atendimento</label>
+      <select id="at-resp-sel" onchange="document.getElementById('at-resp').style.display=this.value==='__outro__'?'':'none';if(this.value!=='__outro__')document.getElementById('at-resp').value='';">
+        <option value="">— Selecione o parceiro —</option>
+        ${(db.parc||[]).map(p=>`<option value="${p.nome}">${p.nome}${p.tipo?' ('+p.tipo+')':''}</option>`).join('')}
+        <option value="__outro__">Outro — digitar</option>
+      </select>
+      <input id="at-resp" placeholder="Nome do responsável" style="display:none;margin-top:6px;">
+    </div>
     <div class="form-group full"><label>Observações</label><textarea id="at-obs"></textarea></div>
     <div class="form-group full"><label>Próximos passos</label><textarea id="at-prox"></textarea></div>
     <div class="form-group full"><label>🔒 Observações internas</label><textarea id="at-int" placeholder="Apenas para a equipe"></textarea></div>
@@ -808,23 +824,15 @@ function addMembroForm(data){
       <div class="form-group"><label>É atípico?</label><select id="mb-${idx}-temcond" onchange="toggleAtipField(this,'mb-${idx}-cond-area')"><option value="">—</option><option${d.temCondicao==='Sim'?' selected':''}>Sim</option><option${d.temCondicao==='Não'?' selected':''}>Não</option><option${d.temCondicao==='Em investigação'?' selected':''}>Em investigação</option></select></div>
       <div class="form-group"><label>Tem laudo?</label><select id="mb-${idx}-laudo"><option value="">—</option><option${d.temLaudo==='Sim'?' selected':''}>Sim</option><option${d.temLaudo==='Não, aguardando'?' selected':''}>Não, aguardando</option><option${d.temLaudo==='Não'?' selected':''}>Não</option></select></div>
       <div id="mb-${idx}-cond-area" class="form-group full" style="${(d.temCondicao&&d.temCondicao!=='Não')?'':'display:none'}">
-        <label>Tipo de atipicidade / Diagnóstico</label>
-        <select id="mb-${idx}-tipocond" onchange="toggleOutrosCond(this,'mb-${idx}-cond')">
-          <option value="">— Selecione —</option>
-          <option${d.tipoCondicao==='TEA — Transtorno do Espectro Autista'?' selected':''}>TEA — Transtorno do Espectro Autista</option>
-          <option${d.tipoCondicao==='TDAH — Transtorno de Déficit de Atenção e Hiperatividade'?' selected':''}>TDAH — Transtorno de Déficit de Atenção e Hiperatividade</option>
-          <option${d.tipoCondicao==='TOD — Transtorno Opositivo Desafiador'?' selected':''}>TOD — Transtorno Opositivo Desafiador</option>
-          <option${d.tipoCondicao==='Síndrome de Down'?' selected':''}>Síndrome de Down</option>
-          <option${d.tipoCondicao==='Deficiência Intelectual'?' selected':''}>Deficiência Intelectual</option>
-          <option${d.tipoCondicao==='Deficiência Física'?' selected':''}>Deficiência Física</option>
-          <option${d.tipoCondicao==='Deficiência Visual'?' selected':''}>Deficiência Visual</option>
-          <option${d.tipoCondicao==='Deficiência Auditiva'?' selected':''}>Deficiência Auditiva</option>
-          <option${d.tipoCondicao==='Transtorno de Ansiedade'?' selected':''}>Transtorno de Ansiedade</option>
-          <option${d.tipoCondicao==='Transtorno do Humor'?' selected':''}>Transtorno do Humor</option>
-          <option${d.tipoCondicao==='Em investigação'?' selected':''}>Em investigação</option>
-          <option${d.tipoCondicao==='Outros'?' selected':''}>Outros — especificar</option>
-        </select>
-        <input id="mb-${idx}-cond" value="${d.condicao||''}" placeholder="Especifique o diagnóstico..." style="margin-top:6px;${(d.tipoCondicao==='Outros'||(!d.tipoCondicao&&d.condicao))?'':'display:none'}">
+        <label>Diagnóstico(s) / Atipicidade</label>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+          ${['TEA','TDAH','TOD','Síndrome de Down','Deficiência Intelectual','Deficiência Física','Deficiência Visual','Deficiência Auditiva','Transtorno de Ansiedade','Em investigação'].map(op=>`
+            <label style="display:flex;align-items:center;gap:4px;font-size:0.75rem;font-weight:400;background:#f4f6fb;padding:4px 8px;border-radius:6px;cursor:pointer;">
+              <input type="checkbox" value="${op}" style="width:auto;margin:0;" ${(d.condicao||'').includes(op)?'checked':''}> ${op}
+            </label>`).join('')}
+        </div>
+        <input id="mb-${idx}-cond" value="${d.condicao||''}" placeholder="Ou descreva livremente: TEA + TDAH, Síndrome de Down nível 2..." style="margin-top:2px;">
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:2px;">Marque as opções acima ou escreva diretamente no campo</div>
       </div>
       <div class="form-group"><label>Nível de suporte (TEA)</label><select id="mb-${idx}-nivel"><option value="">—</option><option${d.nivelSuporte==='Nível 1'?' selected':''}>Nível 1</option><option${d.nivelSuporte==='Nível 2'?' selected':''}>Nível 2</option><option${d.nivelSuporte==='Nível 3'?' selected':''}>Nível 3</option></select></div>
       <div class="form-group"><label>Situação escolar</label><select id="mb-${idx}-escola"><option value="">—</option><option${d.situacaoEscolar==='Escola regular'?' selected':''}>Escola regular</option><option${d.situacaoEscolar==='Escola especial'?' selected':''}>Escola especial</option><option${d.situacaoEscolar==='Sem escola'?' selected':''}>Sem escola</option><option${d.situacaoEscolar==='Adulto/Não se aplica'?' selected':''}>Adulto/Não se aplica</option></select></div>
@@ -853,15 +861,15 @@ function getMembrosForm(){
     const idx=item.id.replace('membro-form-','');
     const nome=document.getElementById('mb-'+idx+'-nome')?.value?.trim();
     if(!nome)return;
-    const tipoC=document.getElementById('mb-'+idx+'-tipocond')?.value||'';
-    const condEsp=document.getElementById('mb-'+idx+'-cond')?.value||'';
-    const condFinal=tipoC==='Outros'?condEsp:tipoC;
+    const condArea=document.getElementById('mb-'+idx+'-cond-area');
+    const checks=condArea?[...condArea.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value):[];
+    const condText=document.getElementById('mb-'+idx+'-cond')?.value?.trim()||'';
+    const condFinal=condText||(checks.join(', '));
     membros.push({id:Date.now()+Math.random(),nome,
       nasc:fmtDate(document.getElementById('mb-'+idx+'-nasc')?.value||''),
       sexo:document.getElementById('mb-'+idx+'-sexo')?.value||'',
       parentesco:document.getElementById('mb-'+idx+'-parentesco')?.value||'',
       temCondicao:document.getElementById('mb-'+idx+'-temcond')?.value||'',
-      tipoCondicao:tipoC,
       condicao:condFinal,
       nivelSuporte:document.getElementById('mb-'+idx+'-nivel')?.value||'',
       temLaudo:document.getElementById('mb-'+idx+'-laudo')?.value||'',
@@ -931,7 +939,7 @@ function openPront(id){
   document.getElementById('pp-status').value=f.status||'Ativo';
   document.getElementById('pp-alerta').innerHTML=f.alertaPrioritario?`<div class="alerta-box"><span>⚠️</span><div><strong>Alerta:</strong> ${f.alertaPrioritario}</div></div>`:'';
   renderProntGeral(f);renderProntPessoa('resp',f.responsavel||{},'responsavel',-1);
-  renderProntConjuge(f);renderProntMembros(f);renderProntTriagem(f);
+  renderProntConjuge(f);renderProntMembros(f);renderProntAtendimentos(f);renderProntTriagem(f);
   document.getElementById('pront-overlay').classList.add('open');
   document.getElementById('pront-panel').classList.add('open');
   switchProntTab('geral',document.querySelector('.pront-tab'));
@@ -1028,10 +1036,59 @@ function renderProntMembros(f){
     c.appendChild(div);
   });
 }
+function renderProntAtendimentos(f){
+  const c=document.getElementById('pp-atend-content');if(!c)return;
+  const resp=f.responsavel||{};const conj=f.conjuge||{};const membros=f.membros||[];
+  // Collect all atendimentos with person info
+  let todos=[];
+  (resp.atendimentos||[]).forEach(a=>todos.push({...a,pessoaNome:resp.nome,pessoaTipo:'Responsável',avatar:''}));
+  (conj.atendimentos||[]).forEach(a=>todos.push({...a,pessoaNome:conj.nome,pessoaTipo:'Cônjuge',avatar:'org'}));
+  membros.forEach((m,i)=>(m.atendimentos||[]).forEach(a=>todos.push({...a,pessoaNome:m.nome,pessoaTipo:m.condicao||'Dependente',avatar:'roxo',membroIdx:i})));
+  todos.sort((a,b)=>{const da=parseDate(a.data),db2=parseDate(b.data);return (db2||0)-(da||0);});
+  const stc=s=>s==='Concluído'?'badge-green':'badge-yellow';
+  const resumo=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+    <div class="stat-card" style="text-align:center;padding:10px"><div class="stat-num grn" style="font-size:1.4rem">${todos.length}</div><div class="stat-label">Total</div></div>
+    <div class="stat-card" style="text-align:center;padding:10px"><div class="stat-num" style="font-size:1.4rem;color:var(--amarelo)">${todos.filter(a=>a.status!=='Concluído').length}</div><div class="stat-label">Em aberto</div></div>
+    <div class="stat-card" style="text-align:center;padding:10px"><div class="stat-num grn" style="font-size:1.4rem">${todos.filter(a=>a.status==='Concluído').length}</div><div class="stat-label">Concluídos</div></div>
+  </div>`;
+  if(!todos.length){c.innerHTML=resumo+'<div class="empty"><div class="empty-icon">📋</div><p>Nenhum atendimento registrado.</p></div>';return;}
+  const lista=todos.map(a=>`
+    <div class="at-item-mini ${a.status==='Concluído'?'concluido':'andamento'}" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div style="flex:1">
+          <div class="at-mini-title">${a.tipo||'Atendimento'}</div>
+          <div style="font-size:0.7rem;margin-top:2px;">
+            <span style="background:#f3f4f6;padding:2px 6px;border-radius:10px;color:#6b7280;">${a.pessoaTipo}</span>
+            <strong style="margin-left:4px">${a.pessoaNome}</strong>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+          <span class="badge ${stc(a.status||'Em andamento')}">${a.status||'Em andamento'}</span>
+          <button class="btn-mini" style="background:#f4f6fb;color:var(--azul);font-size:0.68rem;padding:3px 7px;" onclick="editarAtendimento('${a.pessoaTipo==='Responsável'?'responsavel':a.pessoaTipo==='Cônjuge'?'conjuge':'membro'}',${a.membroIdx!=null?a.membroIdx:-1},${a.id})">✏️</button>
+        </div>
+      </div>
+      <div class="at-mini-meta">📅 ${a.data||'—'}${a.responsavelAt?' · 👤 '+a.responsavelAt:''}</div>
+      ${a.obs?`<div class="at-mini-obs" style="margin-top:6px">${a.obs}</div>`:''}
+      ${a.proximosPassos?`<div class="at-mini-obs"><strong>Próximos passos:</strong> ${a.proximosPassos}</div>`:''}
+      ${a.obsInternas?`<div class="at-mini-obs" style="color:var(--roxo)">🔒 ${a.obsInternas}</div>`:''}
+      ${a.encaminhamento?`<div class="enc-mini" style="margin-top:4px">🔗 ${a.encaminhamento}${a.encInst?' — '+a.encInst:''}${a.encStatus?' · '+a.encStatus:''}</div>`:''}
+    </div>`).join('');
+  c.innerHTML=resumo+`<div style="margin-bottom:10px;display:flex;justify-content:flex-end;">
+    <button class="btn-mini btn-mini-primary" onclick="abrirModalAt('responsavel',-1)">＋ Novo atendimento</button>
+  </div>`+lista;
+}
+
 function renderProntTriagem(f){
   document.getElementById('pp-triagem-content').innerHTML=`<div class="inline-form">
     <label>⚠️ Alerta prioritário</label><input id="tri-alerta" value="${f.alertaPrioritario||''}" placeholder="Ex: situação de vulnerabilidade, urgência...">
-    <label>Responsável pelo acompanhamento na Rede</label><input id="tri-resp" value="${f.responsavelRede||''}" placeholder="Nome do membro da equipe">
+    <label>Responsável pelo acompanhamento na Rede</label>
+    <select id="tri-resp" style="margin-bottom:7px" onchange="document.getElementById('tri-resp-outro').style.display=this.value==='__outro__'?'':'none'">
+      <option value="">— Selecione o voluntário —</option>
+      ${(db.vol||[]).map(v=>`<option value="${v.nome}" ${f.responsavelRede===v.nome?'selected':''}>${v.nome}${v.area?' ('+v.area+')':''}</option>`).join('')}
+      <option value="__outro__" ${f.responsavelRede&&!(db.vol||[]).some(v=>v.nome===f.responsavelRede)?'selected':''}>Outro — digitar</option>
+    </select>
+    <input id="tri-resp-outro" placeholder="Nome do responsável" style="${f.responsavelRede&&!(db.vol||[]).some(v=>v.nome===f.responsavelRede)?'':'display:none'}" value="${f.responsavelRede&&!(db.vol||[]).some(v=>v.nome===f.responsavelRede)?f.responsavelRede:''}">
+
     <label>Nível de prioridade</label>
     <select id="tri-prioridade" style="margin-bottom:7px"><option${f.nivelPrioridade==='Normal'?' selected':''}>Normal</option><option${f.nivelPrioridade==='Alta'?' selected':''}>Alta</option><option${f.nivelPrioridade==='Urgente'?' selected':''}>Urgente</option></select>
     <label>Situação de vulnerabilidade</label><textarea id="tri-vuln" placeholder="Descreva...">${f.vulnerabilidade||''}</textarea>
@@ -1056,6 +1113,51 @@ async function salvarTriagem(){
   catch(e){setSyncStatus('err','Erro');showToast('⚠️ Salvo localmente.',true);}
 }
 
+function editarAtendimento(pessoaTipo, membroIdx, atId){
+  const f=db.familias.find(f=>f.id==currentFamId);if(!f)return;
+  let at=null;let nome='';
+  if(pessoaTipo==='responsavel'){at=(f.responsavel?.atendimentos||[]).find(a=>a.id==atId);nome=f.responsavel?.nome||'Responsável';}
+  else if(pessoaTipo==='conjuge'){at=(f.conjuge?.atendimentos||[]).find(a=>a.id==atId);nome=f.conjuge?.nome||'Cônjuge';}
+  else{at=(f.membros?.[membroIdx]?.atendimentos||[]).find(a=>a.id==atId);nome=f.membros?.[membroIdx]?.nome||'Dependente';}
+  if(!at)return;
+  document.getElementById('at-fam-id').value=currentFamId;
+  document.getElementById('at-pessoa-tipo').value=pessoaTipo;
+  document.getElementById('at-membro-idx').value=membroIdx;
+  document.getElementById('at-edit-id').value=atId;
+  document.getElementById('modal-at-title').textContent='✏️ Editar Atendimento — '+nome;
+  // Populate parceiros select
+  const respSel=document.getElementById('at-resp-sel');
+  if(respSel){
+    respSel.innerHTML='<option value="">— Selecione o parceiro —</option>'+
+      (db.parc||[]).map(p=>`<option value="${p.nome}">${p.nome}${p.tipo?' ('+p.tipo+')':''}</option>`).join('')+
+      '<option value="__outro__">Outro — digitar</option>';
+    // Set current value
+    const matched=(db.parc||[]).find(p=>p.nome===at.responsavelAt);
+    if(matched){respSel.value=at.responsavelAt;document.getElementById('at-resp').style.display='none';}
+    else if(at.responsavelAt){respSel.value='__outro__';document.getElementById('at-resp').value=at.responsavelAt;document.getElementById('at-resp').style.display='';}
+    else{respSel.value='';document.getElementById('at-resp').style.display='none';}
+  }
+  document.getElementById('at-tipo').value=at.tipo||'';
+  document.getElementById('at-data').value=toInputDate(at.data||'');
+  document.getElementById('at-obs').value=at.obs||'';
+  document.getElementById('at-prox').value=at.proximosPassos||'';
+  document.getElementById('at-int').value=at.obsInternas||'';
+  document.getElementById('at-status').value=at.status||'Em andamento';
+  document.getElementById('at-enc').value=at.encaminhamento?'Sim':'Não';
+  toggleEncFields(at.encaminhamento?'Sim':'Não');
+  if(at.encaminhamento){document.getElementById('at-enc-tipo').value=at.encaminhamento||'';document.getElementById('at-enc-inst').value=at.encInst||'';document.getElementById('at-enc-status').value=at.encStatus||'';}
+  // Populate "mover para" select
+  const moverArea=document.getElementById('at-mover-area');
+  const moverSel=document.getElementById('at-mover-para');
+  moverArea.style.display='';
+  moverSel.innerHTML='<option value="">— Manter na pessoa atual ('+nome+') —</option>';
+  const resp=f.responsavel||{};const conj=f.conjuge||{};
+  if(pessoaTipo!=='responsavel'&&resp.nome)moverSel.innerHTML+=`<option value="responsavel:-1">👤 ${resp.nome} (Responsável)</option>`;
+  if(pessoaTipo!=='conjuge'&&conj.nome)moverSel.innerHTML+=`<option value="conjuge:-1">💑 ${conj.nome} (Cônjuge)</option>`;
+  (f.membros||[]).forEach((m,i)=>{if(!(pessoaTipo==='membro'&&i==membroIdx))moverSel.innerHTML+=`<option value="membro:${i}">🧩 ${m.nome} (${m.condicao||'Dependente'})</option>`;});
+  openModal('at');
+}
+
 function abrirModalAt(tipo,idx){
   const f=db.familias.find(f=>f.id==currentFamId);
   let nome='';
@@ -1065,19 +1167,62 @@ function abrirModalAt(tipo,idx){
   document.getElementById('at-fam-id').value=currentFamId;document.getElementById('at-pessoa-tipo').value=tipo;document.getElementById('at-membro-idx').value=idx;
   document.getElementById('modal-at-title').textContent='📋 Atendimento — '+nome;
   ['at-tipo','at-resp','at-obs','at-prox','at-int','at-enc-inst'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('at-data').value='';document.getElementById('at-enc').value='Não';document.getElementById('enc-fields').style.display='none';document.getElementById('at-status').value='Em andamento';
+  document.getElementById('at-data').value='';
+  document.getElementById('at-enc').value='Não';
+  document.getElementById('enc-fields').style.display='none';
+  document.getElementById('at-status').value='Em andamento';
+  document.getElementById('at-resp').style.display='none';
+  document.getElementById('at-edit-id').value='';
+  document.getElementById('at-mover-area').style.display='none';
+  // Populate parceiros select
+  const respSel=document.getElementById('at-resp-sel');
+  if(respSel){
+    respSel.innerHTML='<option value="">— Selecione o parceiro —</option>'+
+      (db.parc||[]).map(p=>`<option value="${p.nome}">${p.nome}${p.tipo?' ('+p.tipo+')':''}</option>`).join('')+
+      '<option value="__outro__">Outro — digitar</option>';
+    respSel.value='';
+  }
   openModal('at');
 }
 async function salvarAtendimento(){
   const tipo=document.getElementById('at-tipo').value.trim();if(!tipo){showToast('Informe o tipo.',true);return;}
-  const famId=parseInt(document.getElementById('at-fam-id').value);const pessoaTipo=document.getElementById('at-pessoa-tipo').value;const membroIdx=parseInt(document.getElementById('at-membro-idx').value);
+  const famId=parseInt(document.getElementById('at-fam-id').value);
+  let pessoaTipo=document.getElementById('at-pessoa-tipo').value;
+  let membroIdx=parseInt(document.getElementById('at-membro-idx').value);
+  const editId=document.getElementById('at-edit-id').value;
   const f=db.familias.find(f=>f.id==famId);if(!f)return;
   const dv=document.getElementById('at-data').value;const temEnc=document.getElementById('at-enc').value==='Sim';
-  const at={id:Date.now(),data:dv?fmtDate(dv):new Date().toLocaleDateString('pt-BR'),tipo,responsavelAt:document.getElementById('at-resp').value,obs:document.getElementById('at-obs').value,proximosPassos:document.getElementById('at-prox').value,obsInternas:document.getElementById('at-int').value,status:document.getElementById('at-status').value,encaminhamento:temEnc?document.getElementById('at-enc-tipo').value:'',encInst:temEnc?document.getElementById('at-enc-inst').value:'',encStatus:temEnc?document.getElementById('at-enc-status').value:''};
-  if(pessoaTipo==='responsavel'){if(!f.responsavel.atendimentos)f.responsavel.atendimentos=[];f.responsavel.atendimentos.unshift(at);}
-  else if(pessoaTipo==='conjuge'){if(!f.conjuge.atendimentos)f.conjuge.atendimentos=[];f.conjuge.atendimentos.unshift(at);}
-  else{if(!f.membros[membroIdx].atendimentos)f.membros[membroIdx].atendimentos=[];f.membros[membroIdx].atendimentos.unshift(at);}
-  closeModal('at');renderProntPessoa('resp',f.responsavel||{},'responsavel',-1);renderProntConjuge(f);renderProntMembros(f);renderProntGeral(f);updateDash();
+  const respSel=document.getElementById('at-resp-sel')?.value||'';
+  const respVal=respSel==='__outro__'?document.getElementById('at-resp').value:respSel;
+  const atData={data:dv?fmtDate(dv):new Date().toLocaleDateString('pt-BR'),tipo,responsavelAt:respVal,obs:document.getElementById('at-obs').value,proximosPassos:document.getElementById('at-prox').value,obsInternas:document.getElementById('at-int').value,status:document.getElementById('at-status').value,encaminhamento:temEnc?document.getElementById('at-enc-tipo').value:'',encInst:temEnc?document.getElementById('at-enc-inst').value:'',encStatus:temEnc?document.getElementById('at-enc-status').value:''};
+
+  // Check if moving to another person
+  const moverPara=document.getElementById('at-mover-para')?.value||'';
+
+  if(editId){
+    // EDIT MODE — remove from current person first
+    const removeFrom=(pt,mi)=>{
+      if(pt==='responsavel')f.responsavel.atendimentos=(f.responsavel.atendimentos||[]).filter(a=>a.id!=editId);
+      else if(pt==='conjuge')f.conjuge.atendimentos=(f.conjuge.atendimentos||[]).filter(a=>a.id!=editId);
+      else if(f.membros[mi])f.membros[mi].atendimentos=(f.membros[mi].atendimentos||[]).filter(a=>a.id!=editId);
+    };
+    removeFrom(pessoaTipo,membroIdx);
+    // If moving, change target
+    if(moverPara){const[np,ni]=moverPara.split(':');pessoaTipo=np;membroIdx=parseInt(ni);}
+    const at={id:parseInt(editId)||Date.now(),...atData};
+    if(pessoaTipo==='responsavel'){if(!f.responsavel.atendimentos)f.responsavel.atendimentos=[];f.responsavel.atendimentos.unshift(at);}
+    else if(pessoaTipo==='conjuge'){if(!f.conjuge.atendimentos)f.conjuge.atendimentos=[];f.conjuge.atendimentos.unshift(at);}
+    else{if(!f.membros[membroIdx].atendimentos)f.membros[membroIdx].atendimentos=[];f.membros[membroIdx].atendimentos.unshift(at);}
+    document.getElementById('at-edit-id').value='';
+    document.getElementById('at-mover-area').style.display='none';
+  } else {
+    // NEW MODE
+    const at={id:Date.now(),...atData};
+    if(pessoaTipo==='responsavel'){if(!f.responsavel.atendimentos)f.responsavel.atendimentos=[];f.responsavel.atendimentos.unshift(at);}
+    else if(pessoaTipo==='conjuge'){if(!f.conjuge.atendimentos)f.conjuge.atendimentos=[];f.conjuge.atendimentos.unshift(at);}
+    else{if(!f.membros[membroIdx].atendimentos)f.membros[membroIdx].atendimentos=[];f.membros[membroIdx].atendimentos.unshift(at);}
+  }
+  closeModal('at');renderProntPessoa('resp',f.responsavel||{},'responsavel',-1);renderProntConjuge(f);renderProntMembros(f);renderProntAtendimentos(f);renderProntGeral(f);updateDash();
   showToast('💾 Salvando...');
   try{await apiSave('Famílias',famToRow(f),f.responsavel?.nome||'');setSyncStatus('ok','Sincronizado ✓');showToast('✅ Atendimento salvo!');}
   catch(e){setSyncStatus('err','Erro');showToast('⚠️ Salvo localmente.',true);}
@@ -1196,7 +1341,16 @@ function buscarEncRel(q){
     (f.membros||[]).forEach(m=>{if(m.nome&&m.nome.toLowerCase().includes(q.toLowerCase()))results.push({nome:m.nome,role:m.condicao||'Membro dependente',famId:f.id});});
   });
   if(!results.length){lista.style.display='none';return;}lista.style.display='';
-  lista.innerHTML=results.slice(0,6).map(r=>`<div style="padding:6px 10px;font-size:0.8rem;cursor:pointer;border-bottom:1px solid var(--border);" onclick="selecionarEncRel(${r.famId},'${r.nome.replace(/'/g,"\\'")}','${r.role.replace(/'/g,"\\'")}' )">${r.nome} <span style="color:var(--muted);font-size:0.72rem">· ${r.role}</span></div>`).join('');
+  lista.innerHTML='';
+  results.slice(0,6).forEach(r=>{
+    const div=document.createElement('div');
+    div.style.cssText='padding:6px 10px;font-size:0.8rem;cursor:pointer;border-bottom:1px solid #e2e8f0;';
+    div.innerHTML=r.nome+' <span style="color:#6b7280;font-size:0.72rem">· '+r.role+'</span>';
+    div.addEventListener('click',()=>selecionarEncRel(r.famId,r.nome,r.role,r.diagnostico||''));
+    div.addEventListener('mouseover',()=>div.style.background='#f8faff');
+    div.addEventListener('mouseout',()=>div.style.background='');
+    lista.appendChild(div);
+  });
 }
 function buscarParceiros(q){
   const lista=document.getElementById('rel-parc-lista');
@@ -1210,7 +1364,7 @@ function selecionarParceiro(nome,tipo){
   document.getElementById('rel-enc-parceiro').value=nome;
   document.getElementById('rel-parc-lista').style.display='none';
 }
-function selecionarEncRel(famId,nome,role){relEncFamIdSel=famId;relEncPessoaSel={nome,role,diagnostico};document.getElementById('rel-enc-busca').value=nome+' ('+role+')';document.getElementById('rel-enc-lista').style.display='none';}
+function selecionarEncRel(famId,nome,role,diagnostico){relEncFamIdSel=famId;relEncPessoaSel={nome,role,diagnostico:diagnostico||''};document.getElementById('rel-enc-busca').value=nome+' ('+role+')';document.getElementById('rel-enc-lista').style.display='none';}
 function gerarEncDirecto(){
   const f=db.familias.find(f=>f.id==currentFamId);if(!f)return;closePront();
   setTimeout(()=>{
