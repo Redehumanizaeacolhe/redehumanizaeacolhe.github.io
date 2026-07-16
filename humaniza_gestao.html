@@ -1337,8 +1337,8 @@ function buscarEncRel(q){
   const results=[];
   db.familias.forEach(f=>{
     const resp=f.responsavel||{};
-    if(resp.nome&&resp.nome.toLowerCase().includes(q.toLowerCase()))results.push({nome:resp.nome,role:'Responsável',famId:f.id});
-    (f.membros||[]).forEach(m=>{if(m.nome&&m.nome.toLowerCase().includes(q.toLowerCase()))results.push({nome:m.nome,role:m.condicao||'Membro dependente',famId:f.id});});
+    if(resp.nome&&resp.nome.toLowerCase().includes(q.toLowerCase()))results.push({nome:resp.nome,role:'Responsável',diagnostico:'',famId:f.id});
+    (f.membros||[]).forEach(m=>{if(m.nome&&m.nome.toLowerCase().includes(q.toLowerCase()))results.push({nome:m.nome,role:m.condicao||'Dependente',diagnostico:m.condicao||'',famId:f.id});});
   });
   if(!results.length){lista.style.display='none';return;}lista.style.display='';
   lista.innerHTML='';
@@ -1346,7 +1346,8 @@ function buscarEncRel(q){
     const div=document.createElement('div');
     div.style.cssText='padding:6px 10px;font-size:0.8rem;cursor:pointer;border-bottom:1px solid #e2e8f0;';
     div.innerHTML=r.nome+' <span style="color:#6b7280;font-size:0.72rem">· '+r.role+'</span>';
-    div.addEventListener('click',()=>selecionarEncRel(r.famId,r.nome,r.role,r.diagnostico||''));
+    const _famId=r.famId,_nome=r.nome,_role=r.role,_diag=r.diagnostico||'';
+    div.addEventListener('click',()=>selecionarEncRel(_famId,_nome,_role,_diag));
     div.addEventListener('mouseover',()=>div.style.background='#f8faff');
     div.addEventListener('mouseout',()=>div.style.background='');
     lista.appendChild(div);
