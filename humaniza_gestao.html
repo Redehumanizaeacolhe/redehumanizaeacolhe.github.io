@@ -567,6 +567,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="form-grid">
       <div class="form-group"><label>Nome</label><input id="fc-nome"></div>
       <div class="form-group"><label>Data de nascimento</label><input id="fc-nasc" type="date"></div>
+      <div class="form-group"><label>Sexo</label><select id="fc-sexo"><option value="">—</option><option>Feminino</option><option>Masculino</option><option>Outro</option></select></div>
       <div class="form-group"><label>Contato alternativo</label><input id="fc-tel"></div>
       <div class="form-group"><label>Tem condição atípica?</label><select id="fc-temcond"><option value="">—</option><option>Sim</option><option>Não</option><option>Em investigação</option></select></div>
       <div class="form-group full"><label>Qual condição?</label><input id="fc-cond"></div>
@@ -835,7 +836,8 @@ function addMembroForm(data){
       <div class="form-group"><label>Data de nascimento</label><input id="mb-${idx}-nasc" type="date" value="${toInputDate(d.nasc||'')}"></div>
       <div class="form-group"><label>Sexo</label><select id="mb-${idx}-sexo"><option value="">—</option><option${d.sexo==='Feminino'?' selected':''}>Feminino</option><option${d.sexo==='Masculino'?' selected':''}>Masculino</option><option${d.sexo==='Outro'?' selected':''}>Outro</option></select></div>
       <div class="form-group"><label>Parentesco</label><select id="mb-${idx}-parentesco"><option value="">—</option><option${d.parentesco==='Filho(a)'?' selected':''}>Filho(a)</option><option${d.parentesco==='Enteado(a)'?' selected':''}>Enteado(a)</option><option${d.parentesco==='Neto(a)'?' selected':''}>Neto(a)</option><option${d.parentesco==='Sobrinho(a)'?' selected':''}>Sobrinho(a)</option><option${d.parentesco==='Irmão/Irmã'?' selected':''}>Irmão/Irmã</option><option${d.parentesco==='Outro'?' selected':''}>Outro</option></select></div>
-      <div class="form-group"><label>É atípico?</label><select id="mb-${idx}-temcond" onchange="toggleAtipField(this,'mb-${idx}-cond-area')"><option value="">—</option><option${d.temCondicao==='Sim'?' selected':''}>Sim</option><option${d.temCondicao==='Não'?' selected':''}>Não</option><option${d.temCondicao==='Em investigação'?' selected':''}>Em investigação</option></select></div>
+      <div class="form-group"><label>Sexo</label><select id="mb-${idx}-sexo2"><option value="">—</option><option${d.sexo==='Feminino'?' selected':''}>Feminino</option><option${d.sexo==='Masculino'?' selected':''}>Masculino</option><option${d.sexo==='Outro'?' selected':''}>Outro</option></select></div>
+      <div class="form-group"><label>Tem condição atípica?</label><select id="mb-${idx}-temcond" onchange="toggleAtipField(this,'mb-${idx}-cond-area')"><option value="">—</option><option${d.temCondicao==='Sim'?' selected':''}>Sim</option><option${d.temCondicao==='Não'?' selected':''}>Não</option><option${d.temCondicao==='Em investigação'?' selected':''}>Em investigação</option></select></div>
       <div class="form-group"><label>Tem laudo?</label><select id="mb-${idx}-laudo"><option value="">—</option><option${d.temLaudo==='Sim'?' selected':''}>Sim</option><option${d.temLaudo==='Não, aguardando'?' selected':''}>Não, aguardando</option><option${d.temLaudo==='Não'?' selected':''}>Não</option></select></div>
       <div id="mb-${idx}-cond-area" class="form-group full" style="${(d.temCondicao&&d.temCondicao!=='Não')?'':'display:none'}">
         <label>Diagnóstico(s) / Atipicidade</label>
@@ -879,7 +881,7 @@ function getMembrosForm(){
     const checks=condArea?[...condArea.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value):[];
     const condText=document.getElementById('mb-'+idx+'-cond')?.value?.trim()||'';
     const condFinal=condText||(checks.join(', '));
-    membros.push({id:Date.now()+Math.random(),nome,
+    membros.push({id:Date.now()+Math.random(),nome,sexo:document.getElementById('mb-'+idx+'-sexo2')?.value||'',
       nasc:fmtDate(document.getElementById('mb-'+idx+'-nasc')?.value||''),
       sexo:document.getElementById('mb-'+idx+'-sexo')?.value||'',
       parentesco:document.getElementById('mb-'+idx+'-parentesco')?.value||'',
@@ -904,7 +906,7 @@ async function salvarFamilia(){
     id:eid?parseInt(eid):Date.now(),dataEntrada:old?old.dataEntrada:new Date().toLocaleDateString('pt-BR'),
     comoChegou:document.getElementById('fq-chegou').value,responsavelRede:old?old.responsavelRede:'',alertaPrioritario:old?old.alertaPrioritario:'',vulnerabilidade:old?old.vulnerabilidade:'',genograma:old?old.genograma:'',nivelPrioridade:old?old.nivelPrioridade:'Normal',status:old?old.status:'Ativo',dificuldades:document.getElementById('fq-dific').value,expectativas:document.getElementById('fq-expect').value,mensagem:document.getElementById('fq-msg').value,obsTriagem:old?old.obsTriagem:'',
     responsavel:{nome:nomeResp,nasc:fmtDate(document.getElementById('fr-nasc').value),sexo:document.getElementById('fr-sexo').value,estadoCivil:document.getElementById('fr-civil').value,tel:document.getElementById('fr-tel').value,bairro:document.getElementById('fr-bairro').value,cidade:document.getElementById('fr-cidade').value||'Rio de Janeiro',renda:document.getElementById('fr-renda').value,composicao:document.getElementById('fr-comp').value,temCondicao:document.getElementById('fr-temcond').value,condicao:document.getElementById('fr-cond').value,atendimentos:old?old.responsavel?.atendimentos||[]:[],obsLog:old?old.responsavel?.obsLog||[]:[],},
-    conjuge:{nome:document.getElementById('fc-nome').value,nasc:fmtDate(document.getElementById('fc-nasc').value),tel:document.getElementById('fc-tel').value,temCondicao:document.getElementById('fc-temcond').value,condicao:document.getElementById('fc-cond').value,atendimentos:old?old.conjuge?.atendimentos||[]:[],},
+    conjuge:{nome:document.getElementById('fc-nome').value,nasc:fmtDate(document.getElementById('fc-nasc').value),sexo:document.getElementById('fc-sexo')?.value||'',tel:document.getElementById('fc-tel').value,temCondicao:document.getElementById('fc-temcond').value,condicao:document.getElementById('fc-cond').value,atendimentos:old?old.conjuge?.atendimentos||[]:[],},
     membros:membrosNovos.length>0?membrosNovos:(old?old.membros||[]:[]),
   };
   if(eid)db.familias=db.familias.map(f=>f.id==eid?item:f);else db.familias.push(item);
@@ -1253,7 +1255,7 @@ function editarFamilia(){
   document.getElementById('fr-comp').value=resp.composicao||'';document.getElementById('fr-temcond').value=resp.temCondicao||'';
   document.getElementById('fr-cond').value=resp.condicao||'';document.getElementById('fc-nome').value=conj.nome||'';
   document.getElementById('fc-nasc').value=toInputDate(conj.nasc||'');document.getElementById('fc-tel').value=conj.tel||'';
-  document.getElementById('fc-temcond').value=conj.temCondicao||'';document.getElementById('fc-cond').value=conj.condicao||'';
+  document.getElementById('fc-sexo').value=conj.sexo||'';document.getElementById('fc-temcond').value=conj.temCondicao||'';document.getElementById('fc-cond').value=conj.condicao||'';
   document.getElementById('fq-chegou').value=f.comoChegou||'';document.getElementById('fq-dific').value=f.dificuldades||'';
   document.getElementById('fq-expect').value=f.expectativas||'';document.getElementById('fq-msg').value=f.mensagem||'';
   document.getElementById('membros-form-list').innerHTML='';membrosFormCount=0;
@@ -1309,8 +1311,24 @@ async function saveVol(){
 function renderVol(){
   const tbody=document.getElementById('table-vol');const empty=document.getElementById('empty-vol');const cards=document.getElementById('cards-vol');
   if(!db.vol.length){tbody.innerHTML='';if(cards)cards.innerHTML='';empty.style.display='';return;}empty.style.display='none';
-  tbody.innerHTML=db.vol.map(v=>`<tr class="clickable" onclick="abrirVoluntario('${v.nome.replace(/'/g,"\\'")}')"><td><div class="person-cell"><div class="avatar org">${ini(v.nome)}</div><div><div class="person-name">${v.nome}</div><div class="person-sub">${v.prof||''}</div></div></div></td><td><span class="badge badge-org">${v.area}</span></td><td><span class="badge badge-gray">${v.disp}</span></td><td>${v.tel||'—'}</td></tr>`).join('');
-  if(cards)cards.innerHTML=db.vol.map(v=>`<div class="family-card" onclick="abrirVoluntario('${v.nome.replace(/'/g,"\\'")}')"><div class="family-card-header"><div class="avatar org">${ini(v.nome)}</div><div><div class="family-card-name">${v.nome}</div><div class="family-card-sub">${v.prof||''} · ${v.area||''}</div></div></div></div>`).join('');
+  tbody.innerHTML='';
+  db.vol.forEach(v=>{
+    const tr=document.createElement('tr');
+    tr.className='clickable';
+    tr.innerHTML=`<td><div class="person-cell"><div class="avatar org">${ini(v.nome)}</div><div><div class="person-name">${v.nome}</div><div class="person-sub">${v.prof||''}</div></div></div></td><td><span class="badge badge-org">${v.area||'—'}</span></td><td><span class="badge badge-gray">${v.disp||'—'}</span></td><td>${v.tel||'—'}</td>`;
+    tr.addEventListener('click',()=>abrirVoluntario(v.nome));
+    tbody.appendChild(tr);
+  });
+  if(cards){
+    cards.innerHTML='';
+    db.vol.forEach(v=>{
+      const div=document.createElement('div');
+      div.className='family-card';
+      div.innerHTML=`<div class="family-card-header"><div class="avatar org">${ini(v.nome)}</div><div><div class="family-card-name">${v.nome}</div><div class="family-card-sub">${v.prof||''}${v.area?' · '+v.area:''}</div></div></div>`;
+      div.addEventListener('click',()=>abrirVoluntario(v.nome));
+      cards.appendChild(div);
+    });
+  }
 }
 async function saveParc(){
   const nome=document.getElementById('p-nome').value.trim();if(!nome){alert('Informe o nome.');return;}
@@ -1514,7 +1532,7 @@ function gerarRel(tipo,formato){
     const hoje=new Date().toLocaleDateString('pt-BR');
     titulo='Carta de Encaminhamento';
     const primeiroNome=pessoa.nome.split(' ')[0];
-    const diagnostico=pessoa.diagnostico||pessoa.role||'';
+    const diagnostico=(pessoa.diagnostico&&pessoa.diagnostico!=='Responsável'&&pessoa.diagnostico!=='Dependente'&&pessoa.diagnostico!=='Cônjuge')?pessoa.diagnostico:'';
     const mesesPT=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
     const agora=new Date();
     const dataExtenso='Rio de Janeiro, '+agora.getDate()+' de '+mesesPT[agora.getMonth()]+' de '+agora.getFullYear()+'.';
@@ -1565,14 +1583,14 @@ body{
   font-family:'Times New Roman',serif;
   background:white;
   color:#1a1a2e;
-  padding:15mm 20mm 6mm 20mm;
-  font-size:12pt;
-  line-height:1.6;
+  padding:18mm 22mm;
+  font-size:13pt;
+  line-height:2;
 }
 img{display:block;height:auto;}
-.enc-doc div, .enc-doc p{margin-bottom:6px;}
+p{margin-bottom:0;}
 @media print{
-  @page{margin:8mm 12mm;size:A4 portrait;}
+  @page{margin:15mm 18mm;size:A4 portrait;}
   body{padding:0;}
 }
 </style>
