@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Humaniza e Acolhe — Gestão</title>
-<!-- v2.4 -->
+<!-- v2.5 -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -304,7 +304,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <div class="page-title">Bem-vindos à Rede Humaniza e Acolhe 💛</div>
-  <div class="page-sub">Painel de gestão familiar · v2.4</div>
+  <div class="page-sub">Painel de gestão familiar · v2.5</div>
   <div class="stats-row-6">
     <div class="stat-card"><div class="stat-num" id="d-fam">–</div><div class="stat-label">Famílias</div></div>
     <div class="stat-card"><div class="stat-num org" id="d-membros">–</div><div class="stat-label">Dependentes</div></div>
@@ -638,7 +638,8 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 
 <!-- MODAIS SIMPLES -->
 <div class="modal-overlay" id="modal-vol"><div class="modal">
-  <div class="modal-header"><div class="modal-title">🤝 Novo Voluntário</div><button class="close-btn" onclick="closeModal('vol')">✕</button></div>
+  <div class="modal-header"><div class="modal-title" id="modal-vol-title">🤝 Novo Voluntário</div><button class="close-btn" onclick="closeModal('vol')">✕</button></div>
+  <input type="hidden" id="v-edit-id">
   <div class="form-grid">
     <div class="form-group full"><label>Nome *</label><input id="v-nome"></div>
     <div class="form-group"><label>Profissão</label><input id="v-prof"></div>
@@ -683,7 +684,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 <div class="pront-panel" id="vol-panel">
   <div class="pront-header">
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div><div class="pront-familia" id="vp-nome"></div><div class="pront-meta" id="vp-meta"></div></div>
+      <div style="flex:1"><div class="pront-familia" id="vp-nome"></div><div class="pront-meta" id="vp-meta"></div><div id="vp-acoes" style="margin-top:8px;"></div></div>
       <button onclick="fecharVoluntario()" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:1rem;">✕</button>
     </div>
   </div>
@@ -1268,6 +1269,12 @@ function abrirVoluntario(nome){
   const v=db.vol.find(v=>v.nome===nome);if(!v)return;
   document.getElementById('vp-nome').textContent=v.nome;
   document.getElementById('vp-meta').textContent=[v.prof,v.area,v.disp,v.tel].filter(Boolean).join(' · ');
+  // Add edit button to panel header
+  const vpAcoes=document.getElementById('vp-acoes');
+  if(vpAcoes){vpAcoes.innerHTML=`
+    <button onclick="editarVol('${v.nome.replace(/'/g,"\'")}' )" style="background:rgba(255,255,255,0.15);border:none;color:white;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:0.78rem;margin-right:6px;">✏️ Editar</button>
+    <button onclick="excluirVol(${v.id});fecharVoluntario();" style="background:rgba(239,68,68,0.3);border:none;color:white;padding:6px 12px;border-radius:7px;cursor:pointer;font-size:0.78rem;">🗑 Excluir</button>
+  `;}
   // Find families this volunteer is responsible for
   const familias=db.familias.filter(f=>f.responsavelRede===v.nome);
   const AZ='#1B3D6F';
@@ -1303,11 +1310,39 @@ function fecharVoluntario(){
   document.getElementById('vol-panel').classList.remove('open');
 }
 
+function excluirVol(id){
+  if(!confirm('Remover este voluntário?'))return;
+  db.vol=db.vol.filter(v=>v.id!==id);
+  renderVol();
+  showToast('Voluntário removido. Sincronize para atualizar a planilha.');
+}
+
+function editarVol(nome){
+  const v=db.vol.find(v=>v.nome===nome);if(!v)return;
+  fecharVoluntario();
+  document.getElementById('v-nome').value=v.nome;
+  document.getElementById('v-prof').value=v.prof||'';
+  document.getElementById('v-area').value=v.area||'';
+  document.getElementById('v-disp').value=v.disp||'';
+  document.getElementById('v-tel').value=v.tel||'';
+  document.getElementById('v-obs').value=v.obs||'';
+  document.getElementById('v-edit-id').value=v.id;
+  document.getElementById('modal-vol-title').textContent='✏️ Editar Voluntário';
+  openModal('vol');
+}
+
 async function saveVol(){
   const nome=document.getElementById('v-nome').value.trim();if(!nome){alert('Informe o nome.');return;}
-  const item={id:Date.now(),nome,prof:document.getElementById('v-prof').value,area:document.getElementById('v-area').value,disp:document.getElementById('v-disp').value,tel:document.getElementById('v-tel').value,obs:document.getElementById('v-obs').value};
-  db.vol.push(item);['v-nome','v-prof','v-tel','v-obs'].forEach(id=>document.getElementById(id).value='');
-  closeModal('vol');renderVol();try{await apiSave('Voluntários',[item.nome,item.prof,item.area,item.disp,item.tel,item.obs]);showToast('✅ Voluntário salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
+  const editId=document.getElementById('v-edit-id')?.value||'';
+  if(!editId&&db.vol.some(v=>v.nome.toLowerCase()===nome.toLowerCase())){showToast('⚠️ Voluntário já cadastrado.',true);closeModal('vol');return;}
+  const item={id:editId?parseInt(editId):Date.now(),nome,prof:document.getElementById('v-prof').value,area:document.getElementById('v-area').value,disp:document.getElementById('v-disp').value,tel:document.getElementById('v-tel').value,obs:document.getElementById('v-obs').value};
+  if(editId){db.vol=db.vol.map(v=>v.id==editId?item:v);}else{db.vol.push(item);}
+  if(document.getElementById('v-edit-id'))document.getElementById('v-edit-id').value='';
+  const title=document.getElementById('modal-vol-title');if(title)title.textContent='🤝 Novo Voluntário';
+  ['v-nome','v-prof','v-tel','v-obs'].forEach(id=>document.getElementById(id).value='');
+  closeModal('vol');renderVol();
+  try{await apiSave('Voluntários',[item.nome,item.prof,item.area,item.disp,item.tel,item.obs]);showToast('✅ Voluntário salvo!');}
+  catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
 function renderVol(){
   const tbody=document.getElementById('table-vol');const empty=document.getElementById('empty-vol');const cards=document.getElementById('cards-vol');
@@ -1316,7 +1351,8 @@ function renderVol(){
   db.vol.forEach(v=>{
     const tr=document.createElement('tr');
     tr.className='clickable';
-    tr.innerHTML=`<td><div class="person-cell"><div class="avatar org">${ini(v.nome)}</div><div><div class="person-name">${v.nome}</div><div class="person-sub">${v.prof||''}</div></div></div></td><td><span class="badge badge-org">${v.area||'—'}</span></td><td><span class="badge badge-gray">${v.disp||'—'}</span></td><td>${v.tel||'—'}</td>`;
+    tr.innerHTML=`<td><div class="person-cell"><div class="avatar org">${ini(v.nome)}</div><div><div class="person-name">${v.nome}</div><div class="person-sub">${v.prof||''}</div></div></div></td><td><span class="badge badge-org">${v.area||'—'}</span></td><td><span class="badge badge-gray">${v.disp||'—'}</span></td><td>${v.tel||'—'}</td><td><button class="action-btn" title="Excluir">🗑</button></td>`;
+    tr.querySelector('.action-btn').addEventListener('click',(e)=>{e.stopPropagation();excluirVol(v.id);});
     tr.addEventListener('click',()=>abrirVoluntario(v.nome));
     tbody.appendChild(tr);
   });
@@ -1325,7 +1361,8 @@ function renderVol(){
     db.vol.forEach(v=>{
       const div=document.createElement('div');
       div.className='family-card';
-      div.innerHTML=`<div class="family-card-header"><div class="avatar org">${ini(v.nome)}</div><div><div class="family-card-name">${v.nome}</div><div class="family-card-sub">${v.prof||''}${v.area?' · '+v.area:''}</div></div></div>`;
+      div.innerHTML=`<div class="family-card-header"><div class="avatar org">${ini(v.nome)}</div><div style="flex:1"><div class="family-card-name">${v.nome}</div><div class="family-card-sub">${v.prof||''}${v.area?' · '+v.area:''}</div></div><button class="action-btn" style="flex-shrink:0" title="Excluir">🗑</button></div>`;
+      div.querySelector('.action-btn').addEventListener('click',(e)=>{e.stopPropagation();excluirVol(v.id);});
       div.addEventListener('click',()=>abrirVoluntario(v.nome));
       cards.appendChild(div);
     });
@@ -1537,16 +1574,16 @@ function gerarRel(tipo,formato){
     const mesesPT=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
     const agora=new Date();
     const dataExtenso='Rio de Janeiro, '+agora.getDate()+' de '+mesesPT[agora.getMonth()]+' de '+agora.getFullYear()+'.';
-    html='<div style="max-width:660px;margin:0 auto;font-family:Times New Roman,serif;color:#1a1a2e;font-size:13pt;line-height:2;text-align:center;position:relative;padding:0 8px;">'
+    html='<div style="max-width:660px;margin:0 auto;font-family:Times New Roman,serif;color:#1a1a2e;font-size:13pt;line-height:2;position:relative;padding:0 8px;">'
       +'<div style="position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);opacity:0.05;pointer-events:none;width:100%;">'
       +'<img src="'+LOGO_SRC+'" style="width:380px;height:auto;margin:0 auto;"></div>'
-      +'<p style="margin-bottom:36px;text-align:left;">'+dataExtenso+'</p>'
-      +'<p style="margin-bottom:36px;text-align:left;">Prezados(as),</p>'
-      +'<p style="margin-bottom:28px;text-align:justify;">A Rede Humaniza e Acolhe encaminha <strong>'+pessoa.nome+'</strong> à <strong>'+parceiro+'</strong>, '+tipoEnc+'.</p>'
-      +(diagnostico?'<p style="margin-bottom:28px;text-align:justify;"><strong>'+primeiroNome+'</strong> possui diagnóstico <strong>'+diagnostico+'</strong>, necessitando de acompanhamento multiprofissional para promover seu desenvolvimento e autonomia.</p>':'')
-      +'<p style="margin-bottom:48px;text-align:justify;">Agradecemos a atenção e colocamo-nos à disposição para quaisquer esclarecimentos.</p>'
-      +'<p style="margin-bottom:8px;text-align:left;">Atenciosamente,</p>'
-      +'<p style="font-weight:700;margin-bottom:56px;text-align:left;"><strong>Rede Humaniza e Acolhe</strong></p>'
+      +'<p style="margin-bottom:36px;">'+dataExtenso+'</p>'
+      +'<p style="margin-bottom:36px;">Prezados(as),</p>'
+      +'<p style="margin-bottom:28px;text-align:center;">A Rede Humaniza e Acolhe encaminha <strong>'+pessoa.nome+'</strong> à <strong>'+parceiro+'</strong>, '+tipoEnc+'.</p>'
+      +(diagnostico?'<p style="margin-bottom:28px;text-align:center;"><strong>'+primeiroNome+'</strong> possui diagnóstico <strong>'+diagnostico+'</strong>, necessitando de acompanhamento multiprofissional para promover seu desenvolvimento e autonomia.</p>':'')
+      +'<p style="margin-bottom:48px;text-align:center;">Agradecemos a atenção e colocamo-nos à disposição para quaisquer esclarecimentos.</p>'
+      +'<p style="margin-bottom:8px;text-align:center;">Atenciosamente,</p>'
+      +'<p style="font-weight:700;margin-bottom:56px;text-align:center;"><strong>Rede Humaniza e Acolhe</strong></p>'
       +'<div style="text-align:center;padding-top:20px;border-top:1px solid #e2e8f0;">'
       +'<img src="'+LOGO_SRC+'" style="width:240px;height:auto;opacity:0.92;display:block;margin:0 auto;"></div>'
       +'</div>';
