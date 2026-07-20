@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Humaniza e Acolhe — Gestão</title>
-<!-- v2.5 -->
+<!-- v2.6 -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -304,7 +304,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <div class="page-title">Bem-vindos à Rede Humaniza e Acolhe 💛</div>
-  <div class="page-sub">Painel de gestão familiar · v2.5</div>
+  <div class="page-sub">Painel de gestão familiar · v2.6</div>
   <div class="stats-row-6">
     <div class="stat-card"><div class="stat-num" id="d-fam">–</div><div class="stat-label">Famílias</div></div>
     <div class="stat-card"><div class="stat-num org" id="d-membros">–</div><div class="stat-label">Dependentes</div></div>
@@ -789,12 +789,15 @@ async function syncAll(){
         }
       });
     }
-    const vr=await apiGet('Voluntários');db.vol=vr.slice(1).filter(r=>r[0]).map((r,i)=>({id:i+1,nome:String(r[0]),prof:String(r[1]||''),area:String(r[2]||''),disp:String(r[3]||''),tel:String(r[4]||''),obs:String(r[5]||'')}));
+    // Voluntários carregados junto com parceiros abaixo
     const pr=await apiGet('Parceiros');
     const parcRows=pr.slice(1).filter(r=>r[0]);
-    // Deduplica por nome, mantém o primeiro
     const parcSeen=new Set();
     db.parc=parcRows.filter(r=>{const n=String(r[0]).toLowerCase().trim();if(parcSeen.has(n))return false;parcSeen.add(n);return true;}).map((r,i)=>({id:i+1,nome:String(r[0]),tipo:String(r[1]||''),resp:String(r[2]||''),tel:String(r[3]||''),obs:String(r[4]||'')}));
+    const vr2=await apiGet('Voluntários');
+    const volRows=vr2.slice(1).filter(r=>r[0]);
+    const volSeen=new Set();
+    db.vol=volRows.filter(r=>{const n=String(r[0]).toLowerCase().trim();if(volSeen.has(n))return false;volSeen.add(n);return true;}).map((r,i)=>({id:i+1,nome:String(r[0]),prof:String(r[1]||''),area:String(r[2]||''),disp:String(r[3]||''),tel:String(r[4]||''),obs:String(r[5]||'')}));
     const pjr=await apiGet('Projetos');db.proj=pjr.slice(1).filter(r=>r[0]).map((r,i)=>({id:i+1,nome:String(r[0]),desc:String(r[1]||''),status:String(r[2]||''),prog:parseInt(r[3])||0,ini:String(r[4]||''),fim:String(r[5]||''),resp:String(r[6]||'')}));
     if(!db.proj.length)db.proj=[{id:1,nome:'Mostra Cultural Humaniza e Acolhe',desc:'Arte e neurodiversidade. PRONAC 542.133.',status:'Em andamento',prog:45,resp:'Equipe'},{id:2,nome:'Librelon em Movimento',desc:'Parceria permanente com ações mensais.',status:'Em andamento',prog:70,resp:'Equipe'}];
     setSyncStatus('ok','Sincronizado ✓');updateUI();showToast('✅ Sincronizado! '+db.familias.length+' famílias · '+db.parc.length+' parceiros.');
@@ -1341,7 +1344,7 @@ async function saveVol(){
   const title=document.getElementById('modal-vol-title');if(title)title.textContent='🤝 Novo Voluntário';
   ['v-nome','v-prof','v-tel','v-obs'].forEach(id=>document.getElementById(id).value='');
   closeModal('vol');renderVol();
-  try{await apiSave('Voluntários',[item.nome,item.prof,item.area,item.disp,item.tel,item.obs]);showToast('✅ Voluntário salvo!');}
+  try{await apiSave('Voluntários',[item.nome,item.prof,item.area,item.disp,item.tel,item.obs],item.nome);showToast('✅ Voluntário salvo!');}
   catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
 function renderVol(){
