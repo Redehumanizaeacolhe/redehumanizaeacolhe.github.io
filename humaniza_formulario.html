@@ -147,7 +147,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
     <div class="form-group">
       <label>WhatsApp <span class="required">*</span></label>
-      <input id="f-tel" type="tel" placeholder="(21) 99999-9999">
+      <input id="f-tel" type="tel" placeholder="(21) 99999-9999" onblur="verificarDuplicata()">
+      <div id="tel-check" style="display:none;margin-top:6px;padding:10px 12px;border-radius:8px;font-size:0.8rem;"></div>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -175,7 +176,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
     <div class="form-group">
       <label>Estado civil</label>
-      <select id="f-civil">
+      <select id="f-civil" onchange="toggleConjuge(this.value)">
         <option value="">—</option>
         <option>Solteiro(a)</option>
         <option>Casado(a)</option>
@@ -183,6 +184,57 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
         <option>Divorciado(a)</option>
         <option>Viúvo(a)</option>
       </select>
+    </div>
+    <div id="conjuge-area" style="display:none;background:var(--bg);border-radius:10px;border:1px solid var(--border);padding:14px;margin-bottom:14px;">
+      <div style="font-size:0.8rem;font-weight:700;color:var(--azul);margin-bottom:12px;">💑 Dados do cônjuge / parceiro(a)</div>
+      <div class="form-group"><label>Nome</label><input id="c-nome" placeholder="Nome do cônjuge"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Data de nascimento</label><input id="c-nasc" type="date"></div>
+        <div class="form-group"><label>Sexo</label><select id="c-sexo">
+          <option value="">—</option>
+          <option>Feminino</option>
+          <option>Masculino</option>
+          <option>Outro</option>
+        </select></div>
+      </div>
+      <div class="form-group"><label>Contato alternativo</label><input id="c-tel" type="tel" placeholder="(21) 99999-9999"></div>
+      <div class="form-group"><label>Tem condição atípica?</label>
+        <select id="c-temcond" onchange="document.getElementById('c-cond-area').style.display=this.value&&this.value!=='Não'?'':'none'">
+          <option value="">—</option>
+          <option>Sim</option>
+          <option>Não</option>
+          <option>Em investigação</option>
+        </select>
+      </div>
+      <div id="c-cond-area" style="display:none">
+        <div class="form-group"><label>Qual condição?</label><input id="c-cond" placeholder="Ex: TEA, TDAH, Deficiência Física..."></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tem condição atípica?</label>
+      <select id="f-temcond" onchange="toggleRespAtip(this.value)">
+        <option value="">—</option>
+        <option>Sim</option>
+        <option>Não</option>
+        <option>Em investigação</option>
+      </select>
+    </div>
+    <div id="f-cond-area" style="display:none">
+      <div class="form-group">
+        <label>Qual condição / diagnóstico?</label>
+        <div class="atip-checks">
+          <label class="atip-check"><input type="checkbox" value="TEA" onchange="syncRespCond()"> TEA</label>
+          <label class="atip-check"><input type="checkbox" value="TDAH" onchange="syncRespCond()"> TDAH</label>
+          <label class="atip-check"><input type="checkbox" value="TOD" onchange="syncRespCond()"> TOD</label>
+          <label class="atip-check"><input type="checkbox" value="Deficiência Intelectual" onchange="syncRespCond()"> Def. Intelectual</label>
+          <label class="atip-check"><input type="checkbox" value="Deficiência Física" onchange="syncRespCond()"> Def. Física</label>
+          <label class="atip-check"><input type="checkbox" value="Deficiência Visual" onchange="syncRespCond()"> Def. Visual</label>
+          <label class="atip-check"><input type="checkbox" value="Deficiência Auditiva" onchange="syncRespCond()"> Def. Auditiva</label>
+          <label class="atip-check"><input type="checkbox" value="Em investigação" onchange="syncRespCond()"> Em investigação</label>
+        </div>
+        <input id="f-cond" placeholder="Descreva livremente ou complemente acima...">
+        <div class="hint">Marque as opções e/ou escreva no campo</div>
+      </div>
     </div>
     <div class="form-group">
       <label>Como conheceu a Rede?</label>
@@ -273,7 +325,7 @@ const API = 'https://script.google.com/macros/s/AKfycbyaqp3LlAzIhg0-e4UDKJqQ4CHE
 let depCount = 0;
 let currentStep = 1;
 
-function irPara(step) {
+async function irPara(step) {
   // Validar step atual
   if(step > currentStep) {
     if(!validarStep(currentStep)) return;
@@ -299,12 +351,14 @@ function irPara(step) {
   window.scrollTo(0,0);
 }
 
-function validarStep(step) {
+async function validarStep(step) {
   if(step === 1) {
     const nome = document.getElementById('f-nome').value.trim();
     const tel = document.getElementById('f-tel').value.trim();
     if(!nome) { showToast('Por favor, informe seu nome completo.'); return false; }
     if(!tel) { showToast('Por favor, informe seu WhatsApp.'); return false; }
+    // Run check if not done yet
+    await verificarDuplicata();
   }
   if(step === 3) {
     if(!document.getElementById('lgpd-ok').checked) {
@@ -314,6 +368,61 @@ function validarStep(step) {
   return true;
 }
 
+async function verificarDuplicata() {
+  const tel = document.getElementById('f-tel').value.trim().replace(/\D/g,'');
+  const nome = document.getElementById('f-nome').value.trim().toLowerCase();
+  const box = document.getElementById('tel-check');
+  if(!tel || tel.length < 8) { box.style.display='none'; return; }
+  box.style.display='';
+  box.style.background='#f0f9ff';
+  box.style.border='1px solid #bae6fd';
+  box.style.color='#0369a1';
+  box.innerHTML='🔍 Verificando cadastro existente...';
+  try {
+    const dados = await jsonpGet({aba:'Famílias'});
+    const rows = dados.dados || [];
+    let encontrado = null;
+    for(const row of rows) {
+      try {
+        const resp = JSON.parse(row[12]||'{}');
+        const telRow = (resp.tel||'').replace(/\D/g,'');
+        const nomeRow = (resp.nome||'').toLowerCase().trim();
+        if((tel && telRow && telRow === tel) || (nome && nomeRow && nomeRow === nome)) {
+          encontrado = resp;
+          break;
+        }
+      } catch(e) {}
+    }
+    if(encontrado) {
+      box.style.background='#fef9c3';
+      box.style.border='1px solid #fde68a';
+      box.style.color='#92400e';
+      box.innerHTML='⚠️ <strong>Atenção:</strong> Já existe um cadastro com este WhatsApp ou nome (<strong>'+encontrado.nome+'</strong>). Se quiser atualizar seus dados, continue o preenchimento normalmente — o cadastro existente será atualizado.';
+      document.getElementById('btn-duplicata-ok').style.display='';
+    } else {
+      box.style.background='#e6f9f0';
+      box.style.border='1px solid #6ee7b7';
+      box.style.color='#065f46';
+      box.innerHTML='✅ Nenhum cadastro encontrado. Pode prosseguir!';
+      setTimeout(()=>box.style.display='none', 3000);
+    }
+  } catch(e) {
+    box.style.display='none';
+  }
+}
+
+function toggleRespAtip(val) {
+  document.getElementById('f-cond-area').style.display = (val && val !== 'Não') ? '' : 'none';
+}
+function syncRespCond() {
+  const checks = [...document.querySelectorAll('#f-cond-area input[type=checkbox]:checked')].map(c=>c.value);
+  const inp = document.getElementById('f-cond');
+  if(inp && checks.length) inp.value = checks.join(' + ');
+}
+function toggleConjuge(val) {
+  const show = val === 'Casado(a)' || val === 'União estável';
+  document.getElementById('conjuge-area').style.display = show ? '' : 'none';
+}
 function addDep(data) {
   depCount++;
   const idx = depCount;
@@ -425,6 +534,11 @@ function gerarResumo() {
       <div style="font-size:0.9rem;font-weight:600">${nome}</div>
       <div style="font-size:0.8rem;color:var(--muted)">${tel}${bairro?' · '+bairro:''}</div>
     </div>
+    ${(document.getElementById('c-nome')?.value)?`<div style="margin-bottom:14px;">
+      <div style="font-size:0.72rem;font-weight:600;color:var(--azul);margin-bottom:6px;">CÔNJUGE</div>
+      <div style="font-size:0.88rem;font-weight:600">${document.getElementById('c-nome').value}</div>
+      ${document.getElementById('c-cond')?.value?`<div style="font-size:0.75rem;color:var(--laranja)">🧩 ${document.getElementById('c-cond').value}</div>`:''}
+    </div>`:''} 
     ${deps.length?`<div style="margin-bottom:14px;">
       <div style="font-size:0.72rem;font-weight:600;color:var(--azul);margin-bottom:6px;">DEPENDENTES (${deps.length})</div>
       ${deps.map(d=>`<div style="background:var(--bg);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
@@ -486,12 +600,20 @@ async function enviarCadastro() {
       cidade: document.getElementById('f-cidade').value || 'Rio de Janeiro',
       renda: document.getElementById('f-renda').value,
       composicao: document.getElementById('f-comp').value,
-      temCondicao: '',
-      condicao: '',
+      temCondicao: document.getElementById('f-temcond').value,
+      condicao: document.getElementById('f-cond')?.value||'',
       atendimentos: [],
       obsLog: []
     },
-    conjuge: { nome:'', nasc:'', sexo:'', tel:'', temCondicao:'', condicao:'', atendimentos:[] },
+    conjuge: {
+      nome: document.getElementById('c-nome')?.value||'',
+      nasc: fmtDate(document.getElementById('c-nasc')?.value||''),
+      sexo: document.getElementById('c-sexo')?.value||'',
+      tel: document.getElementById('c-tel')?.value||'',
+      temCondicao: document.getElementById('c-temcond')?.value||'',
+      condicao: document.getElementById('c-cond')?.value||'',
+      atendimentos: []
+    },
     membros: deps
   };
 
@@ -506,7 +628,7 @@ async function enviarCadastro() {
   ];
 
   try {
-    await jsonpGet({ acao:'salvar', aba:'Famílias', linha:JSON.stringify(linha), chave:familia.responsavel.nome });
+    await jsonpGet({ acao:'salvar', aba:'Famílias', linha:JSON.stringify(linha), chave:familia.responsavel.nome, tel:familia.responsavel.tel.replace(/\D/g,'') });
     document.getElementById('step4').style.display = 'none';
     document.getElementById('success').style.display = 'block';
     window.scrollTo(0,0);
