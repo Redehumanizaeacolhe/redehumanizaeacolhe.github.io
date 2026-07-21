@@ -380,31 +380,31 @@ async function verificarDuplicata() {
   box.innerHTML='🔍 Verificando cadastro existente...';
   try {
     const dados = await jsonpGet({aba:'Famílias'});
-    const rows = dados.dados || [];
+    const rows = (dados.dados || []).filter(r=>r[12]);
     let encontrado = null;
     for(const row of rows) {
       try {
         const resp = JSON.parse(row[12]||'{}');
         const telRow = (resp.tel||'').replace(/\D/g,'');
         const nomeRow = (resp.nome||'').toLowerCase().trim();
-        if((tel && telRow && telRow === tel) || (nome && nomeRow && nomeRow === nome)) {
+        if((tel.length>=8 && telRow && telRow.includes(tel)) || 
+           (nome.length>=3 && nomeRow && nomeRow.includes(nome))) {
           encontrado = resp;
           break;
         }
-      } catch(e) {}
+      } catch(e2) {}
     }
     if(encontrado) {
       box.style.background='#fef9c3';
       box.style.border='1px solid #fde68a';
       box.style.color='#92400e';
-      box.innerHTML='⚠️ <strong>Atenção:</strong> Já existe um cadastro com este WhatsApp ou nome (<strong>'+encontrado.nome+'</strong>). Se quiser atualizar seus dados, continue o preenchimento normalmente — o cadastro existente será atualizado.';
-      document.getElementById('btn-duplicata-ok').style.display='';
+      box.innerHTML='⚠️ <strong>Atenção:</strong> Já existe um cadastro com este WhatsApp ou nome (<strong>'+encontrado.nome+'</strong>).<br>Se quiser atualizar seus dados, continue — o cadastro será atualizado.';
     } else {
       box.style.background='#e6f9f0';
       box.style.border='1px solid #6ee7b7';
       box.style.color='#065f46';
       box.innerHTML='✅ Nenhum cadastro encontrado. Pode prosseguir!';
-      setTimeout(()=>box.style.display='none', 3000);
+      setTimeout(()=>{ box.style.display='none'; }, 3000);
     }
   } catch(e) {
     box.style.display='none';
@@ -628,7 +628,7 @@ async function enviarCadastro() {
   ];
 
   try {
-    await jsonpGet({ acao:'salvar', aba:'Famílias', linha:JSON.stringify(linha), chave:familia.responsavel.nome, tel:familia.responsavel.tel.replace(/\D/g,'') });
+    await jsonpGet({ acao:'salvar', aba:'Famílias', linha:JSON.stringify(linha), chave:familia.responsavel.nome });
     document.getElementById('step4').style.display = 'none';
     document.getElementById('success').style.display = 'block';
     window.scrollTo(0,0);
