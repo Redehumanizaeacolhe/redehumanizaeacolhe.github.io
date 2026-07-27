@@ -846,12 +846,28 @@ let membrosFormCount=0;
 function jsonpGet(params){
   return new Promise((resolve,reject)=>{
     const cb='__hcb'+(++_cbN);
-    const to=setTimeout(()=>{delete window[cb];const s=document.getElementById(cb);if(s)s.remove();reject(new Error('Timeout'));},60000);
-    window[cb]=(d)=>{clearTimeout(to);delete window[cb];const s=document.getElementById(cb);if(s)s.remove();resolve(d);};
-    const qs=Object.entries({...params,callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
-    const s=document.createElement('script');s.id=cb;s.src=API+'?'+qs;
-    s.onerror=()=>{clearTimeout(to);delete window[cb];reject(new Error('Erro de rede'));};
-    document.head.appendChild(s);
+    const to=setTimeout(()=>{
+      delete window[cb];
+      const s=document.getElementById(cb);
+      if(s)s.remove();
+      reject(new Error('Timeout'));
+    },60000);
+
+    // Try fetch first (works better on Safari/iOS)
+    const qs=Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    const url=API+'?'+qs;
+
+    fetch(url)
+      .then(r=>r.json())
+      .then(d=>{clearTimeout(to);resolve(d);})
+      .catch(()=>{
+        // Fallback to JSONP if fetch fails
+        window[cb]=(d)=>{clearTimeout(to);delete window[cb];const s=document.getElementById(cb);if(s)s.remove();resolve(d);};
+        const qsJsonp=Object.entries({...params,callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+        const s=document.createElement('script');s.id=cb;s.src=API+'?'+qsJsonp;
+        s.onerror=()=>{clearTimeout(to);delete window[cb];reject(new Error('Erro de conexão'));};
+        document.head.appendChild(s);
+      });
   });
 }
 async function apiGet(aba){const d=await jsonpGet({aba});if(d.erro)throw new Error(d.erro);return d.dados||[];}
