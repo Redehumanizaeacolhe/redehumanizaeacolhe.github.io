@@ -277,10 +277,20 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <img id="login-logo" style="width:200px;height:auto;margin-bottom:20px;" alt="Rede Humaniza e Acolhe">
     <div class="login-title">Painel de Gestão</div>
     <div class="login-sub">Acesso restrito à equipe da<br><strong>Rede Humaniza e Acolhe</strong></div>
-    <button class="login-btn" onclick="fazerLogin()">
-      <img src="https://www.google.com/favicon.ico" alt="Google">
-      Entrar com Google
-    </button>
+    <div id="g_id_onload"
+      data-client_id="179648210740-f57rdn1vi3am7qnib1q6shpkb52jrdah.apps.googleusercontent.com"
+      data-callback="handleCredential"
+      data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="outline"
+      data-text="signin_with"
+      data-shape="rectangular"
+      data-locale="pt-BR"
+      data-width="300">
+    </div>
     <div class="login-error" id="login-error">⚠️ Seu email não tem acesso ao painel. Entre em contato com a coordenação.</div>
   </div>
 </div>
@@ -747,21 +757,15 @@ const USUARIOS_AUTORIZADOS = {
 let usuarioAtual = null;
 
 function inicializarGoogle() {
-  if(typeof google === 'undefined') { setTimeout(inicializarGoogle, 500); return; }
-  google.accounts.id.initialize({
-    client_id: CLIENT_ID,
-    callback: handleCredential,
-    auto_select: true,
-    cancel_on_tap_outside: false,
-  });
   if(!verificarSessao()) {
-    google.accounts.id.prompt();
+    // Button is rendered by Google GSI automatically via data attributes
+    // Just make sure login screen is visible
+    document.getElementById('login-screen').style.display = 'flex';
   }
 }
 
 function fazerLogin() {
-  if(typeof google === 'undefined') { showToast('Aguarde...', true); return; }
-  google.accounts.id.prompt();
+  // Handled by Google button
 }
 
 function parseJwt(token) {
