@@ -846,7 +846,7 @@ let membrosFormCount=0;
 function jsonpGet(params){
   return new Promise((resolve,reject)=>{
     const cb='__hcb'+(++_cbN);
-    const to=setTimeout(()=>{delete window[cb];const s=document.getElementById(cb);if(s)s.remove();reject(new Error('Timeout'));},45000);
+    const to=setTimeout(()=>{delete window[cb];const s=document.getElementById(cb);if(s)s.remove();reject(new Error('Timeout'));},60000);
     window[cb]=(d)=>{clearTimeout(to);delete window[cb];const s=document.getElementById(cb);if(s)s.remove();resolve(d);};
     const qs=Object.entries({...params,callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
     const s=document.createElement('script');s.id=cb;s.src=API+'?'+qs;
@@ -918,17 +918,6 @@ async function syncAll(){
       return;
     } else {
       db.familias=rows.slice(1).map((r,i)=>rowToFam(r,i)).filter(f=>f&&f.responsavel&&f.responsavel.nome);
-      // Merge atendimentos from IMPORT if missing
-      db.familias.forEach(f=>{
-        if(!f.responsavel.atendimentos||!f.responsavel.atendimentos.length){
-          const imp=IMPORT.find(i=>(i.responsavel?.nome||'')===(f.responsavel?.nome||''));
-          if(imp&&imp.responsavel?.atendimentos?.length)f.responsavel.atendimentos=imp.responsavel.atendimentos;
-        }
-        if(!f.membros||!f.membros.length){
-          const imp=IMPORT.find(i=>(i.responsavel?.nome||'')===(f.responsavel?.nome||''));
-          if(imp&&imp.membros?.length)f.membros=imp.membros;
-        }
-      });
     }
     // Voluntários carregados junto com parceiros abaixo
     const pr=await apiGet('Parceiros');
