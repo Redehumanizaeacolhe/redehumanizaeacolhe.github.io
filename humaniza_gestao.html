@@ -343,6 +343,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="nav-item" onclick="goPage('parceiros',this)"><span>🏢</span> Parceiros</div>
     <div class="nav-section">Gestão</div>
     <div class="nav-item" onclick="goPage('projetos',this)"><span>📁</span> Projetos</div>
+    <div class="nav-item" onclick="goPage('agenda',this)"><span>📅</span> Agenda</div>
     <div class="nav-item" onclick="goPage('relatorios',this)"><span>📊</span> Relatórios</div>
     <div class="nav-item" style="opacity:0.4;pointer-events:none;"><span>💰</span> Financeiro <span style="font-size:0.6rem;margin-left:auto;background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:10px;">em breve</span></div>
   </nav>
@@ -355,6 +356,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="bnav-item" onclick="goPageMobile('familias',this)"><div class="bnav-icon">👨‍👩‍👧</div><div class="bnav-label">Famílias</div></div>
     <div class="bnav-item" onclick="goPageMobile('voluntarios',this)"><div class="bnav-icon">🤝</div><div class="bnav-label">Voluntários</div></div>
     <div class="bnav-item" onclick="goPageMobile('parceiros',this)"><div class="bnav-icon">🏢</div><div class="bnav-label">Parceiros</div></div>
+    <div class="bnav-item" onclick="goPageMobile('agenda',this)"><div class="bnav-icon">📅</div><div class="bnav-label">Agenda</div></div>
     <div class="bnav-item" onclick="goPageMobile('relatorios',this)"><div class="bnav-icon">📊</div><div class="bnav-label">Relatórios</div></div>
   </div>
 </div>
@@ -766,6 +768,116 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div id="vp-content"></div>
   </div>
 </div>
+
+
+<!-- AGENDA -->
+<div id="page-agenda" class="page">
+  <div class="page-title">📅 Agenda</div>
+  <div class="page-sub">Gerencie atendimentos, eventos e salas da Rede</div>
+
+  <!-- Toolbar -->
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+    <button onclick="agendaHoje()" style="background:var(--azul);color:white;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:0.82rem;">Hoje</button>
+    <button onclick="agendaNav(-1)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;">◀</button>
+    <button onclick="agendaNav(1)" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;">▶</button>
+    <span id="agenda-mes-label" style="font-weight:700;font-size:1rem;color:var(--azul);"></span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <select id="agenda-sala-filter" onchange="renderAgenda()" style="padding:7px 10px;border:1px solid var(--border);border-radius:8px;font-size:0.8rem;">
+        <option value="">Todas as salas</option>
+        <option value="Sala de Atendimentos">Sala de Atendimentos</option>
+        <option value="Sala Multifuncional">Sala Multifuncional</option>
+      </select>
+      <button onclick="abrirModalEvento()" style="background:var(--verde);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:0.82rem;font-weight:600;">+ Novo Evento</button>
+    </div>
+  </div>
+
+  <!-- Legenda -->
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:5px;font-size:0.75rem;"><span style="width:12px;height:12px;border-radius:3px;background:#3B82F6;display:inline-block;"></span> Atendimento Psicológico</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:0.75rem;"><span style="width:12px;height:12px;border-radius:3px;background:#F59E0B;display:inline-block;"></span> Evento da Rede</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:0.75rem;"><span style="width:12px;height:12px;border-radius:3px;background:#10B981;display:inline-block;"></span> Aula do Ateliê</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:0.75rem;"><span style="width:12px;height:12px;border-radius:3px;background:#8B5CF6;display:inline-block;"></span> Outros</div>
+  </div>
+
+  <!-- Calendário -->
+  <div id="agenda-cal" style="background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden;"></div>
+</div>
+
+<!-- MODAL NOVO EVENTO -->
+<div class="modal-overlay" id="modal-evento">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-evento-titulo">Novo Evento</div>
+      <button class="modal-close" onclick="fecharModalEvento()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;">
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Tipo de evento</label>
+        <select id="ev-tipo" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" onchange="toggleEventoFamilia()">
+          <option value="atendimento">🔵 Atendimento Psicológico</option>
+          <option value="evento">🟡 Evento da Rede</option>
+          <option value="atelie">🟢 Aula do Ateliê</option>
+          <option value="outro">🟣 Outro</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Título</label>
+        <input id="ev-titulo" placeholder="Ex: Sessão com Família Silva" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+      </div>
+      <div id="ev-familia-wrap">
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Família</label>
+        <input id="ev-familia-busca" placeholder="Buscar família..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" oninput="buscarFamAgenda(this.value)">
+        <div id="ev-familia-lista" style="max-height:100px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:4px;display:none;background:white;position:relative;z-index:10;"></div>
+        <div id="ev-familia-sel" style="font-size:0.75rem;color:var(--verde);margin-top:4px;"></div>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Profissional / Responsável</label>
+        <input id="ev-responsavel" placeholder="Nome da psicóloga, voluntária ou responsável..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Data</label>
+          <input type="date" id="ev-data" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        </div>
+        <div>
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Horário</label>
+          <input type="time" id="ev-hora" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Sala</label>
+        <select id="ev-sala" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <option value="Sala de Atendimentos">Sala de Atendimentos</option>
+          <option value="Sala Multifuncional">Sala Multifuncional</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Observações</label>
+        <textarea id="ev-obs" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;resize:none;" placeholder="Informações adicionais..."></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px;">
+        <button onclick="fecharModalEvento()" style="padding:9px 18px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:0.85rem;">Cancelar</button>
+        <button onclick="salvarEvento()" style="padding:9px 18px;background:var(--azul);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE EVENTO -->
+<div class="modal-overlay" id="modal-evento-detalhe">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="ev-det-titulo"></div>
+      <button class="modal-close" onclick="document.getElementById('modal-evento-detalhe').classList.remove('open')">✕</button>
+    </div>
+    <div id="ev-det-body" style="padding-top:8px;font-size:0.85rem;line-height:2;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:12px;">
+      <button id="ev-det-excluir" onclick="excluirEventoAtual()" style="padding:8px 16px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;">🗑 Excluir</button>
+      <button onclick="document.getElementById('modal-evento-detalhe').classList.remove('open')" style="padding:8px 16px;background:var(--azul);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const CLIENT_ID = '179648210740-f57rdn1vi3am7qnib1q6shpkb52jrdah.apps.googleusercontent.com';
 
@@ -1991,6 +2103,210 @@ function abrirTermoConsentimento() {
 
 // ========== FIM TERMO ==========
 
+// ========== AGENDA ==========
+let agendaEventos = [];
+let agendaMesAtual = new Date();
+let eventoEditandoId = null;
+let evFamiliaSel = null;
+
+const AGENDA_KEY = 'humaniza_agenda_v1';
+const COR_EVENTO = {
+  atendimento: '#3B82F6',
+  evento: '#F59E0B',
+  atelie: '#10B981',
+  outro: '#8B5CF6'
+};
+const LABEL_EVENTO = {
+  atendimento: 'Atendimento Psicológico',
+  evento: 'Evento da Rede',
+  atelie: 'Aula do Ateliê',
+  outro: 'Outro'
+};
+
+function agendaCarregar() {
+  try {
+    const saved = localStorage.getItem(AGENDA_KEY);
+    agendaEventos = saved ? JSON.parse(saved) : [];
+  } catch(e) { agendaEventos = []; }
+}
+
+function agendaSalvar() {
+  try { localStorage.setItem(AGENDA_KEY, JSON.stringify(agendaEventos)); } catch(e) {}
+}
+
+function agendaHoje() {
+  agendaMesAtual = new Date();
+  renderAgenda();
+}
+
+function agendaNav(dir) {
+  agendaMesAtual = new Date(agendaMesAtual.getFullYear(), agendaMesAtual.getMonth() + dir, 1);
+  renderAgenda();
+}
+
+function renderAgenda() {
+  const filtroSala = document.getElementById('agenda-sala-filter')?.value || '';
+  const ano = agendaMesAtual.getFullYear();
+  const mes = agendaMesAtual.getMonth();
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  const label = document.getElementById('agenda-mes-label');
+  if(label) label.textContent = meses[mes] + ' ' + ano;
+
+  const primeiroDia = new Date(ano, mes, 1).getDay();
+  const totalDias = new Date(ano, mes+1, 0).getDate();
+  const hoje = new Date();
+
+  let html = '<table style="width:100%;border-collapse:collapse;">';
+  html += '<tr>' + dias.map(d => `<th style="padding:8px 4px;text-align:center;font-size:0.72rem;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">${d}</th>`).join('') + '</tr>';
+
+  let dia = 1;
+  for(let s = 0; s < 6; s++) {
+    if(dia > totalDias) break;
+    html += '<tr>';
+    for(let col = 0; col < 7; col++) {
+      if(s === 0 && col < primeiroDia) {
+        html += '<td style="padding:4px;min-height:70px;border:1px solid #f0f0f0;"></td>';
+      } else if(dia > totalDias) {
+        html += '<td style="padding:4px;min-height:70px;border:1px solid #f0f0f0;"></td>';
+      } else {
+        const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+        const isHoje = hoje.getFullYear()===ano && hoje.getMonth()===mes && hoje.getDate()===dia;
+        const eventos = agendaEventos.filter(e => e.data === dataStr && (!filtroSala || e.sala === filtroSala));
+
+        html += `<td onclick="abrirModalEvento('${dataStr}')" style="padding:4px;min-height:70px;border:1px solid #f0f0f0;vertical-align:top;cursor:pointer;background:${isHoje?'#EFF6FF':'white'};transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='${isHoje?'#EFF6FF':'white'}'">`;
+        html += `<div style="font-size:0.78rem;font-weight:${isHoje?'700':'500'};color:${isHoje?'var(--azul)':'var(--text)'};margin-bottom:3px;${isHoje?'background:var(--azul);color:white;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;':''}">${dia}</div>`;
+
+        eventos.slice(0,3).forEach(ev => {
+          html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:4px;padding:2px 5px;font-size:0.65rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;" title="${ev.titulo}">${ev.hora?ev.hora+' ':''} ${ev.titulo}</div>`;
+        });
+        if(eventos.length > 3) {
+          html += `<div style="font-size:0.62rem;color:var(--muted);padding:1px 4px;">+${eventos.length-3} mais</div>`;
+        }
+        html += '</td>';
+        dia++;
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+
+  const cal = document.getElementById('agenda-cal');
+  if(cal) cal.innerHTML = html;
+}
+
+function abrirModalEvento(data='') {
+  eventoEditandoId = null;
+  evFamiliaSel = null;
+  document.getElementById('ev-tipo').value = 'atendimento';
+  document.getElementById('ev-titulo').value = '';
+  document.getElementById('ev-familia-busca').value = '';
+  document.getElementById('ev-familia-sel').textContent = '';
+  document.getElementById('ev-familia-lista').style.display = 'none';
+  document.getElementById('ev-responsavel').value = '';
+  document.getElementById('ev-data').value = data || new Date().toISOString().split('T')[0];
+  document.getElementById('ev-hora').value = '09:00';
+  document.getElementById('ev-sala').value = 'Sala de Atendimentos';
+  document.getElementById('ev-obs').value = '';
+  document.getElementById('modal-evento-titulo').textContent = 'Novo Evento';
+  toggleEventoFamilia();
+  document.getElementById('modal-evento').classList.add('open');
+}
+
+function fecharModalEvento() {
+  document.getElementById('modal-evento').classList.remove('open');
+}
+
+function toggleEventoFamilia() {
+  const tipo = document.getElementById('ev-tipo').value;
+  document.getElementById('ev-familia-wrap').style.display = tipo === 'atendimento' ? 'block' : 'none';
+}
+
+function buscarFamAgenda(q) {
+  const lista = document.getElementById('ev-familia-lista');
+  if(!q || q.length < 2) { lista.style.display='none'; return; }
+  const res = db.familias.filter(f => (f.responsavel?.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,6);
+  if(!res.length) { lista.style.display='none'; return; }
+  lista.innerHTML = res.map(f => `<div style="padding:7px 10px;cursor:pointer;font-size:0.8rem;border-bottom:1px solid #f0f0f0;" onclick="selecionarFamAgenda('${f.id}')">${f.responsavel?.nome||''}</div>`).join('');
+  lista.style.display = 'block';
+}
+
+function selecionarFamAgenda(id) {
+  evFamiliaSel = db.familias.find(f => f.id == id);
+  if(!evFamiliaSel) return;
+  document.getElementById('ev-familia-lista').style.display = 'none';
+  document.getElementById('ev-familia-busca').value = evFamiliaSel.responsavel?.nome || '';
+  document.getElementById('ev-familia-sel').textContent = '✅ ' + (evFamiliaSel.responsavel?.nome||'');
+  if(!document.getElementById('ev-titulo').value) {
+    document.getElementById('ev-titulo').value = 'Atendimento — ' + (evFamiliaSel.responsavel?.nome||'');
+  }
+}
+
+function salvarEvento() {
+  const titulo = document.getElementById('ev-titulo').value.trim();
+  const data = document.getElementById('ev-data').value;
+  if(!titulo) { alert('Informe o título do evento.'); return; }
+  if(!data) { alert('Informe a data.'); return; }
+
+  const ev = {
+    id: eventoEditandoId || Date.now().toString(),
+    tipo: document.getElementById('ev-tipo').value,
+    titulo,
+    data,
+    hora: document.getElementById('ev-hora').value,
+    sala: document.getElementById('ev-sala').value,
+    responsavel: document.getElementById('ev-responsavel').value.trim(),
+    obs: document.getElementById('ev-obs').value.trim(),
+    familiaId: evFamiliaSel?.id || '',
+    familiaNome: evFamiliaSel?.responsavel?.nome || '',
+    criadoPor: usuarioAtual?.nome || '',
+    criadoEm: new Date().toISOString()
+  };
+
+  if(eventoEditandoId) {
+    const idx = agendaEventos.findIndex(e => e.id === eventoEditandoId);
+    if(idx >= 0) agendaEventos[idx] = ev;
+  } else {
+    agendaEventos.push(ev);
+  }
+
+  agendaSalvar();
+  fecharModalEvento();
+  renderAgenda();
+  showToast('Evento salvo! ✅');
+}
+
+function verEvento(id) {
+  const ev = agendaEventos.find(e => e.id == id);
+  if(!ev) return;
+  eventoEditandoId = id;
+  document.getElementById('ev-det-titulo').textContent = ev.titulo;
+  document.getElementById('ev-det-body').innerHTML = `
+    <div><strong>Tipo:</strong> ${LABEL_EVENTO[ev.tipo]||ev.tipo}</div>
+    <div><strong>Data:</strong> ${new Date(ev.data+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+    <div><strong>Horário:</strong> ${ev.hora||'—'}</div>
+    <div><strong>Sala:</strong> ${ev.sala||'—'}</div>
+    ${ev.familiaNome?`<div><strong>Família:</strong> ${ev.familiaNome}</div>`:''}
+    ${ev.responsavel?`<div><strong>Responsável:</strong> ${ev.responsavel}</div>`:''}
+    ${ev.obs?`<div><strong>Obs:</strong> ${ev.obs}</div>`:''}
+    <div style="margin-top:8px;font-size:0.72rem;color:var(--muted);">Criado por ${ev.criadoPor||'—'}</div>
+  `;
+  document.getElementById('modal-evento-detalhe').classList.add('open');
+}
+
+function excluirEventoAtual() {
+  if(!eventoEditandoId) return;
+  if(!confirm('Excluir este evento?')) return;
+  agendaEventos = agendaEventos.filter(e => e.id != eventoEditandoId);
+  agendaSalvar();
+  document.getElementById('modal-evento-detalhe').classList.remove('open');
+  renderAgenda();
+  showToast('Evento excluído.');
+}
+
+// ========== FIM AGENDA ==========
+
 function imprimirRelatorio(){
   const conteudo = document.getElementById('report-content').innerHTML;
   const html = `<!DOCTYPE html>
@@ -2110,6 +2426,9 @@ if(sbl) sbl.src = LOGO_BRANCA_SRC;
 // Set login logo
 const ll = document.getElementById('login-logo');
 if(ll) ll.src = LOGO_SRC;
+// Initialize Agenda
+agendaCarregar();
+renderAgenda();
 // Initialize Google Auth
 inicializarGoogle();
 
