@@ -543,6 +543,20 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
         <button class="rel-btn rel-btn-pdf" onclick="gerarEncImprime()">📄 PDF / Imprimir</button>
         <button class="rel-btn rel-btn-tela" onclick="gerarRel('encaminhamento','tela')">👁 Visualizar</button>
       </div>
+    <!-- TERMO DE CONSENTIMENTO -->
+    <div class="rel-card" style="border-color:var(--rosa,#e75480);background:#fff0f5;" onclick="abrirTermoConsentimento()">
+      <div class="rel-icon">📋</div><div class="rel-title">Termo de Consentimento</div>
+      <div class="rel-desc">Contrato de acompanhamento psicológico — preenchido pela psicóloga</div>
+      <div id="termo-busca-wrap" style="margin-top:10px;" onclick="event.stopPropagation()">
+        <input id="termo-busca" placeholder="Buscar família..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;" oninput="buscarTermoFam(this.value)">
+        <div id="termo-lista" style="max-height:80px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px;display:none;background:white;"></div>
+        <div id="termo-sel" style="margin-top:6px;font-size:0.78rem;color:var(--azul);font-weight:600;"></div>
+        <select id="termo-psicologa" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;display:none;">
+          <option value="">Selecionar psicóloga/parceira...</option>
+        </select>
+        <button onclick="gerarTermo()" id="termo-btn" style="display:none;margin-top:8px;width:100%;background:var(--azul);color:white;border:none;border-radius:8px;padding:8px;font-size:0.8rem;cursor:pointer;">📋 Gerar Termo</button>
+      </div>
+    </div>
     </div>
   </div>
   <div class="report-area" id="report-area">
@@ -1750,6 +1764,231 @@ function gerarRel(tipo,formato){
   if(formato==='pdf'||formato==='imprimir')setTimeout(()=>imprimirRelatorio(),600);
   if(formato==='xls')exportarExcel();
 }
+
+
+// ========== TERMO DE CONSENTIMENTO ==========
+let termoFamSel = null;
+
+function buscarTermoFam(q) {
+  const lista = document.getElementById('termo-lista');
+  if (!q || q.length < 2) { lista.style.display='none'; return; }
+  const res = db.familias.filter(f => (f.responsavel?.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if (!res.length) { lista.style.display='none'; return; }
+  lista.innerHTML = res.map(f => `<div style="padding:6px 10px;cursor:pointer;font-size:0.78rem;border-bottom:1px solid #eee;" onclick="selecionarTermoFam('${f.id}')">${f.responsavel?.nome||''}</div>`).join('');
+  lista.style.display = 'block';
+}
+
+function selecionarTermoFam(id) {
+  termoFamSel = db.familias.find(f => f.id == id);
+  if (!termoFamSel) return;
+  document.getElementById('termo-lista').style.display = 'none';
+  document.getElementById('termo-busca').value = termoFamSel.responsavel?.nome || '';
+  document.getElementById('termo-sel').textContent = '✅ ' + (termoFamSel.responsavel?.nome||'');
+  
+  // Populate psicólogas from parceiros
+  const sel = document.getElementById('termo-psicologa');
+  sel.innerHTML = '<option value="">Selecionar psicóloga/parceiro...</option>';
+  db.parc.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.nome;
+    opt.dataset.crp = p.crp || '';
+    opt.dataset.tel = p.tel || '';
+    opt.textContent = p.nome + (p.crp ? ' — CRP ' + p.crp : '');
+    sel.appendChild(opt);
+  });
+  sel.style.display = 'block';
+  document.getElementById('termo-btn').style.display = 'block';
+}
+
+function gerarTermo() {
+  if (!termoFamSel) { alert('Selecione uma família primeiro.'); return; }
+  const f = termoFamSel;
+  const resp = f.responsavel || {};
+  const sel = document.getElementById('termo-psicologa');
+  const psiNome = sel.value || '___________________________';
+  const psiOpt = sel.options[sel.selectedIndex];
+  const psiCRP = psiOpt?.dataset?.crp || '';
+  const psiTel = psiOpt?.dataset?.tel || '';
+
+  // Get menores (dependentes)
+  const menores = (f.membros || []).filter(m => {
+    if (!m.nasc) return false;
+    try {
+      const parts = m.nasc.split('/');
+      if (parts.length === 3) {
+        const nasc = new Date(parts[2], parts[1]-1, parts[0]);
+        return (new Date() - nasc) / (365.25*24*3600*1000) < 18;
+      }
+    } catch(e) {}
+    return false;
+  });
+  const paciente = menores.length > 0 ? menores[0] : resp;
+  const ehMenor = menores.length > 0;
+
+  const hoje = new Date();
+  const dataExtenso = hoje.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
+
+  const LOGO = LOGO_SRC;
+
+  const html = `
+  <div style="text-align:center;margin-bottom:20px;">
+    <img src="${LOGO}" style="height:70px;margin:0 auto 8px;">
+    <div style="font-size:0.75rem;color:#666;margin-bottom:4px;">Instituto Rede Humaniza e Acolhe</div>
+    <div style="font-size:0.65rem;color:#999;">Em parceria com: <strong>${psiNome}</strong>${psiCRP ? ' — CRP ' + psiCRP : ''}</div>
+    <hr style="margin:12px 0;border-color:#ddd;">
+    <h2 style="font-size:1.1rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Termo de Consentimento e Acompanhamento Psicológico</h2>
+    <div style="font-size:0.78rem;color:#666;margin-top:4px;">Termo de Consentimento Informado</div>
+  </div>
+
+  <!-- DADOS DO PACIENTE -->
+  <table style="width:100%;border:1.5px solid #1B3D6F;border-radius:6px;border-collapse:separate;margin-bottom:12px;">
+    <tr><td colspan="2" style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;letter-spacing:0.5px;">1. DADOS DO PACIENTE</td></tr>
+    <tr>
+      <td style="padding:6px 10px;font-size:0.78rem;width:60%;">Nome: <strong>${paciente.nome || '___________________________'}</strong></td>
+      <td style="padding:6px 10px;font-size:0.78rem;">Data de nasc.: <strong>${paciente.nasc || '___/___/______'}</strong></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="padding:6px 10px;font-size:0.78rem;">Endereço: <strong>${resp.bairro ? resp.bairro + ' — ' + (resp.cidade||'') : '___________________________'}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:6px 10px;font-size:0.78rem;">Telefone: <strong>${resp.tel || '___________________________'}</strong></td>
+      <td style="padding:6px 10px;font-size:0.78rem;">WhatsApp: <strong>${resp.tel || '___________________________'}</strong></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="padding:6px 10px;font-size:0.78rem;">Encaminhado por: <strong>Rede Humaniza e Acolhe</strong></td>
+    </tr>
+  </table>
+
+  ${ehMenor ? `
+  <!-- RESPONSÁVEL LEGAL -->
+  <table style="width:100%;border:1.5px solid #1B3D6F;border-radius:6px;border-collapse:separate;margin-bottom:12px;">
+    <tr><td colspan="2" style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;">2. RESPONSÁVEL LEGAL</td></tr>
+    <tr>
+      <td colspan="2" style="padding:6px 10px;font-size:0.78rem;">Nome completo: <strong>${resp.nome || '___________________________'}</strong></td>
+    </tr>
+    <tr>
+      <td style="padding:6px 10px;font-size:0.78rem;">Grau de parentesco: <strong>${menores[0]?.parentesco || '_______________'}</strong></td>
+      <td style="padding:6px 10px;font-size:0.78rem;">Telefone/WhatsApp: <strong>${resp.tel || '_______________'}</strong></td>
+    </tr>
+  </table>` : ''}
+
+  <!-- SOBRE O ATENDIMENTO -->
+  <table style="width:100%;border:1.5px solid #1B3D6F;border-radius:6px;border-collapse:separate;margin-bottom:12px;">
+    <tr><td colspan="2" style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;">3. SOBRE O ATENDIMENTO</td></tr>
+    <tr><td colspan="2" style="padding:6px 10px;font-size:0.78rem;">✔ As sessões psicológicas têm duração de <strong>50 (cinquenta) minutos</strong>.</td></tr>
+    <tr><td colspan="2" style="padding:6px 10px;font-size:0.78rem;">✔ Os atendimentos serão realizados de forma <strong>presencial / online</strong> no dia ___________________, às ________.</td></tr>
+    <tr><td colspan="2" style="padding:6px 10px;font-size:0.78rem;">✔ O serviço é prestado de forma <strong>voluntária e gratuita</strong> pela(o) profissional parceira(o) da Rede Humaniza e Acolhe.</td></tr>
+    <tr><td colspan="2" style="padding:6px 10px;font-size:0.78rem;">✔ O valor poderá ser reavaliado conforme disponibilidade e acordo entre as partes.</td></tr>
+  </table>
+
+  <!-- FALTAS E CANCELAMENTOS + SIGILO -->
+  <table style="width:100%;border-collapse:separate;border-spacing:8px 0;margin-bottom:12px;">
+    <tr valign="top">
+      <td style="width:50%;border:1.5px solid #1B3D6F;border-radius:6px;padding:0;">
+        <div style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;">4. FALTAS, ATRASOS E CANCELAMENTOS</div>
+        <div style="padding:8px 10px;font-size:0.72rem;line-height:1.6;">
+          <p>• <strong>Cancelamentos:</strong> com antecedência mínima de 24 horas. Cancelamentos fora desse prazo serão considerados como sessão realizada.</p>
+          <p>• <strong>Atrasos:</strong> o atendimento será realizado somente pelo tempo restante da sessão.</p>
+          <p>• <strong>Faltas:</strong> faltas frequentes poderão resultar na perda do horário fixo.</p>
+          <p>• <strong>Reagendamentos:</strong> conforme disponibilidade da profissional.</p>
+        </div>
+      </td>
+      <td style="width:50%;border:1.5px solid #1B3D6F;border-radius:6px;padding:0;">
+        <div style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;">5. SIGILO E CONDUTA</div>
+        <div style="padding:8px 10px;font-size:0.72rem;line-height:1.6;">
+          <p>• O atendimento psicológico é protegido por sigilo profissional, conforme o Código de Ética Profissional do Psicólogo.</p>
+          <p>• Informações serão compartilhadas apenas com autorização do paciente ou responsável legal, salvo em casos previstos por lei.</p>
+          <p>• Em situações de emergência ou crises, o atendimento psicológico não substitui serviços médicos de urgência.</p>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- AUTORIZAÇÃO IMAGEM + CONTATO -->
+  <table style="width:100%;border-collapse:separate;border-spacing:8px 0;margin-bottom:12px;">
+    <tr valign="top">
+      <td style="width:50%;border:1.5px solid #1B3D6F;border-radius:6px;padding:0;">
+        <div style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;">6. AUTORIZAÇÃO PARA USO DE IMAGEM E VOZ</div>
+        <div style="padding:8px 10px;font-size:0.72rem;line-height:1.6;">
+          <p>Autorizo a utilização de minha imagem, voz e depoimentos para fins de divulgação da Rede Humaniza e Acolhe em redes sociais, materiais impressos e outros meios.</p>
+          <br>
+          <p>( &nbsp;) <strong>AUTORIZO</strong> &nbsp;&nbsp;&nbsp; ( &nbsp;) <strong>NÃO AUTORIZO</strong></p>
+          <p style="margin-top:6px;font-size:0.68rem;color:#666;">* Esta autorização poderá ser revogada a qualquer momento, mediante solicitação por escrito.</p>
+        </div>
+      </td>
+      <td style="width:50%;border:1.5px solid #1B3D6F;border-radius:6px;padding:0;">
+        <div style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;">7. AUTORIZAÇÃO PARA CONTATO E TROCA DE INFORMAÇÕES</div>
+        <div style="padding:8px 10px;font-size:0.72rem;line-height:1.6;">
+          <p>Autorizo a Rede Humaniza e Acolhe e a(o) profissional parceira(o) a realizar contato e troca de informações com escola, médicos, outros profissionais ou instituições, quando necessário para o acompanhamento.</p>
+          <br>
+          <p>( &nbsp;) <strong>AUTORIZO</strong> &nbsp;&nbsp;&nbsp; ( &nbsp;) <strong>NÃO AUTORIZO</strong></p>
+          <p style="margin-top:6px;font-size:0.68rem;color:#666;">* Esta autorização poderá ser revogada a qualquer momento, mediante solicitação por escrito.</p>
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- CONSIDERAÇÕES -->
+  <table style="width:100%;border:1.5px solid #1B3D6F;border-radius:6px;border-collapse:separate;margin-bottom:16px;">
+    <tr><td style="background:#1B3D6F;color:white;padding:6px 10px;font-size:0.78rem;font-weight:700;">8. CONSIDERAÇÕES IMPORTANTES</td></tr>
+    <tr><td style="padding:8px 10px;font-size:0.72rem;line-height:1.8;">
+      <p>• O processo terapêutico requer participação ativa e compromisso do paciente (e/ou responsável).</p>
+      <p>• O acompanhamento psicológico não possui tempo pré-determinado, sendo reavaliado periodicamente conforme evolução.</p>
+      <p>• Este termo pode ser revisado e atualizado sempre que necessário, mediante acordo entre as partes.</p>
+      <p>• Declaro que li, compreendi e concordo com todas as informações descritas neste termo.</p>
+    </td></tr>
+  </table>
+
+  <!-- ASSINATURAS -->
+  <div style="font-size:0.75rem;text-align:center;margin-bottom:16px;">
+    Local: _____________________________, _______ de _________________________ de 20_____.
+  </div>
+  <table style="width:100%;border-collapse:collapse;text-align:center;">
+    <tr>
+      <td style="width:33%;padding:40px 10px 0;border-top:1px solid #333;font-size:0.72rem;">
+        Assinatura do Paciente<br>(ou Responsável Legal)
+      </td>
+      <td style="width:33%;padding:40px 10px 0;border-top:1px solid #333;font-size:0.72rem;">
+        <strong>${psiNome}</strong><br>
+        ${psiCRP ? 'CRP ' + psiCRP : 'Psicóloga(o) Voluntária(o)'}
+      </td>
+      <td style="width:33%;padding:40px 10px 0;border-top:1px solid #333;font-size:0.72rem;">
+        Testemunha (opcional)<br>Nome e CPF
+      </td>
+    </tr>
+  </table>
+  <div style="text-align:center;margin-top:20px;font-size:0.72rem;color:#888;">
+    Rede Humaniza e Acolhe • Documento gerado em ${dataExtenso}
+  </div>`;
+
+  const fullHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Termo de Consentimento</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:white;color:#1a1a2e;padding:12mm 15mm;font-size:11pt;line-height:1.5;}
+img{display:block;height:auto;}
+@media print{@page{margin:10mm 12mm;size:A4 portrait;}body{padding:0;}}
+</style>
+</head>
+<body>` + html + `
+<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
+</body></html>`;
+
+  const blob = new Blob([fullHtml], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+
+function abrirTermoConsentimento() {
+  // Just focus on the search field
+  setTimeout(()=>document.getElementById('termo-busca')?.focus(), 100);
+}
+
+// ========== FIM TERMO ==========
 
 function imprimirRelatorio(){
   const conteudo = document.getElementById('report-content').innerHTML;
