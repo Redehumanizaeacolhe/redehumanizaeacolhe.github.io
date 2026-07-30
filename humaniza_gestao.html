@@ -800,7 +800,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
   </div>
 
   <!-- Calendário -->
-  <div id="agenda-cal" style="background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden;"></div>
+  <div id="agenda-cal" style="background:white;border-radius:12px;border:1px solid var(--border);overflow:hidden;width:100%;max-width:100%;"></div>
 </div>
 
 <!-- MODAL NOVO EVENTO -->
@@ -2158,8 +2158,8 @@ function renderAgenda() {
   const totalDias = new Date(ano, mes+1, 0).getDate();
   const hoje = new Date();
 
-  let html = '<table style="width:100%;border-collapse:collapse;">';
-  html += '<tr>' + dias.map(d => `<th style="padding:8px 4px;text-align:center;font-size:0.72rem;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">${d}</th>`).join('') + '</tr>';
+  let html = '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">';
+  html += '<tr>' + dias.map(d => `<th style="padding:6px 2px;text-align:center;font-size:0.68rem;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);width:14.28%;">${d}</th>`).join('') + '</tr>';
 
   let dia = 1;
   for(let s = 0; s < 6; s++) {
@@ -2167,19 +2167,19 @@ function renderAgenda() {
     html += '<tr>';
     for(let col = 0; col < 7; col++) {
       if(s === 0 && col < primeiroDia) {
-        html += '<td style="padding:4px;min-height:70px;border:1px solid #f0f0f0;"></td>';
+        html += '<td style="padding:3px;min-height:60px;width:14.28%;border:1px solid #f0f0f0;"></td>';
       } else if(dia > totalDias) {
-        html += '<td style="padding:4px;min-height:70px;border:1px solid #f0f0f0;"></td>';
+        html += '<td style="padding:3px;min-height:60px;width:14.28%;border:1px solid #f0f0f0;"></td>';
       } else {
         const dataStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
         const isHoje = hoje.getFullYear()===ano && hoje.getMonth()===mes && hoje.getDate()===dia;
         const eventos = agendaEventos.filter(e => e.data === dataStr && (!filtroSala || e.sala === filtroSala));
 
-        html += `<td onclick="abrirModalEvento('${dataStr}')" style="padding:4px;min-height:70px;border:1px solid #f0f0f0;vertical-align:top;cursor:pointer;background:${isHoje?'#EFF6FF':'white'};transition:background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='${isHoje?'#EFF6FF':'white'}'">`;
-        html += `<div style="font-size:0.78rem;font-weight:${isHoje?'700':'500'};color:${isHoje?'var(--azul)':'var(--text)'};margin-bottom:3px;${isHoje?'background:var(--azul);color:white;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;':''}">${dia}</div>`;
+        html += `<td onclick="abrirModalEvento('${dataStr}')" style="padding:3px;min-height:60px;max-width:0;width:14.28%;border:1px solid #f0f0f0;vertical-align:top;cursor:pointer;background:${isHoje?'#EFF6FF':'white'};transition:background 0.15s;overflow:hidden;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='${isHoje?'#EFF6FF':'white'}'">`;
+        html += `<div style="font-size:0.78rem;font-weight:${isHoje?'700':'500'};color:${isHoje?'var(--azul)':'var(--text)'};margin-bottom:3px;${isHoje?'background:var(--azul);color:white;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;':''}">${dia}</div>`;
 
         eventos.slice(0,3).forEach(ev => {
-          html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:4px;padding:2px 5px;font-size:0.65rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;" title="${ev.titulo}">${ev.hora?ev.hora+' ':''} ${ev.titulo}</div>`;
+          html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:3px;padding:1px 4px;font-size:0.6rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;max-width:100%;" title="${ev.titulo}">${ev.hora?ev.hora+' ':''} ${ev.titulo}</div>`;
         });
         if(eventos.length > 3) {
           html += `<div style="font-size:0.62rem;color:var(--muted);padding:1px 4px;">+${eventos.length-3} mais</div>`;
