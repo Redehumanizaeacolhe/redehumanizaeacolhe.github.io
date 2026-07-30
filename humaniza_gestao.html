@@ -1876,7 +1876,7 @@ function gerarTermo() {
   <table style="width:100%;border:1.5px solid #1B3D6F;border-radius:6px;border-collapse:separate;margin-bottom:6px;">
     <tr><td colspan="2" style="background:#1B3D6F;color:white;padding:4px 8px;font-size:0.72rem;font-weight:700;">3. SOBRE O ATENDIMENTO</td></tr>
     <tr><td colspan="2" style="padding:3px 8px;font-size:0.72rem;">✔ As sessões psicológicas têm duração de <strong>50 (cinquenta) minutos</strong>.</td></tr>
-    <tr><td colspan="2" style="padding:3px 8px;font-size:0.72rem;">✔ Os atendimentos serão realizados de forma <strong>presencial / online</strong> no dia ___________________, às ________.</td></tr>
+    <tr><td colspan="2" style="padding:3px 8px;font-size:0.72rem;">✔ Os atendimentos serão realizados de forma <strong>presencial / online</strong> no dia <strong>${hoje.toLocaleDateString('pt-BR',{weekday:'long'})}, ${hoje.toLocaleDateString('pt-BR')}</strong>, às <strong>${hoje.getHours().toString().padStart(2,'0')}:${hoje.getMinutes().toString().padStart(2,'0')}</strong>.</td></tr>
     <tr><td colspan="2" style="padding:3px 8px;font-size:0.72rem;">✔ O serviço é prestado de forma <strong>voluntária e gratuita</strong> pela(o) profissional parceira(o) da Rede Humaniza e Acolhe.</td></tr>
     <tr><td colspan="2" style="padding:3px 8px;font-size:0.72rem;">✔ O valor poderá ser reavaliado conforme disponibilidade e acordo entre as partes.</td></tr>
   </table>
@@ -1941,7 +1941,7 @@ function gerarTermo() {
 
   <!-- ASSINATURAS -->
   <div style="font-size:0.75rem;text-align:center;margin-bottom:8px;">
-    Local: _____________________________, _______ de _________________________ de 20_____.
+    Local: <strong>Niterói — RJ</strong>, ${hoje.getDate()} de ${hoje.toLocaleDateString('pt-BR',{month:'long'})} de ${hoje.getFullYear()}.
   </div>
   <table style="width:100%;border-collapse:collapse;text-align:center;">
     <tr>
