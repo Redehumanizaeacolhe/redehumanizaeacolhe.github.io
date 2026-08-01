@@ -870,8 +870,9 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
       <button class="modal-close" onclick="document.getElementById('modal-evento-detalhe').classList.remove('open')">✕</button>
     </div>
     <div id="ev-det-body" style="padding-top:8px;font-size:0.85rem;line-height:2;"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:12px;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:12px;flex-wrap:wrap;">
       <button onclick="excluirEventoAtual()" style="padding:8px 16px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;">🗑 Excluir</button>
+      <button id="btn-concluir-evento" onclick="concluirEvento()" style="padding:8px 16px;background:#10B981;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;">✅ Concluir atendimento</button>
       <button onclick="document.getElementById('modal-evento-detalhe').classList.remove('open')" style="padding:8px 16px;background:var(--azul);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;">Fechar</button>
     </div>
   </div>
@@ -2178,7 +2179,9 @@ function renderAgenda() {
         html += `<div style="font-size:0.78rem;font-weight:${isHoje?'700':'500'};color:${isHoje?'var(--azul)':'var(--text)'};margin-bottom:3px;${isHoje?'background:var(--azul);color:white;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;':''}">${dia}</div>`;
 
         eventos.slice(0,3).forEach(ev => {
-          html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:3px;padding:1px 4px;font-size:0.6rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;max-width:100%;" title="${ev.titulo}">${ev.hora?ev.hora+' ':''} ${ev.titulo}</div>`;
+          const concStyle = ev.concluido ? 'opacity:0.65;text-decoration:line-through;' : '';
+        const concPrefix = ev.concluido ? '✅ ' : '';
+        html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:3px;padding:1px 4px;font-size:0.6rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;max-width:100%;${concStyle}" title="${ev.titulo}">${concPrefix}${ev.hora?ev.hora+' ':''} ${ev.titulo}</div>`;
         });
         if(eventos.length > 3) {
           html += `<div style="font-size:0.62rem;color:var(--muted);padding:1px 4px;">+${eventos.length-3} mais</div>`;
@@ -2289,8 +2292,19 @@ function verEvento(id) {
     ${ev.familiaNome?`<div><strong>Família:</strong> ${ev.familiaNome}</div>`:''}
     ${ev.responsavel?`<div><strong>Responsável:</strong> ${ev.responsavel}</div>`:''}
     ${ev.obs?`<div><strong>Obs:</strong> ${ev.obs}</div>`:''}
+    ${ev.concluido?`<div style="margin-top:8px;background:#d1fae5;color:#065f46;padding:6px 10px;border-radius:6px;font-size:0.78rem;">✅ Concluído em ${ev.concluidoEm||''} por ${ev.concluidoPor||'—'}</div>`:''}
     <div style="margin-top:8px;font-size:0.72rem;color:var(--muted);">Criado por ${ev.criadoPor||'—'}</div>
   `;
+  // Show/hide concluir button
+  const btnConcluir = document.getElementById('btn-concluir-evento');
+  if(btnConcluir) {
+    if(ev.concluido) {
+      btnConcluir.style.display = 'none';
+    } else {
+      btnConcluir.style.display = '';
+      btnConcluir.textContent = ev.familiaId ? '✅ Concluir e registrar no prontuário' : '✅ Marcar como concluído';
+    }
+  }
   document.getElementById('modal-evento-detalhe').classList.add('open');
 }
 
@@ -2302,6 +2316,60 @@ function excluirEventoAtual() {
   document.getElementById('modal-evento-detalhe').classList.remove('open');
   renderAgenda();
   showToast('Evento excluído.');
+}
+
+function concluirEvento() {
+  if(!eventoEditandoId) return;
+  const ev = agendaEventos.find(e => e.id == eventoEditandoId);
+  if(!ev) return;
+
+  const agora = new Date();
+  const dataFormatada = agora.toLocaleDateString('pt-BR') + ' às ' + agora.getHours().toString().padStart(2,'0') + ':' + agora.getMinutes().toString().padStart(2,'0');
+
+  // Mark as concluded
+  ev.concluido = true;
+  ev.concluidoEm = dataFormatada;
+  ev.concluidoPor = usuarioAtual?.nome || '—';
+
+  // If has family, register in prontuário
+  if(ev.familiaId) {
+    const fam = db.familias.find(f => f.id == ev.familiaId);
+    if(fam) {
+      if(!fam.responsavel.atendimentos) fam.responsavel.atendimentos = [];
+      const novoAt = {
+        id: Date.now(),
+        data: new Date(ev.data+'T12:00').toLocaleDateString('pt-BR'),
+        tipo: LABEL_EVENTO[ev.tipo] || ev.tipo,
+        responsavelAt: ev.responsavel || '—',
+        obs: ev.obs || '',
+        proximosPassos: '',
+        obsInternas: `Sala: ${ev.sala||'—'} | Registrado automaticamente via Agenda`,
+        status: 'Concluído',
+        encaminhamento: '',
+        encInst: '',
+        encStatus: ''
+      };
+      fam.responsavel.atendimentos.unshift(novoAt);
+
+      // Save to planilha
+      jsonpGet({
+        acao: 'salvar',
+        aba: 'Famílias',
+        linha: JSON.stringify(famToRow(fam)),
+        chave: fam.responsavel.nome
+      }).then(() => {
+        showToast('✅ Atendimento registrado no prontuário de ' + (fam.responsavel?.nome||'') + '!');
+      }).catch(() => {
+        showToast('✅ Concluído! Sincronize para salvar no prontuário.', true);
+      });
+    }
+  } else {
+    showToast('✅ Evento marcado como concluído!');
+  }
+
+  agendaSalvar();
+  document.getElementById('modal-evento-detalhe').classList.remove('open');
+  renderAgenda();
 }
 
 // ========== FIM AGENDA ==========
