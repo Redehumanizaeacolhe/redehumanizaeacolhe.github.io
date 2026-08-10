@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Humaniza e Acolhe — Gestão</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<!-- v2.9 -->
+<!-- v3.0 -->
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -367,7 +367,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="page active">
   <div class="page-title">Bem-vindos à Rede Humaniza e Acolhe 💛</div>
-  <div class="page-sub">Painel de gestão familiar · v2.9</div>
+  <div class="page-sub">Painel de gestão familiar · v3.0</div>
   <div class="stats-row-6">
     <div class="stat-card"><div class="stat-num" id="d-fam">–</div><div class="stat-label">Famílias</div></div>
     <div class="stat-card"><div class="stat-num org" id="d-membros">–</div><div class="stat-label">Dependentes</div></div>
@@ -826,7 +826,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
       </div>
       <div id="ev-familia-wrap">
         <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Família</label>
-        <input id="ev-familia-busca" placeholder="Buscar família pelo nome do responsável..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" oninput="buscarFamAgenda(this.value)" onblur="setTimeout(()=>{const l=document.getElementById('ev-familia-lista');if(l)l.style.display='none';},200)" autocomplete="off">
+        <input id="ev-familia-busca" placeholder="Buscar família pelo nome do responsável..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" oninput="buscarFamAgenda(this.value)" onblur="setTimeout(()=>{const l=document.getElementById('ev-familia-lista');if(l)l.style.display='none';},500)" autocomplete="off">
         <div id="ev-familia-lista" style="max-height:100px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:4px;display:none;background:white;"></div>
         <div id="ev-familia-sel" style="font-size:0.75rem;color:var(--verde);margin-top:4px;"></div>
         <div id="ev-pessoa-wrap" style="display:none;margin-top:8px;">
@@ -2266,7 +2266,7 @@ function buscarFamAgenda(q) {
     const _f = f;
     div.addEventListener('mouseover', () => div.style.background='#f8faff');
     div.addEventListener('mouseout', () => div.style.background='');
-    div.addEventListener('click', () => selecionarFamAgenda(_f));
+    div.addEventListener('mousedown', (e) => { e.preventDefault(); selecionarFamAgenda(_f); });
     lista.appendChild(div);
   });
 }
