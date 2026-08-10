@@ -2247,12 +2247,22 @@ function buscarFamAgenda(q) {
   if(!q || q.length < 2) { lista.style.display='none'; return; }
   const res = db.familias.filter(f => (f.responsavel?.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,6);
   if(!res.length) { lista.style.display='none'; return; }
-  lista.innerHTML = res.map(f => `<div style="padding:7px 10px;cursor:pointer;font-size:0.8rem;border-bottom:1px solid #f0f0f0;" onclick="selecionarFamAgenda('${f.id}')">${f.responsavel?.nome||''}</div>`).join('');
+  lista.innerHTML = '';
+  res.forEach(f => {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:7px 10px;cursor:pointer;font-size:0.8rem;border-bottom:1px solid #f0f0f0;';
+    div.textContent = f.responsavel?.nome || '';
+    div.addEventListener('click', () => selecionarFamAgenda(f.id));
+    lista.appendChild(div);
+  });
   lista.style.display = 'block';
 }
 
 function selecionarFamAgenda(id) {
-  evFamiliaSel = db.familias.find(f => f.id == id);
+  evFamiliaSel = db.familias.find(f => f.id === id || f.id == id);
+  console.log('Família selecionada:', evFamiliaSel?.responsavel?.nome);
+  console.log('Membros:', JSON.stringify(evFamiliaSel?.membros));
+  console.log('Conjuge:', evFamiliaSel?.conjuge?.nome);
   if(!evFamiliaSel) return;
   document.getElementById('ev-familia-lista').style.display = 'none';
   document.getElementById('ev-familia-busca').value = evFamiliaSel.responsavel?.nome || '';
