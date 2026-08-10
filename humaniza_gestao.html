@@ -840,14 +840,29 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
         <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Profissional / Responsável</label>
         <input id="ev-responsavel" placeholder="Nome da psicóloga, voluntária ou responsável..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
         <div>
           <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Data</label>
           <input type="date" id="ev-data" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
         </div>
         <div>
-          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Horário</label>
-          <input type="time" id="ev-hora" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Início</label>
+          <input type="time" id="ev-hora" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" onchange="calcularHoraFim()">
+        </div>
+        <div>
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Término</label>
+          <input type="time" id="ev-hora-fim" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Duração</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button type="button" onclick="setDuracao(30)" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:0.75rem;">30 min</button>
+          <button type="button" onclick="setDuracao(50)" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:0.75rem;">50 min</button>
+          <button type="button" onclick="setDuracao(60)" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:0.75rem;">1h</button>
+          <button type="button" onclick="setDuracao(120)" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:0.75rem;">2h</button>
+          <button type="button" onclick="setDuracao(180)" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:0.75rem;">3h</button>
+          <button type="button" onclick="setDuracao(240)" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:white;cursor:pointer;font-size:0.75rem;">4h</button>
         </div>
       </div>
       <div>
@@ -880,7 +895,8 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div id="ev-det-body" style="padding-top:8px;font-size:0.85rem;line-height:2;"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:12px;flex-wrap:wrap;">
       <button onclick="excluirEventoAtual()" style="padding:8px 16px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;">🗑 Excluir</button>
-      <button id="btn-concluir-evento" onclick="concluirEvento()" style="padding:8px 16px;background:#10B981;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;">✅ Concluir atendimento</button>
+      <button onclick="editarEvento()" style="padding:8px 16px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.82rem;">✏️ Editar</button>
+      <button id="btn-concluir-evento" onclick="concluirEvento()" style="padding:8px 16px;background:#10B981;color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;">✅ Concluir</button>
       <button onclick="document.getElementById('modal-evento-detalhe').classList.remove('open')" style="padding:8px 16px;background:var(--azul);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.82rem;">Fechar</button>
     </div>
   </div>
@@ -2214,7 +2230,7 @@ function renderAgenda() {
         eventos.slice(0,3).forEach(ev => {
           const concStyle = ev.concluido ? 'opacity:0.65;text-decoration:line-through;' : '';
         const concPrefix = ev.concluido ? '✅ ' : '';
-        html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:3px;padding:1px 4px;font-size:0.6rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;max-width:100%;${concStyle}" title="${ev.titulo}">${concPrefix}${ev.hora?ev.hora+' ':''} ${ev.titulo}</div>`;
+        html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:3px;padding:1px 4px;font-size:0.6rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;max-width:100%;${concStyle}" title="${ev.titulo}">${concPrefix}${ev.hora?ev.hora+(ev.horaFim?'–'+ev.horaFim:'')+' ':''} ${ev.titulo}</div>`;
         });
         if(eventos.length > 3) {
           html += `<div style="font-size:0.62rem;color:var(--muted);padding:1px 4px;">+${eventos.length-3} mais</div>`;
@@ -2244,6 +2260,7 @@ function abrirModalEvento(data='') {
   document.getElementById('ev-responsavel').value = '';
   document.getElementById('ev-data').value = data || new Date().toISOString().split('T')[0];
   document.getElementById('ev-hora').value = '09:00';
+  document.getElementById('ev-hora-fim').value = '';
   document.getElementById('ev-sala').value = 'Sala de Atendimentos';
   document.getElementById('ev-obs').value = '';
   document.getElementById('modal-evento-titulo').textContent = 'Novo Evento';
@@ -2253,6 +2270,32 @@ function abrirModalEvento(data='') {
 
 function fecharModalEvento() {
   document.getElementById('modal-evento').classList.remove('open');
+}
+
+function calcularHoraFim() {
+  const inicio = document.getElementById('ev-hora').value;
+  const fim = document.getElementById('ev-hora-fim');
+  if(!inicio || fim.value) return; // don't overwrite if already set
+  // Default 50 min for atendimento, 60 for others
+  const tipo = document.getElementById('ev-tipo').value;
+  const mins = tipo === 'atendimento' ? 50 : 60;
+  setDuracao(mins);
+}
+
+function setDuracao(mins) {
+  const inicio = document.getElementById('ev-hora').value;
+  if(!inicio) return;
+  const [h, m] = inicio.split(':').map(Number);
+  const totalMins = h * 60 + m + mins;
+  const fimH = Math.floor(totalMins / 60) % 24;
+  const fimM = totalMins % 60;
+  document.getElementById('ev-hora-fim').value =
+    String(fimH).padStart(2,'0') + ':' + String(fimM).padStart(2,'0');
+  // Highlight selected duration button
+  document.querySelectorAll('[onclick^="setDuracao"]').forEach(b => {
+    b.style.background = b.getAttribute('onclick') === `setDuracao(${mins})` ? 'var(--azul-pale)' : 'white';
+    b.style.borderColor = b.getAttribute('onclick') === `setDuracao(${mins})` ? 'var(--azul)' : 'var(--border)';
+  });
 }
 
 function toggleEventoFamilia() {
@@ -2378,6 +2421,7 @@ function salvarEvento() {
     titulo,
     data,
     hora: document.getElementById('ev-hora').value,
+    horaFim: document.getElementById('ev-hora-fim').value,
     sala: document.getElementById('ev-sala').value,
     responsavel: document.getElementById('ev-responsavel').value.trim(),
     obs: document.getElementById('ev-obs').value.trim(),
@@ -2411,7 +2455,7 @@ function verEvento(id) {
   document.getElementById('ev-det-body').innerHTML = `
     <div><strong>Tipo:</strong> ${LABEL_EVENTO[ev.tipo]||ev.tipo}</div>
     <div><strong>Data:</strong> ${new Date(ev.data+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
-    <div><strong>Horário:</strong> ${ev.hora||'—'}</div>
+    <div><strong>Horário:</strong> ${ev.hora||'—'}${ev.horaFim?' às '+ev.horaFim:''}</div>
     <div><strong>Sala:</strong> ${ev.sala||'—'}</div>
     ${ev.familiaNome?`<div><strong>Família:</strong> ${ev.familiaNome}</div>`:''}
     ${ev.pessoaNome?`<div><strong>Paciente:</strong> ${ev.pessoaNome}</div>`:''}
@@ -2441,6 +2485,55 @@ function excluirEventoAtual() {
   document.getElementById('modal-evento-detalhe').classList.remove('open');
   renderAgenda();
   showToast('Evento excluído.');
+}
+
+function editarEvento() {
+  if(!eventoEditandoId) return;
+  const ev = agendaEventos.find(e => e.id == eventoEditandoId);
+  if(!ev) return;
+
+  // Close detail modal
+  document.getElementById('modal-evento-detalhe').classList.remove('open');
+
+  // Open edit modal with existing data
+  document.getElementById('modal-evento-titulo').textContent = 'Editar Evento';
+  document.getElementById('ev-tipo').value = ev.tipo || 'atendimento';
+  document.getElementById('ev-titulo').value = ev.titulo || '';
+  document.getElementById('ev-data').value = ev.data || '';
+  document.getElementById('ev-hora').value = ev.hora || '';
+  document.getElementById('ev-hora-fim').value = ev.horaFim || '';
+  document.getElementById('ev-sala').value = ev.sala || 'Sala de Atendimentos';
+  document.getElementById('ev-responsavel').value = ev.responsavel || '';
+  document.getElementById('ev-obs').value = ev.obs || '';
+
+  // Restore family if exists
+  evFamiliaSel = null;
+  document.getElementById('ev-familia-busca').value = '';
+  document.getElementById('ev-familia-sel').textContent = '';
+  document.getElementById('ev-pessoa-wrap').style.display = 'none';
+
+  if(ev.familiaId) {
+    evFamiliaSel = db.familias.find(f => f.id == ev.familiaId);
+    if(evFamiliaSel) {
+      document.getElementById('ev-familia-busca').value = ev.familiaNome || '';
+      document.getElementById('ev-familia-sel').textContent = '✅ Família: ' + (ev.familiaNome||'');
+      // Repopulate members
+      selecionarFamAgenda(evFamiliaSel);
+      // Set previously selected person
+      if(ev.pessoaNome) {
+        const sel = document.getElementById('ev-pessoa');
+        Array.from(sel.options).forEach(opt => {
+          try {
+            const val = JSON.parse(opt.value);
+            if(val.nome === ev.pessoaNome) sel.value = opt.value;
+          } catch(e) {}
+        });
+      }
+    }
+  }
+
+  toggleEventoFamilia();
+  document.getElementById('modal-evento').classList.add('open');
 }
 
 function concluirEvento() {
