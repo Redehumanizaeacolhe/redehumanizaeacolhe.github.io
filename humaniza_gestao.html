@@ -2233,7 +2233,13 @@ function fecharModalEvento() {
 
 function toggleEventoFamilia() {
   const tipo = document.getElementById('ev-tipo').value;
-  document.getElementById('ev-familia-wrap').style.display = tipo === 'atendimento' ? 'block' : 'none';
+  const wrap = document.getElementById('ev-familia-wrap');
+  if(wrap) wrap.style.display = tipo === 'atendimento' ? 'block' : 'none';
+  // Reset pessoa if hiding
+  if(tipo !== 'atendimento') {
+    evFamiliaSel = null;
+    if(document.getElementById('ev-pessoa-wrap')) document.getElementById('ev-pessoa-wrap').style.display = 'none';
+  }
 }
 
 function buscarFamAgenda(q) {
@@ -2274,16 +2280,19 @@ function selecionarFamAgenda(id) {
     sel.appendChild(opt);
   }
 
-  // Membros
-  (evFamiliaSel.membros||[]).forEach((m,i) => {
-    if(!m.nome) return;
+  // Membros dependentes
+  const membros = Array.isArray(evFamiliaSel.membros) ? evFamiliaSel.membros : [];
+  membros.forEach((m,i) => {
+    if(!m || !m.nome) return;
     const opt = document.createElement('option');
     opt.value = JSON.stringify({tipo:'membro', idx: i, nome: m.nome});
-    opt.textContent = '👶 ' + m.nome + (m.parentesco ? ' ('+m.parentesco+')' : '');
+    const parentesco = m.parentesco || m.relacao || '';
+    opt.textContent = '👶 ' + m.nome + (parentesco ? ' ('+parentesco+')' : '');
     sel.appendChild(opt);
   });
 
-  document.getElementById('ev-pessoa-wrap').style.display = 'block';
+  const pessoaWrap = document.getElementById('ev-pessoa-wrap');
+  if(pessoaWrap) pessoaWrap.style.display = 'block';
   document.getElementById('ev-titulo').value = 'Atendimento — ' + (resp?.nome||'');
 }
 
