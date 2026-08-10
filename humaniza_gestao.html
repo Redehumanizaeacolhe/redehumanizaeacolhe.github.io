@@ -2255,14 +2255,35 @@ function toggleEventoFamilia() {
 function buscarFamAgenda(q) {
   const lista = document.getElementById('ev-familia-lista');
   if(!q || q.length < 2) { lista.style.display='none'; return; }
-  const res = db.familias.filter(f => (f.responsavel?.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  const ql = q.toLowerCase();
+  // Build flat results: responsavel + membros de cada família
+  const res = [];
+  db.familias.forEach(f => {
+    const respNome = f.responsavel?.nome || '';
+    // Check responsavel
+    if(respNome.toLowerCase().includes(ql)) {
+      res.push({ label: respNome + ' (Responsável)', f });
+    }
+    // Check conjuge
+    const conjNome = f.conjuge?.nome || '';
+    if(conjNome && conjNome.toLowerCase().includes(ql)) {
+      res.push({ label: conjNome + ' · Família: ' + respNome, f });
+    }
+    // Check membros
+    (f.membros||[]).forEach(m => {
+      if(m?.nome && m.nome.toLowerCase().includes(ql)) {
+        res.push({ label: m.nome + ' · Família: ' + respNome, f });
+      }
+    });
+  });
+
   if(!res.length) { lista.style.display='none'; return; }
   lista.innerHTML = '';
   lista.style.display = 'block';
-  res.forEach(f => {
+  res.slice(0,8).forEach(({label, f}) => {
     const div = document.createElement('div');
-    div.style.cssText = 'padding:8px 10px;cursor:pointer;font-size:0.82rem;border-bottom:1px solid #f0f0f0;';
-    div.textContent = f.responsavel?.nome || '';
+    div.style.cssText = 'padding:8px 10px;cursor:pointer;font-size:0.8rem;border-bottom:1px solid #f0f0f0;';
+    div.textContent = label;
     const _f = f;
     div.addEventListener('mouseover', () => div.style.background='#f8faff');
     div.addEventListener('mouseout', () => div.style.background='');
