@@ -1233,7 +1233,21 @@ function renderFam(){
 }
 function filterFam(q){searchQ=q;renderFam();}
 function setTag(t,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');tagQ=t;renderFam();}
-function deleteFam(id){if(!confirm('Remover esta família?'))return;db.familias=db.familias.filter(f=>f.id!==id);renderFam();updateDash();showToast('Família removida.');}
+function deleteFam(id){
+  if(!confirm('Remover esta família? Esta ação também exclui da planilha e não pode ser desfeita.'))return;
+  const fam = db.familias.find(f=>f.id===id);
+  if(!fam) return;
+  const nomeFam = fam.responsavel?.nome || '';
+  // Remove from local
+  db.familias = db.familias.filter(f=>f.id!==id);
+  renderFam();
+  updateDash();
+  showToast('Excluindo da planilha...');
+  // Remove from planilha
+  jsonpGet({acao:'excluir', aba:'Famílias', chave: nomeFam})
+    .then(() => showToast('✅ Família excluída da planilha!'))
+    .catch(() => showToast('⚠️ Removida localmente. Sincronize para confirmar.', true));
+}
 
 function openPront(id){
   currentFamId=id;const f=db.familias.find(f=>f.id==id);if(!f)return;
