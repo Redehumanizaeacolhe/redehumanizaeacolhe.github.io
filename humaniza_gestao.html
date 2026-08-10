@@ -826,7 +826,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
       </div>
       <div id="ev-familia-wrap">
         <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Família</label>
-        <input id="ev-familia-busca" placeholder="Buscar família pelo nome do responsável..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" oninput="buscarFamAgenda(this.value)">
+        <input id="ev-familia-busca" placeholder="Buscar família pelo nome do responsável..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" oninput="buscarFamAgenda(this.value)" onblur="setTimeout(()=>{const l=document.getElementById('ev-familia-lista');if(l)l.style.display='none';},200)" autocomplete="off">
         <div id="ev-familia-lista" style="max-height:100px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:4px;display:none;background:white;"></div>
         <div id="ev-familia-sel" style="font-size:0.75rem;color:var(--verde);margin-top:4px;"></div>
         <div id="ev-pessoa-wrap" style="display:none;margin-top:8px;">
