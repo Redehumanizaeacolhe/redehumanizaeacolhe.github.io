@@ -586,9 +586,10 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <span id="agenda-mes-label" style="font-weight:700;font-size:0.95rem;color:var(--azul);"></span>
     <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
       <select id="agenda-sala-filter" onchange="renderAgenda()" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:0.78rem;">
-        <option value="">Todas as salas</option>
+        <option value="">Todos os locais</option>
         <option value="Sala de Atendimentos">Sala de Atendimentos</option>
         <option value="Sala Multifuncional">Sala Multifuncional</option>
+        <option value="Online">💻 Online</option>
       </select>
       <button onclick="abrirModalEvento()" style="background:var(--verde);color:white;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:0.8rem;font-weight:600;">+ Novo</button>
     </div>
@@ -825,9 +826,15 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
       </div>
       <div id="ev-familia-wrap">
         <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Família</label>
-        <input id="ev-familia-busca" placeholder="Buscar família..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" oninput="buscarFamAgenda(this.value)">
+        <input id="ev-familia-busca" placeholder="Buscar família pelo nome do responsável..." style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" oninput="buscarFamAgenda(this.value)">
         <div id="ev-familia-lista" style="max-height:100px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin-top:4px;display:none;background:white;"></div>
         <div id="ev-familia-sel" style="font-size:0.75rem;color:var(--verde);margin-top:4px;"></div>
+        <div id="ev-pessoa-wrap" style="display:none;margin-top:8px;">
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Para quem é o atendimento?</label>
+          <select id="ev-pessoa" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;" onchange="selecionarPessoaAgenda()">
+            <option value="">— Selecionar pessoa —</option>
+          </select>
+        </div>
       </div>
       <div>
         <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Profissional / Responsável</label>
@@ -844,10 +851,11 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
         </div>
       </div>
       <div>
-        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Sala</label>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Local</label>
         <select id="ev-sala" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
-          <option value="Sala de Atendimentos">Sala de Atendimentos</option>
-          <option value="Sala Multifuncional">Sala Multifuncional</option>
+          <option value="Sala de Atendimentos">🏠 Sala de Atendimentos</option>
+          <option value="Sala Multifuncional">🏠 Sala Multifuncional</option>
+          <option value="Online">💻 Online</option>
         </select>
       </div>
       <div>
@@ -886,6 +894,7 @@ const USUARIOS_AUTORIZADOS = {
   'vanessabiezon@gmail.com': { nome: 'Vanessa', nivel: 'admin' },
   'luciana.redehumaniza@gmail.com': { nome: 'Luciana', nivel: 'voluntaria' },
   'irene.redehumaniza@gmail.com': { nome: 'Irene', nivel: 'voluntaria' },
+  'thayane.humanizaeacolhe@gmail.com': { nome: 'Thayane', nivel: 'voluntaria' },
 };
 
 let usuarioAtual = null;
@@ -2206,6 +2215,8 @@ function abrirModalEvento(data='') {
   document.getElementById('ev-familia-busca').value = '';
   document.getElementById('ev-familia-sel').textContent = '';
   document.getElementById('ev-familia-lista').style.display = 'none';
+  document.getElementById('ev-pessoa-wrap').style.display = 'none';
+  if(document.getElementById('ev-pessoa')) document.getElementById('ev-pessoa').innerHTML = '<option value="">— Selecionar pessoa —</option>';
   document.getElementById('ev-responsavel').value = '';
   document.getElementById('ev-data').value = data || new Date().toISOString().split('T')[0];
   document.getElementById('ev-hora').value = '09:00';
@@ -2239,10 +2250,51 @@ function selecionarFamAgenda(id) {
   if(!evFamiliaSel) return;
   document.getElementById('ev-familia-lista').style.display = 'none';
   document.getElementById('ev-familia-busca').value = evFamiliaSel.responsavel?.nome || '';
-  document.getElementById('ev-familia-sel').textContent = '✅ ' + (evFamiliaSel.responsavel?.nome||'');
-  if(!document.getElementById('ev-titulo').value) {
-    document.getElementById('ev-titulo').value = 'Atendimento — ' + (evFamiliaSel.responsavel?.nome||'');
+  document.getElementById('ev-familia-sel').textContent = '✅ Família: ' + (evFamiliaSel.responsavel?.nome||'');
+
+  // Populate persons: responsavel + conjuge (if has name) + membros
+  const sel = document.getElementById('ev-pessoa');
+  sel.innerHTML = '<option value="">— Selecionar pessoa —</option>';
+
+  // Responsavel
+  const resp = evFamiliaSel.responsavel;
+  if(resp?.nome) {
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({tipo:'responsavel', nome: resp.nome});
+    opt.textContent = '👤 ' + resp.nome + ' (Responsável)';
+    sel.appendChild(opt);
   }
+
+  // Conjuge
+  const conj = evFamiliaSel.conjuge;
+  if(conj?.nome) {
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({tipo:'conjuge', nome: conj.nome});
+    opt.textContent = '💑 ' + conj.nome + ' (Cônjuge)';
+    sel.appendChild(opt);
+  }
+
+  // Membros
+  (evFamiliaSel.membros||[]).forEach((m,i) => {
+    if(!m.nome) return;
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({tipo:'membro', idx: i, nome: m.nome});
+    opt.textContent = '👶 ' + m.nome + (m.parentesco ? ' ('+m.parentesco+')' : '');
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('ev-pessoa-wrap').style.display = 'block';
+  document.getElementById('ev-titulo').value = 'Atendimento — ' + (resp?.nome||'');
+}
+
+function selecionarPessoaAgenda() {
+  const sel = document.getElementById('ev-pessoa');
+  const val = sel.value;
+  if(!val || !evFamiliaSel) return;
+  try {
+    const pessoa = JSON.parse(val);
+    document.getElementById('ev-titulo').value = 'Atendimento — ' + pessoa.nome;
+  } catch(e) {}
 }
 
 function salvarEvento() {
@@ -2250,6 +2302,11 @@ function salvarEvento() {
   const data = document.getElementById('ev-data').value;
   if(!titulo) { alert('Informe o título do evento.'); return; }
   if(!data) { alert('Informe a data.'); return; }
+
+  // Get selected person
+  let pessoaSel = null;
+  const pessoaSelVal = document.getElementById('ev-pessoa')?.value;
+  if(pessoaSelVal) { try { pessoaSel = JSON.parse(pessoaSelVal); } catch(e) {} }
 
   const ev = {
     id: eventoEditandoId || Date.now().toString(),
@@ -2262,6 +2319,9 @@ function salvarEvento() {
     obs: document.getElementById('ev-obs').value.trim(),
     familiaId: evFamiliaSel?.id || '',
     familiaNome: evFamiliaSel?.responsavel?.nome || '',
+    pessoaNome: pessoaSel?.nome || '',
+    pessoaTipo: pessoaSel?.tipo || '',
+    pessoaIdx: pessoaSel?.idx ?? null,
     criadoPor: usuarioAtual?.nome || '',
     criadoEm: new Date().toISOString()
   };
@@ -2290,6 +2350,7 @@ function verEvento(id) {
     <div><strong>Horário:</strong> ${ev.hora||'—'}</div>
     <div><strong>Sala:</strong> ${ev.sala||'—'}</div>
     ${ev.familiaNome?`<div><strong>Família:</strong> ${ev.familiaNome}</div>`:''}
+    ${ev.pessoaNome?`<div><strong>Paciente:</strong> ${ev.pessoaNome}</div>`:''}
     ${ev.responsavel?`<div><strong>Responsável:</strong> ${ev.responsavel}</div>`:''}
     ${ev.obs?`<div><strong>Obs:</strong> ${ev.obs}</div>`:''}
     ${ev.concluido?`<div style="margin-top:8px;background:#d1fae5;color:#065f46;padding:6px 10px;border-radius:6px;font-size:0.78rem;">✅ Concluído em ${ev.concluidoEm||''} por ${ev.concluidoPor||'—'}</div>`:''}
@@ -2335,7 +2396,6 @@ function concluirEvento() {
   if(ev.familiaId) {
     const fam = db.familias.find(f => f.id == ev.familiaId);
     if(fam) {
-      if(!fam.responsavel.atendimentos) fam.responsavel.atendimentos = [];
       const novoAt = {
         id: Date.now(),
         data: new Date(ev.data+'T12:00').toLocaleDateString('pt-BR'),
@@ -2343,13 +2403,24 @@ function concluirEvento() {
         responsavelAt: ev.responsavel || '—',
         obs: ev.obs || '',
         proximosPassos: '',
-        obsInternas: `Sala: ${ev.sala||'—'} | Registrado automaticamente via Agenda`,
+        obsInternas: `Local: ${ev.sala||'—'} | Paciente: ${ev.pessoaNome||'Responsável'} | Registrado via Agenda`,
         status: 'Concluído',
         encaminhamento: '',
         encInst: '',
         encStatus: ''
       };
-      fam.responsavel.atendimentos.unshift(novoAt);
+
+      // Register on correct person
+      if(ev.pessoaTipo === 'membro' && ev.pessoaIdx != null && fam.membros?.[ev.pessoaIdx]) {
+        if(!fam.membros[ev.pessoaIdx].atendimentos) fam.membros[ev.pessoaIdx].atendimentos = [];
+        fam.membros[ev.pessoaIdx].atendimentos.unshift(novoAt);
+      } else if(ev.pessoaTipo === 'conjuge' && fam.conjuge) {
+        if(!fam.conjuge.atendimentos) fam.conjuge.atendimentos = [];
+        fam.conjuge.atendimentos.unshift(novoAt);
+      } else {
+        if(!fam.responsavel.atendimentos) fam.responsavel.atendimentos = [];
+        fam.responsavel.atendimentos.unshift(novoAt);
+      }
 
       // Save to planilha
       jsonpGet({
