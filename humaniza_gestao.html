@@ -591,6 +591,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
         <option value="Sala Multifuncional">Sala Multifuncional</option>
         <option value="Online">💻 Online</option>
       </select>
+      <button onclick="pedirAcessoCalendar(sincronizarDoCalendar)" style="background:white;border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:0.78rem;">📅 Sync Google</button>
       <button onclick="abrirModalEvento()" style="background:var(--verde);color:white;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-size:0.8rem;font-weight:600;">+ Novo</button>
     </div>
   </div>
@@ -904,6 +905,9 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 
 <script>
 const CLIENT_ID = '179648210740-f57rdn1vi3am7qnib1q6shpkb52jrdah.apps.googleusercontent.com';
+const CALENDAR_ID = 'redehumanizaeacolhe@gmail.com';
+const CALENDAR_SCOPES = 'https://www.googleapis.com/auth/calendar';
+let calendarAccessToken = null;
 
 const USUARIOS_AUTORIZADOS = {
   'redehumanizaeacolhe@gmail.com': { nome: 'Coordenação', nivel: 'admin' },
@@ -917,11 +921,162 @@ let usuarioAtual = null;
 
 function inicializarGoogle() {
   if(!verificarSessao()) {
-    // Button is rendered by Google GSI automatically via data attributes
-    // Just make sure login screen is visible
     document.getElementById('login-screen').style.display = 'flex';
   }
 }
+
+// ========== GOOGLE CALENDAR ==========
+let _calTokenClient = null;
+
+function inicializarCalendar() {
+  if(typeof google === 'undefined' || !google.accounts?.oauth2) {
+    setTimeout(inicializarCalendar, 1000);
+    return;
+  }
+  _calTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: CALENDAR_SCOPES,
+    callback: (resp) => {
+      if(resp.error) { console.warn('Calendar auth error:', resp.error); return; }
+      calendarAccessToken = resp.access_token;
+      sincronizarDoCalendar();
+    }
+  });
+}
+
+function pedirAcessoCalendar(callback) {
+  if(calendarAccessToken) { if(callback) callback(); return; }
+  if(!_calTokenClient) { inicializarCalendar(); setTimeout(()=>pedirAcessoCalendar(callback), 1500); return; }
+  _calTokenClient._callback_extra = callback;
+  const origCallback = _calTokenClient.callback;
+  _calTokenClient.callback = (resp) => {
+    origCallback(resp);
+    if(!resp.error && _calTokenClient._callback_extra) _calTokenClient._callback_extra();
+  };
+  _calTokenClient.requestAccessToken({prompt:''});
+}
+
+async function calendarRequest(method, path, body) {
+  if(!calendarAccessToken) return null;
+  try {
+    const res = await fetch(`https://www.googleapis.com/calendar/v3${path}`, {
+      method,
+      headers: {
+        'Authorization': 'Bearer ' + calendarAccessToken,
+        'Content-Type': 'application/json'
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if(res.status === 401) { calendarAccessToken = null; return null; }
+    if(!res.ok) return null;
+    if(res.status === 204) return {};
+    return await res.json();
+  } catch(e) { return null; }
+}
+
+async function sincronizarDoCalendar() {
+  if(!calendarAccessToken) return;
+  const agora = new Date();
+  const inicio = new Date(agora.getFullYear(), agora.getMonth() - 1, 1).toISOString();
+  const fim = new Date(agora.getFullYear(), agora.getMonth() + 3, 0).toISOString();
+
+  const data = await calendarRequest('GET',
+    `/calendars/${encodeURIComponent(CALENDAR_ID)}/events?timeMin=${inicio}&timeMax=${fim}&singleEvents=true&orderBy=startTime&maxResults=100`
+  );
+  if(!data?.items) return;
+
+  // Merge Google Calendar events into agendaEventos
+  let atualizados = 0;
+  data.items.forEach(gev => {
+    if(!gev.id) return;
+    const existing = agendaEventos.find(e => e.googleId === gev.id);
+    const dataEv = (gev.start?.date || gev.start?.dateTime||'').substring(0,10);
+    const horaEv = gev.start?.dateTime ? gev.start.dateTime.substring(11,16) : '';
+    const horaFimEv = gev.end?.dateTime ? gev.end.dateTime.substring(11,16) : '';
+
+    if(existing) {
+      // Update if changed
+      existing.titulo = gev.summary || existing.titulo;
+      existing.data = dataEv || existing.data;
+      existing.hora = horaEv || existing.hora;
+      existing.horaFim = horaFimEv || existing.horaFim;
+      existing.obs = gev.description || existing.obs;
+      atualizados++;
+    } else {
+      // Add new event from Google Calendar
+      agendaEventos.push({
+        id: 'gcal_' + gev.id,
+        googleId: gev.id,
+        tipo: 'outro',
+        titulo: gev.summary || 'Evento',
+        data: dataEv,
+        hora: horaEv,
+        horaFim: horaFimEv,
+        sala: gev.location || '',
+        responsavel: '',
+        obs: gev.description || '',
+        familiaId: '',
+        familiaNome: '',
+        criadoPor: 'Google Calendar',
+        criadoEm: gev.created || ''
+      });
+      atualizados++;
+    }
+  });
+
+  if(atualizados > 0) {
+    agendaSalvar();
+    renderAgenda();
+    showToast(`📅 ${atualizados} eventos sincronizados do Google Calendar!`);
+  }
+}
+
+async function criarEventoNoCalendar(ev) {
+  if(!calendarAccessToken) {
+    pedirAcessoCalendar(() => criarEventoNoCalendar(ev));
+    return;
+  }
+  const dataHoraInicio = ev.hora
+    ? `${ev.data}T${ev.hora}:00`
+    : `${ev.data}`;
+  const dataHoraFim = ev.horaFim
+    ? ev.data + 'T' + ev.horaFim + ':00'
+    : ev.hora
+      ? (function(){ const parts = ev.hora.split(':'); const h = parseInt(parts[0]); const m = parseInt(parts[1]); const total = h*60+m+50; return ev.data+'T'+String(Math.floor(total/60)%24).padStart(2,'0')+':'+String(total%60).padStart(2,'0')+':00'; })()
+      : ev.data;
+
+  const isAllDay = !ev.hora;
+  const descParts = [];
+  if(ev.familiaNome) descParts.push('Familia: ' + ev.familiaNome);
+  if(ev.pessoaNome) descParts.push('Paciente: ' + ev.pessoaNome);
+  if(ev.responsavel) descParts.push('Responsavel: ' + ev.responsavel);
+  if(ev.obs) descParts.push(ev.obs);
+  const colorId = ev.tipo === 'atendimento' ? '1' : ev.tipo === 'evento' ? '5' : ev.tipo === 'atelie' ? '2' : '3';
+  const body = {
+    summary: ev.titulo,
+    description: descParts.join(' | '),
+    location: ev.sala || '',
+    start: isAllDay ? { date: ev.data } : { dateTime: dataHoraInicio, timeZone: 'America/Sao_Paulo' },
+    end: isAllDay ? { date: ev.data } : { dateTime: dataHoraFim, timeZone: 'America/Sao_Paulo' },
+    colorId: colorId
+  };
+
+  const result = await calendarRequest('POST',
+    `/calendars/${encodeURIComponent(CALENDAR_ID)}/events`, body);
+  if(result?.id) {
+    // Save Google event ID back to local event
+    const local = agendaEventos.find(e => e.id == ev.id);
+    if(local) { local.googleId = result.id; agendaSalvar(); }
+    showToast('📅 Evento criado no Google Calendar!');
+  }
+}
+
+async function excluirEventoDoCalendar(googleId) {
+  if(!googleId || !calendarAccessToken) return;
+  await calendarRequest('DELETE',
+    `/calendars/${encodeURIComponent(CALENDAR_ID)}/events/${googleId}`);
+}
+// ========== FIM GOOGLE CALENDAR ==========
 
 function fazerLogin() {
   // Handled by Google button
@@ -954,6 +1109,7 @@ function handleCredential(response) {
 
 function mostrarPainel() {
   document.getElementById('login-screen').style.display = 'none';
+  inicializarCalendar();
   ['m','d'].forEach(k => {
     const badge = document.getElementById('user-badge-'+k);
     const avatar = document.getElementById('user-avatar-'+k);
@@ -2445,6 +2601,12 @@ function salvarEvento() {
   fecharModalEvento();
   renderAgenda();
   showToast('Evento salvo! ✅');
+  // Sync to Google Calendar
+  if(calendarAccessToken) {
+    criarEventoNoCalendar(ev);
+  } else {
+    pedirAcessoCalendar(() => criarEventoNoCalendar(ev));
+  }
 }
 
 function verEvento(id) {
@@ -2480,11 +2642,13 @@ function verEvento(id) {
 function excluirEventoAtual() {
   if(!eventoEditandoId) return;
   if(!confirm('Excluir este evento?')) return;
+  const evParaExcluir = agendaEventos.find(e => e.id == eventoEditandoId);
   agendaEventos = agendaEventos.filter(e => e.id != eventoEditandoId);
   agendaSalvar();
   document.getElementById('modal-evento-detalhe').classList.remove('open');
   renderAgenda();
   showToast('Evento excluído.');
+  if(evParaExcluir?.googleId) excluirEventoDoCalendar(evParaExcluir.googleId);
 }
 
 function editarEvento() {
