@@ -2242,27 +2242,21 @@ function toggleEventoFamilia() {
   }
 }
 
+let _agendaBuscaResultados = [];
 function buscarFamAgenda(q) {
   const lista = document.getElementById('ev-familia-lista');
   if(!q || q.length < 2) { lista.style.display='none'; return; }
-  const res = db.familias.filter(f => (f.responsavel?.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,6);
-  if(!res.length) { lista.style.display='none'; return; }
-  lista.innerHTML = '';
-  res.forEach(f => {
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:7px 10px;cursor:pointer;font-size:0.8rem;border-bottom:1px solid #f0f0f0;';
-    div.textContent = f.responsavel?.nome || '';
-    div.addEventListener('click', () => selecionarFamAgenda(f.id));
-    lista.appendChild(div);
-  });
+  _agendaBuscaResultados = db.familias.filter(f => (f.responsavel?.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!_agendaBuscaResultados.length) { lista.style.display='none'; return; }
+  lista.innerHTML = _agendaBuscaResultados.map((f,i) =>
+    `<div style="padding:8px 10px;cursor:pointer;font-size:0.82rem;border-bottom:1px solid #f0f0f0;" 
+      onmousedown="selecionarFamAgenda(${i})">${f.responsavel?.nome||''}</div>`
+  ).join('');
   lista.style.display = 'block';
 }
 
-function selecionarFamAgenda(id) {
-  evFamiliaSel = db.familias.find(f => f.id === id || f.id == id);
-  console.log('Família selecionada:', evFamiliaSel?.responsavel?.nome);
-  console.log('Membros:', JSON.stringify(evFamiliaSel?.membros));
-  console.log('Conjuge:', evFamiliaSel?.conjuge?.nome);
+function selecionarFamAgenda(idx) {
+  evFamiliaSel = _agendaBuscaResultados[idx];
   if(!evFamiliaSel) return;
   document.getElementById('ev-familia-lista').style.display = 'none';
   document.getElementById('ev-familia-busca').value = evFamiliaSel.responsavel?.nome || '';
