@@ -1903,6 +1903,25 @@ function updateDash(){
   document.getElementById('dash-recent').innerHTML=recent.map(f=>`<tr class="clickable" onclick="openPront(${f.id})"><td><div class="person-cell"><div class="avatar" style="width:26px;height:26px;font-size:0.6rem">${ini(f.responsavel?.nome||'?')}</div><div class="person-name" style="font-size:0.79rem">${f.responsavel?.nome||'—'}</div></div></td><td style="font-size:0.77rem">${f.responsavel?.bairro||'—'}</td><td style="text-align:center"><span class="badge badge-blue">${(f.membros||[]).length}</span></td><td><span class="badge ${f.status==='Ativo'?'badge-green':'badge-gray'}" style="font-size:0.65rem">${f.status||'Ativo'}</span></td></tr>`).join('');
   const drc=document.getElementById('dash-recent-cards');
   if(drc)drc.innerHTML=recent.map(f=>`<div class="family-card" onclick="openPront(${f.id})"><div class="family-card-header"><div class="avatar" style="width:26px;height:26px;font-size:0.6rem">${ini(f.responsavel?.nome||'?')}</div><div><div class="family-card-name" style="font-size:0.85rem">${f.responsavel?.nome||'—'}</div><div class="family-card-sub">${f.responsavel?.bairro||''}</div></div></div></div>`).join('');
+
+  // Agenda stats
+  if(typeof agendaEventos !== 'undefined') {
+    const evTotal = agendaEventos.length;
+    const evAtend = agendaEventos.filter(e => e.tipo === 'atendimento').length;
+    const evRede = agendaEventos.filter(e => e.tipo === 'evento').length;
+    const evAtelie = agendaEventos.filter(e => e.tipo === 'atelie').length;
+    const evConc = agendaEventos.filter(e => e.concluido).length;
+    const dEvAgenda = document.getElementById('d-ev-agenda');
+    const dEvAtend = document.getElementById('d-ev-atend');
+    const dEvRede = document.getElementById('d-ev-rede');
+    const dEvAtelie = document.getElementById('d-ev-atelie');
+    const dEvConc = document.getElementById('d-ev-conc');
+    if(dEvAgenda) dEvAgenda.textContent = evTotal;
+    if(dEvAtend) dEvAtend.textContent = evAtend;
+    if(dEvRede) dEvRede.textContent = evRede;
+    if(dEvAtelie) dEvAtelie.textContent = evAtelie;
+    if(dEvConc) dEvConc.textContent = evConc;
+  }
 }
 
 // RELATÓRIOS
@@ -2888,6 +2907,7 @@ if(ll) ll.src = LOGO_SRC;
 // Initialize Agenda
 agendaCarregar();
 renderAgenda();
+updateDash();
 // Initialize Google Auth
 inicializarGoogle();
 
