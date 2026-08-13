@@ -47,7 +47,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .page{display:none;}.page.active{display:block;}
 .page-title{font-family:'Poppins',sans-serif;font-size:1.3rem;font-weight:700;color:var(--azul);margin-bottom:2px;}
 .page-sub{font-size:0.82rem;color:var(--muted);margin-bottom:20px;}
-.stats-row-6{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:22px;}
+.stats-row-6{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:22px;}
 .stat-card{background:white;border-radius:12px;padding:14px 16px;border:1px solid var(--border);}
 .stat-num{font-family:'Poppins',sans-serif;font-size:1.6rem;font-weight:700;color:var(--azul);}
 .stat-num.org{color:var(--laranja);}
@@ -375,6 +375,28 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="stat-card"><div class="stat-num grn" id="d-at-total">–</div><div class="stat-label">Atendimentos</div></div>
     <div class="stat-card"><div class="stat-num wrn" id="d-at-aberto">–</div><div class="stat-label">Em aberto</div></div>
     <div class="stat-card"><div class="stat-num grn" id="d-at-conc">–</div><div class="stat-label">Concluídos</div></div>
+    <div class="stat-card" onclick="goPage('agenda',document.querySelector('.nav-item[onclick*=agenda]'))" style="cursor:pointer;">
+      <div class="stat-num" id="d-ev-agenda" style="color:#8B5CF6;">–</div>
+      <div class="stat-label">Eventos Agenda</div>
+    </div>
+  </div>
+  <div id="agenda-stats-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;">
+    <div class="stat-card" style="border-left:3px solid #3B82F6;">
+      <div class="stat-num" id="d-ev-atend" style="color:#3B82F6;">–</div>
+      <div class="stat-label">Atendimentos agendados</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid #F59E0B;">
+      <div class="stat-num" id="d-ev-rede" style="color:#F59E0B;">–</div>
+      <div class="stat-label">Eventos da Rede</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid #10B981;">
+      <div class="stat-num" id="d-ev-atelie" style="color:#10B981;">–</div>
+      <div class="stat-label">Aulas do Ateliê</div>
+    </div>
+    <div class="stat-card" style="border-left:3px solid #10B981;">
+      <div class="stat-num" id="d-ev-conc" style="color:#10B981;">–</div>
+      <div class="stat-label">Eventos concluídos</div>
+    </div>
   </div>
   <div class="aniv-card">
     <div class="chart-title">🎂 Aniversariantes do mês</div>
