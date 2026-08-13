@@ -2611,7 +2611,7 @@ function salvarEvento() {
     familiaNome: evFamiliaSel?.responsavel?.nome || '',
     pessoaNome: pessoaSel?.nome || '',
     pessoaTipo: pessoaSel?.tipo || '',
-    pessoaIdx: pessoaSel?.idx ?? null,
+    pessoaIdx: (pessoaSel && pessoaSel.idx !== undefined) ? pessoaSel.idx : null,
     criadoPor: usuarioAtual?.nome || '',
     criadoEm: new Date().toISOString()
   };
@@ -2758,7 +2758,7 @@ function concluirEvento() {
       };
 
       // Register on correct person
-      if(ev.pessoaTipo === 'membro' && ev.pessoaIdx != null && fam.membros?.[ev.pessoaIdx]) {
+      if(ev.pessoaTipo === 'membro' && ev.pessoaIdx !== null && ev.pessoaIdx !== undefined && fam.membros?.[ev.pessoaIdx]) {
         if(!fam.membros[ev.pessoaIdx].atendimentos) fam.membros[ev.pessoaIdx].atendimentos = [];
         fam.membros[ev.pessoaIdx].atendimentos.unshift(novoAt);
       } else if(ev.pessoaTipo === 'conjuge' && fam.conjuge) {
@@ -2770,6 +2770,7 @@ function concluirEvento() {
       }
 
       // Save to planilha
+      console.log('Salvando atendimento:', {pessoaTipo: ev.pessoaTipo, pessoaIdx: ev.pessoaIdx, pessoaNome: ev.pessoaNome, novoAt});
       jsonpGet({
         acao: 'salvar',
         aba: 'Famílias',
@@ -2777,6 +2778,7 @@ function concluirEvento() {
         chave: fam.responsavel.nome
       }).then(() => {
         showToast('✅ Atendimento registrado no prontuário de ' + (fam.responsavel?.nome||'') + '!');
+        updateDash();
       }).catch(() => {
         showToast('✅ Concluído! Sincronize para salvar no prontuário.', true);
       });
