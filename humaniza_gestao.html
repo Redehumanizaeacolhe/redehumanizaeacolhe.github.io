@@ -914,6 +914,22 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
   </div>
 </div>
 
+
+<!-- MODAL DIA AGENDA -->
+<div class="modal-overlay" id="modal-dia-agenda">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-dia-titulo">Eventos do dia</div>
+      <button class="modal-close" onclick="document.getElementById('modal-dia-agenda').classList.remove('open')">✕</button>
+    </div>
+    <div id="modal-dia-body" style="padding-top:8px;max-height:65vh;overflow-y:auto;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:12px;">
+      <button onclick="abrirModalEventoNoDia()" style="padding:9px 18px;background:var(--verde);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">+ Novo evento neste dia</button>
+      <button onclick="document.getElementById('modal-dia-agenda').classList.remove('open')" style="padding:9px 18px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.85rem;">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const CLIENT_ID = '179648210740-f57rdn1vi3am7qnib1q6shpkb52jrdah.apps.googleusercontent.com';
 const CALENDAR_ID = 'redehumanizaeacolhe@gmail.com';
@@ -2407,7 +2423,7 @@ function renderAgenda() {
         const eventos = agendaEventos.filter(e => e.data === dataStr && (!filtroSala || e.sala === filtroSala));
 
         html += `<td onclick="abrirModalEvento('${dataStr}')" style="padding:2px;height:58px;width:14.28%;max-width:14.28%;border:1px solid #f0f0f0;vertical-align:top;cursor:pointer;background:${isHoje?'#EFF6FF':'white'};overflow:hidden;box-sizing:border-box;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='${isHoje?'#EFF6FF':'white'}'">`;
-        html += `<div style="font-size:0.78rem;font-weight:${isHoje?'700':'500'};color:${isHoje?'var(--azul)':'var(--text)'};margin-bottom:3px;${isHoje?'background:var(--azul);color:white;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;':''}">${dia}</div>`;
+        html += `<div onclick="event.stopPropagation();abrirModalDia('${dataStr}')" style="font-size:0.78rem;font-weight:${isHoje?'700':'500'};color:${isHoje?'white':'var(--azul)'};margin-bottom:3px;cursor:pointer;${isHoje?'background:var(--azul);width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;':'text-decoration:underline;'}">${dia}</div>`;
 
         eventos.slice(0,3).forEach(ev => {
           const concStyle = ev.concluido ? 'opacity:0.65;text-decoration:line-through;' : '';
@@ -2415,7 +2431,7 @@ function renderAgenda() {
         html += `<div onclick="event.stopPropagation();verEvento('${ev.id}')" style="background:${COR_EVENTO[ev.tipo]||'#8B5CF6'};color:white;border-radius:3px;padding:1px 4px;font-size:0.6rem;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;max-width:100%;${concStyle}" title="${ev.titulo}">${concPrefix}${ev.hora?ev.hora+(ev.horaFim?'–'+ev.horaFim:'')+' ':''} ${ev.titulo}</div>`;
         });
         if(eventos.length > 3) {
-          html += `<div style="font-size:0.62rem;color:var(--muted);padding:1px 4px;">+${eventos.length-3} mais</div>`;
+          html += `<div onclick="event.stopPropagation();abrirModalDia('${dataStr}')" style="font-size:0.62rem;color:var(--azul);padding:1px 4px;cursor:pointer;font-weight:600;">+${eventos.length-3} mais...</div>`;
         }
         html += '</td>';
         dia++;
@@ -2663,6 +2679,91 @@ function verEvento(id) {
     }
   }
   document.getElementById('modal-evento-detalhe').classList.add('open');
+}
+
+let _modalDiaData = '';
+
+function abrirModalDia(dataStr) {
+  _modalDiaData = dataStr;
+  const filtroSala = document.getElementById('agenda-sala-filter')?.value || '';
+  const eventos = agendaEventos.filter(e => e.data === dataStr && (!filtroSala || e.sala === filtroSala))
+    .sort((a,b) => (a.hora||'').localeCompare(b.hora||''));
+
+  const dataObj = new Date(dataStr + 'T12:00');
+  const dataLabel = dataObj.toLocaleDateString('pt-BR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  document.getElementById('modal-dia-titulo').textContent = dataLabel.charAt(0).toUpperCase() + dataLabel.slice(1);
+
+  // Build horarios ocupados por sala
+  const salaAtend = [];
+  const salaMulti = [];
+  const salaOnline = [];
+
+  eventos.forEach(ev => {
+    const item = {ev, inicio: ev.hora||'', fim: ev.horaFim||''};
+    if(ev.sala === 'Sala de Atendimentos') salaAtend.push(item);
+    else if(ev.sala === 'Sala Multifuncional') salaMulti.push(item);
+    else if(ev.sala === 'Online') salaOnline.push(item);
+  });
+
+  let html = '';
+
+  // Events list
+  if(eventos.length === 0) {
+    html += '<div style="text-align:center;padding:30px;color:var(--muted);font-size:0.85rem;">Nenhum evento neste dia</div>';
+  } else {
+    html += '<div style="margin-bottom:16px;">';
+    eventos.forEach(ev => {
+      const cor = {atendimento:'#3B82F6',evento:'#F59E0B',atelie:'#10B981',outro:'#8B5CF6'}[ev.tipo]||'#8B5CF6';
+      const concluido = ev.concluido ? '✅ ' : '';
+      html += `<div onclick="verEvento('${ev.id}');document.getElementById('modal-dia-agenda').classList.remove('open');" 
+        style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;border:1px solid #f0f0f0;margin-bottom:8px;cursor:pointer;background:white;" 
+        onmouseover="this.style.background='#f8faff'" onmouseout="this.style.background='white'">
+        <div style="width:4px;min-height:40px;border-radius:4px;background:${cor};flex-shrink:0;"></div>
+        <div style="flex:1;">
+          <div style="font-size:0.85rem;font-weight:600;color:var(--text);">${concluido}${ev.titulo}</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">
+            ${ev.hora?ev.hora+(ev.horaFim?' – '+ev.horaFim:''):'Horário não definido'} 
+            ${ev.sala?'· '+ev.sala:''}
+          </div>
+          ${ev.familiaNome?`<div style="font-size:0.72rem;color:var(--azul);margin-top:2px;">👨‍👩‍👧 ${ev.familiaNome}${ev.pessoaNome?' – '+ev.pessoaNome:''}</div>`:''}
+          ${ev.responsavel?`<div style="font-size:0.72rem;color:var(--muted);">👤 ${ev.responsavel}</div>`:''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // Horários livres por sala
+  html += '<div style="font-size:0.78rem;font-weight:700;color:var(--azul);margin-bottom:8px;border-top:1px solid var(--border);padding-top:12px;">🕐 Horários ocupados por sala</div>';
+
+  const salas = [
+    {nome:'Sala de Atendimentos', items: salaAtend, cor:'#3B82F6'},
+    {nome:'Sala Multifuncional', items: salaMulti, cor:'#F59E0B'},
+    {nome:'Online', items: salaOnline, cor:'#10B981'}
+  ];
+
+  salas.forEach(({nome, items, cor}) => {
+    html += `<div style="margin-bottom:10px;">
+      <div style="font-size:0.75rem;font-weight:600;color:${cor};margin-bottom:4px;">${nome}</div>`;
+    if(items.length === 0) {
+      html += `<div style="font-size:0.72rem;color:var(--muted);padding:4px 8px;background:#f8faff;border-radius:6px;">✅ Livre o dia todo</div>`;
+    } else {
+      items.forEach(({ev, inicio, fim}) => {
+        html += `<div style="font-size:0.72rem;padding:4px 8px;background:#fff3f3;border-radius:6px;margin-bottom:3px;color:#dc2626;">
+          🔴 ${inicio||'?'}${fim?' – '+fim:''} — ${ev.titulo}
+        </div>`;
+      });
+    }
+    html += '</div>';
+  });
+
+  document.getElementById('modal-dia-body').innerHTML = html;
+  document.getElementById('modal-dia-agenda').classList.add('open');
+}
+
+function abrirModalEventoNoDia() {
+  document.getElementById('modal-dia-agenda').classList.remove('open');
+  abrirModalEvento(_modalDiaData);
 }
 
 function excluirEventoAtual() {
