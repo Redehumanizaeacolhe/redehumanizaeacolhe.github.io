@@ -380,7 +380,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
   <div id="agenda-stats-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px;">
     <div class="stat-card" style="border-left:3px solid #3B82F6;">
       <div class="stat-num" id="d-ev-atend" style="color:#3B82F6;">–</div>
-      <div class="stat-label">Atendimentos da Rede</div>
+      <div class="stat-label">Atendimentos da Rede (via agenda)</div>
     </div>
     <div class="stat-card" style="border-left:3px solid #10B981;">
       <div class="stat-num" id="d-ev-atelie" style="color:#10B981;">–</div>
@@ -1915,15 +1915,20 @@ function updateDash(){
   const drc=document.getElementById('dash-recent-cards');
   if(drc)drc.innerHTML=recent.map(f=>`<div class="family-card" onclick="openPront(${f.id})"><div class="family-card-header"><div class="avatar" style="width:26px;height:26px;font-size:0.6rem">${ini(f.responsavel?.nome||'?')}</div><div><div class="family-card-name" style="font-size:0.85rem">${f.responsavel?.nome||'—'}</div><div class="family-card-sub">${f.responsavel?.bairro||''}</div></div></div></div>`).join('');
 
-  // Agenda stats
-  if(typeof agendaEventos !== 'undefined') {
-    const evAtend = agendaEventos.filter(e => e.tipo === 'atendimento').length;
-    const evAtelie = agendaEventos.filter(e => e.tipo === 'atelie').length;
-    const dEvAtend = document.getElementById('d-ev-atend');
-    const dEvAtelie = document.getElementById('d-ev-atelie');
-    if(dEvAtend) dEvAtend.textContent = evAtend;
-    if(dEvAtelie) dEvAtelie.textContent = evAtelie;
-  }
+  // Agenda stats — puxado dos prontuários (salvo na planilha)
+  const todosAtAgenda = db.familias.flatMap(f => [
+    ...(f.responsavel?.atendimentos||[]),
+    ...(f.conjuge?.atendimentos||[]),
+    ...(f.membros||[]).flatMap(m => m.atendimentos||[])
+  ]).filter(a => (a.obsInternas||'').includes('via Agenda'));
+  const evAtend = todosAtAgenda.length;
+  const evAtelie = typeof agendaEventos !== 'undefined'
+    ? agendaEventos.filter(e => e.tipo === 'atelie').length
+    : 0;
+  const dEvAtend = document.getElementById('d-ev-atend');
+  const dEvAtelie = document.getElementById('d-ev-atelie');
+  if(dEvAtend) dEvAtend.textContent = evAtend;
+  if(dEvAtelie) dEvAtelie.textContent = evAtelie;
 }
 
 // RELATÓRIOS
