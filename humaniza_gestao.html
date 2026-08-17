@@ -1965,7 +1965,9 @@ async function saveProj(){
   db.proj.push(item);closeModal('proj');renderProj();try{await apiSave('Projetos',[item.nome,item.desc,item.status,item.prog,item.ini,item.fim,item.resp]);showToast('✅ Projeto salvo!');}catch(e){showToast('⚠️ Salvo localmente.',true);}
 }
 function renderProj(){
-  const grid=document.getElementById('grid-proj');const bc=s=>s==='Concluído'?'badge-green':s==='Planejamento'?'badge-org':'badge-blue';
+  const grid=document.getElementById('grid-proj');
+  if(!grid) return; // page was replaced by Eventos
+  const bc=s=>s==='Concluído'?'badge-green':s==='Planejamento'?'badge-org':'badge-blue';
   if(!db.proj.length){grid.innerHTML='<div class="empty"><div class="empty-icon">📁</div><p>Nenhum projeto.</p></div>';return;}
   grid.innerHTML=db.proj.map(p=>`<div style="background:white;border-radius:12px;border:1px solid var(--border);padding:18px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><div style="font-family:Poppins,sans-serif;font-size:0.9rem;font-weight:600;color:var(--azul);flex:1;margin-right:8px;">${p.nome}</div><span class="badge ${bc(p.status)}">${p.status}</span></div><div style="font-size:0.77rem;color:var(--muted);margin-bottom:10px;">${p.desc||''}</div><div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--muted);margin-bottom:3px;"><span>Progresso</span><span>${p.prog}%</span></div><div style="background:var(--bg);border-radius:4px;height:6px;overflow:hidden;"><div style="height:100%;border-radius:4px;background:var(--azul);width:${p.prog}%"></div></div>${p.resp?`<div style="font-size:0.7rem;color:var(--muted);margin-top:8px;">👤 ${p.resp}</div>`:''}</div>`).join('');
 }
