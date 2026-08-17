@@ -3110,12 +3110,14 @@ async function verInscritos(aba, nome, limite) {
 }
 
 async function excluirInscrito(aba, rowIdx) {
-  if(!confirm('Excluir esta inscrição?')) return;
+  if(!window.confirm('Excluir esta inscrição?')) return;
+  const abaReal = aba || eventoAtivoAba;
   try {
-    await jsonpGet({acao:'excluir_linha', aba, linha: rowIdx});
+    const res = await jsonpGet({acao:'excluir_linha', aba: abaReal, linha: rowIdx});
     showToast('✅ Inscrição excluída!');
-    verInscritos(eventoAtivoAba, eventoAtivoNome, eventoAtivoLimite);
+    await verInscritos(eventoAtivoAba, eventoAtivoNome, eventoAtivoLimite);
   } catch(e) {
+    console.log('Erro excluir:', e);
     showToast('⚠️ Erro ao excluir. Tente na planilha.', true);
   }
 }
