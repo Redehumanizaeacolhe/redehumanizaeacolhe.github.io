@@ -3110,10 +3110,25 @@ async function verInscritos(aba, nome, limite) {
 }
 
 async function excluirInscrito(aba, rowIdx) {
-  if(!window.confirm('Excluir esta inscrição?')) return;
   const abaReal = aba || eventoAtivoAba;
+  // Show inline confirmation
+  const btn = event?.target;
+  if(btn && btn.dataset.confirmando !== 'sim') {
+    btn.dataset.confirmando = 'sim';
+    btn.textContent = 'Confirmar?';
+    btn.style.background = '#dc2626';
+    btn.style.color = 'white';
+    setTimeout(() => {
+      btn.dataset.confirmando = '';
+      btn.textContent = '🗑';
+      btn.style.background = '#fee2e2';
+      btn.style.color = '#dc2626';
+    }, 3000);
+    return;
+  }
+  if(btn) { btn.textContent = '...'; btn.disabled = true; }
   try {
-    const res = await jsonpGet({acao:'excluir_linha', aba: abaReal, linha: rowIdx});
+    await jsonpGet({acao:'excluir_linha', aba: abaReal, linha: rowIdx});
     showToast('✅ Inscrição excluída!');
     await verInscritos(eventoAtivoAba, eventoAtivoNome, eventoAtivoLimite);
   } catch(e) {
