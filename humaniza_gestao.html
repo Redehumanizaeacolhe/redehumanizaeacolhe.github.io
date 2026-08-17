@@ -342,7 +342,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="nav-item" onclick="goPage('voluntarios',this)"><span>🤝</span> Voluntários</div>
     <div class="nav-item" onclick="goPage('parceiros',this)"><span>🏢</span> Parceiros</div>
     <div class="nav-section">Gestão</div>
-    <div class="nav-item" onclick="goPage('projetos',this)"><span>📁</span> Projetos</div>
+    <div class="nav-item" onclick="goPage('projetos',this)"><span>🎪</span> Eventos</div>
     <div class="nav-item" onclick="goPage('agenda',this)"><span>📅</span> Agenda</div>
     <div class="nav-item" onclick="goPage('relatorios',this)"><span>📊</span> Relatórios</div>
     <div class="nav-item" style="opacity:0.4;pointer-events:none;"><span>💰</span> Financeiro <span style="font-size:0.6rem;margin-left:auto;background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:10px;">em breve</span></div>
@@ -449,10 +449,15 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 
 <!-- PROJETOS -->
 <div id="page-projetos" class="page">
-  <div class="page-title">Projetos</div>
-  <div class="page-sub">Acompanhe cada iniciativa</div>
-  <div class="toolbar"><div></div><button class="btn-add" onclick="openModal('proj')">＋ Novo Projeto</button></div>
-  <div id="grid-proj" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;"></div>
+  <div class="page-title">📅 Eventos</div>
+  <div class="page-sub">Gerencie eventos e inscrições da Rede</div>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <input class="search-input" placeholder="Buscar evento..." oninput="filtrarEventos(this.value)" style="width:220px;">
+    </div>
+    <button class="btn-add" id="btn-novo-evento" onclick="abrirModalNovoEvento()" style="display:none;">＋ Novo Evento</button>
+  </div>
+  <div id="grid-eventos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:8px;"></div>
 </div>
 
 <!-- RELATÓRIOS -->
@@ -915,6 +920,77 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
 </div>
 
 
+<!-- MODAL NOVO EVENTO -->
+<div class="modal-overlay" id="modal-novo-evento">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-evento-titulo2">Novo Evento</div>
+      <button class="modal-close" onclick="fecharModalNovoEvento()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;padding-top:8px;">
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Nome do evento</label>
+        <input id="nev-nome" placeholder="Ex: Cinema Solidário" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Data</label>
+          <input type="date" id="nev-data" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        </div>
+        <div>
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Horário</label>
+          <input type="time" id="nev-hora" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Local</label>
+        <input id="nev-local" placeholder="Ex: Rocinha — RJ" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Aba na planilha (para inscrições)</label>
+        <input id="nev-aba" placeholder="Ex: Cinema" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        <div style="font-size:0.7rem;color:var(--muted);margin-top:3px;">Crie uma aba com esse nome exato na planilha Google Sheets</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Limite de vagas</label>
+          <input type="number" id="nev-limite" placeholder="0 = sem limite" min="0" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        </div>
+        <div>
+          <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Link do formulário</label>
+          <input id="nev-link" placeholder="cinema.html" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.78rem;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Descrição</label>
+        <textarea id="nev-desc" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;resize:none;" placeholder="Detalhes do evento..."></textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="fecharModalNovoEvento()" style="padding:9px 18px;border:1px solid var(--border);border-radius:8px;background:white;cursor:pointer;font-size:0.85rem;">Cancelar</button>
+        <button onclick="salvarNovoEvento()" style="padding:9px 18px;background:var(--azul);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:600;">💾 Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INSCRITOS EVENTO -->
+<div class="modal-overlay" id="modal-inscritos">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-inscritos-titulo">Inscritos</div>
+      <button class="modal-close" onclick="document.getElementById('modal-inscritos').classList.remove('open')">✕</button>
+    </div>
+    <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;">
+      <div id="inscritos-count" style="font-size:0.82rem;color:var(--muted);"></div>
+      <div id="inscritos-vagas" style="font-size:0.82rem;font-weight:600;color:var(--azul);"></div>
+    </div>
+    <div id="modal-inscritos-body" style="max-height:55vh;overflow-y:auto;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:12px;">
+      <button onclick="document.getElementById('modal-inscritos').classList.remove('open')" style="padding:9px 18px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.85rem;">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL DIA AGENDA -->
 <div class="modal-overlay" id="modal-dia-agenda">
   <div class="modal" style="max-width:520px;">
@@ -1297,6 +1373,7 @@ function goPage(id,el){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   if(el)el.classList.add('active');
+  if(id==='projetos') renderEventos();
 }
 function goPageMobile(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -2895,6 +2972,216 @@ function concluirEvento() {
 
 // ========== FIM AGENDA ==========
 
+// ========== EVENTOS ==========
+const EVENTOS_KEY = 'humaniza_eventos_v1';
+let dbEventos = [];
+let eventoAtivoAba = '';
+let eventoAtivoLimite = 0;
+let eventoAtivoNome = '';
+let eventoEditandoIdx = null;
+
+function eventosCarregar() {
+  try {
+    const saved = localStorage.getItem(EVENTOS_KEY);
+    dbEventos = saved ? JSON.parse(saved) : [];
+  } catch(e) { dbEventos = []; }
+
+  // Always include Cinema if not already there
+  if(!dbEventos.find(e => e.aba === 'Cinema')) {
+    dbEventos.push({
+      id: 'cinema_2026',
+      nome: 'V Mostra de Cinema Brasil e China 🎬',
+      data: '2026-08-20',
+      hora: '14:00',
+      local: 'Rocinha — RJ',
+      aba: 'Cinema',
+      limite: 40,
+      link: 'cinema.html',
+      desc: 'Cinema solidário com condução para 40 pessoas'
+    });
+    eventosSalvar();
+  }
+}
+
+function eventosSalvar() {
+  try { localStorage.setItem(EVENTOS_KEY, JSON.stringify(dbEventos)); } catch(e) {}
+}
+
+function filtrarEventos(q) {
+  renderEventos(q.toLowerCase());
+}
+
+function renderEventos(filtro = '') {
+  const grid = document.getElementById('grid-eventos');
+  if(!grid) return;
+
+  // Show/hide novo evento button for admins only
+  const btnNovo = document.getElementById('btn-novo-evento');
+  if(btnNovo) btnNovo.style.display = usuarioAtual?.nivel === 'admin' ? '' : 'none';
+
+  const eventos = dbEventos.filter(e =>
+    !filtro || e.nome.toLowerCase().includes(filtro)
+  );
+
+  if(!eventos.length) {
+    grid.innerHTML = '<div style="color:var(--muted);font-size:0.88rem;padding:20px;">Nenhum evento cadastrado.</div>';
+    return;
+  }
+
+  grid.innerHTML = eventos.map((ev, i) => {
+    const dataObj = ev.data ? new Date(ev.data + 'T12:00') : null;
+    const dataLabel = dataObj ? dataObj.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'}) : '—';
+    const isAdmin = usuarioAtual?.nivel === 'admin';
+
+    return `<div style="background:white;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+      <div style="background:linear-gradient(135deg,var(--azul),#2563EB);padding:16px 18px;">
+        <div style="font-family:'Poppins',sans-serif;font-size:1rem;font-weight:700;color:white;margin-bottom:4px;">${ev.nome}</div>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.8);">📅 ${dataLabel} ${ev.hora ? '· ' + ev.hora : ''}</div>
+        ${ev.local ? `<div style="font-size:0.75rem;color:rgba(255,255,255,0.8);margin-top:2px;">📍 ${ev.local}</div>` : ''}
+      </div>
+      <div style="padding:14px 18px;">
+        ${ev.desc ? `<div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px;">${ev.desc}</div>` : ''}
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+          ${ev.limite ? `<span style="background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;">🎫 ${ev.limite} vagas</span>` : '<span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:10px;font-size:0.72rem;font-weight:600;">✅ Aberto</span>'}
+          ${ev.link ? `<a href="${ev.link}" target="_blank" style="font-size:0.72rem;color:var(--azul);text-decoration:none;">🔗 Formulário</a>` : ''}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="verInscritos('${ev.aba}','${ev.nome.replace(/'/g,"\'")}',${ev.limite||0})" style="flex:1;padding:8px;background:var(--azul);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.8rem;font-weight:600;">👥 Ver inscritos</button>
+          ${isAdmin ? `<button onclick="editarEvento_ev(${i})" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.8rem;">✏️</button>
+          <button onclick="excluirEvento_ev(${i})" style="padding:8px 12px;background:#fee2e2;border:none;border-radius:8px;cursor:pointer;font-size:0.8rem;color:#dc2626;">🗑</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function verInscritos(aba, nome, limite) {
+  eventoAtivoAba = aba;
+  eventoAtivoNome = nome;
+  eventoAtivoLimite = limite;
+  document.getElementById('modal-inscritos-titulo').textContent = nome;
+  document.getElementById('modal-inscritos-body').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);">Carregando...</div>';
+  document.getElementById('modal-inscritos').classList.add('open');
+
+  try {
+    const res = await jsonpGet({aba});
+    const rows = (res.dados || []).filter(r => r[0] || r[1]);
+    const total = rows.reduce((s, r) => s + (parseInt(r[2]) || 0), 0);
+    const isAdmin = usuarioAtual?.nivel === 'admin';
+
+    document.getElementById('inscritos-count').textContent = rows.length + ' inscrição(ões) · ' + total + ' pessoa(s)';
+    document.getElementById('inscritos-vagas').textContent = limite ? (limite - total) + ' vagas restantes' : '';
+
+    if(!rows.length) {
+      document.getElementById('modal-inscritos-body').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);">Nenhuma inscrição ainda.</div>';
+      return;
+    }
+
+    document.getElementById('modal-inscritos-body').innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+        <thead>
+          <tr style="background:var(--bg);">
+            <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);">Responsável</th>
+            <th style="padding:8px;text-align:center;border-bottom:1px solid var(--border);">Qtd</th>
+            <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);">Quem vai</th>
+            <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);">WhatsApp</th>
+            ${isAdmin ? '<th style="padding:8px;border-bottom:1px solid var(--border);"></th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, idx) => `
+            <tr style="border-bottom:1px solid #f3f4f6;">
+              <td style="padding:8px;font-weight:600;">${r[1]||'—'}</td>
+              <td style="padding:8px;text-align:center;"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-weight:600;">${r[2]||1}</span></td>
+              <td style="padding:8px;color:var(--muted);font-size:0.78rem;">${r[3]||'—'}</td>
+              <td style="padding:8px;color:var(--muted);">${r[4]||'—'}</td>
+              ${isAdmin ? `<td style="padding:8px;"><button onclick="excluirInscrito('${aba}',${idx+1})" style="background:#fee2e2;border:none;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.72rem;color:#dc2626;">🗑</button></td>` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) {
+    document.getElementById('modal-inscritos-body').innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">Erro ao carregar inscrições.</div>';
+  }
+}
+
+async function excluirInscrito(aba, rowIdx) {
+  if(!confirm('Excluir esta inscrição?')) return;
+  try {
+    await jsonpGet({acao:'excluir_linha', aba, linha: rowIdx});
+    showToast('✅ Inscrição excluída!');
+    verInscritos(eventoAtivoAba, eventoAtivoNome, eventoAtivoLimite);
+  } catch(e) {
+    showToast('⚠️ Erro ao excluir. Tente na planilha.', true);
+  }
+}
+
+function abrirModalNovoEvento() {
+  eventoEditandoIdx = null;
+  document.getElementById('modal-evento-titulo2').textContent = 'Novo Evento';
+  document.getElementById('nev-nome').value = '';
+  document.getElementById('nev-data').value = '';
+  document.getElementById('nev-hora').value = '';
+  document.getElementById('nev-local').value = '';
+  document.getElementById('nev-aba').value = '';
+  document.getElementById('nev-limite').value = '';
+  document.getElementById('nev-link').value = '';
+  document.getElementById('nev-desc').value = '';
+  document.getElementById('modal-novo-evento').classList.add('open');
+}
+
+function fecharModalNovoEvento() {
+  document.getElementById('modal-novo-evento').classList.remove('open');
+}
+
+function editarEvento_ev(i) {
+  eventoEditandoIdx = i;
+  const ev = dbEventos[i];
+  document.getElementById('modal-evento-titulo2').textContent = 'Editar Evento';
+  document.getElementById('nev-nome').value = ev.nome || '';
+  document.getElementById('nev-data').value = ev.data || '';
+  document.getElementById('nev-hora').value = ev.hora || '';
+  document.getElementById('nev-local').value = ev.local || '';
+  document.getElementById('nev-aba').value = ev.aba || '';
+  document.getElementById('nev-limite').value = ev.limite || '';
+  document.getElementById('nev-link').value = ev.link || '';
+  document.getElementById('nev-desc').value = ev.desc || '';
+  document.getElementById('modal-novo-evento').classList.add('open');
+}
+
+function salvarNovoEvento() {
+  const nome = document.getElementById('nev-nome').value.trim();
+  if(!nome) { alert('Informe o nome do evento.'); return; }
+  const ev = {
+    id: eventoEditandoIdx !== null ? dbEventos[eventoEditandoIdx].id : Date.now().toString(),
+    nome,
+    data: document.getElementById('nev-data').value,
+    hora: document.getElementById('nev-hora').value,
+    local: document.getElementById('nev-local').value.trim(),
+    aba: document.getElementById('nev-aba').value.trim(),
+    limite: parseInt(document.getElementById('nev-limite').value) || 0,
+    link: document.getElementById('nev-link').value.trim(),
+    desc: document.getElementById('nev-desc').value.trim()
+  };
+  if(eventoEditandoIdx !== null) {
+    dbEventos[eventoEditandoIdx] = ev;
+  } else {
+    dbEventos.push(ev);
+  }
+  eventosSalvar();
+  fecharModalNovoEvento();
+  renderEventos();
+  showToast('✅ Evento salvo!');
+}
+
+function excluirEvento_ev(i) {
+  if(!confirm('Excluir este evento? As inscrições na planilha não serão apagadas.')) return;
+  dbEventos.splice(i, 1);
+  eventosSalvar();
+  renderEventos();
+  showToast('Evento excluído.');
+}
+
 function imprimirRelatorio(){
   const conteudo = document.getElementById('report-content').innerHTML;
   const html = `<!DOCTYPE html>
@@ -3017,6 +3304,8 @@ if(ll) ll.src = LOGO_SRC;
 // Initialize Agenda
 agendaCarregar();
 renderAgenda();
+// Initialize Eventos
+eventosCarregar();
 updateDash();
 // Initialize Google Auth
 inicializarGoogle();
