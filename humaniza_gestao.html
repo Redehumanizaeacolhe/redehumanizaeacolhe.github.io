@@ -1128,9 +1128,9 @@ async function sincronizarDoCalendar() {
   });
 
   if(atualizados > 0) {
-    agendaSalvar();
+    await agendaSalvar();
     renderAgenda();
-    showToast(`📅 ${atualizados} eventos sincronizados do Google Calendar!`);
+    showToast('📅 ' + atualizados + ' eventos sincronizados do Google Calendar!');
   }
 }
 
@@ -2450,15 +2450,67 @@ const LABEL_EVENTO = {
   outro: 'Outro'
 };
 
-function agendaCarregar() {
+async function agendaCarregar() {
+  // Load from planilha (shared across all users)
   try {
-    const saved = localStorage.getItem(AGENDA_KEY);
-    agendaEventos = saved ? JSON.parse(saved) : [];
-  } catch(e) { agendaEventos = []; }
+    const res = await jsonpGet({aba: 'Agenda'});
+    const rows = (res.dados || []).filter(r => r[0]);
+    agendaEventos = rows.map(r => {
+      try { return JSON.parse(r[0]); } catch(e) { return null; }
+    }).filter(Boolean);
+
+    // One-time migration: merge localStorage events not yet in planilha
+    try {
+      const local = localStorage.getItem(AGENDA_KEY);
+      if(local) {
+        const localEvs = JSON.parse(local);
+        const ids = new Set(agendaEventos.map(e => e.id));
+        const novos = localEvs.filter(e => e.id && !ids.has(e.id));
+        if(novos.length > 0) {
+          for(const ev of novos) {
+            agendaEventos.push(ev);
+            await agendaSalvarEvento(ev);
+          }
+          localStorage.removeItem(AGENDA_KEY);
+          showToast(novos.length + ' evento(s) migrado(s) para a planilha!');
+        } else {
+          localStorage.removeItem(AGENDA_KEY);
+        }
+      }
+    } catch(e) {}
+
+  } catch(e) {
+    // Fallback to localStorage if planilha fails
+    try {
+      const saved = localStorage.getItem(AGENDA_KEY);
+      agendaEventos = saved ? JSON.parse(saved) : [];
+    } catch(e2) { agendaEventos = []; }
+  }
 }
 
-function agendaSalvar() {
-  try { localStorage.setItem(AGENDA_KEY, JSON.stringify(agendaEventos)); } catch(e) {}
+async function agendaSalvarEvento(ev) {
+  // Save single event to planilha
+  try {
+    await jsonpGet({
+      acao: 'salvar_agenda',
+      aba: 'Agenda',
+      evento: JSON.stringify(ev)
+    });
+  } catch(e) { console.warn('Erro ao salvar evento na agenda:', e); }
+}
+
+async function agendaSalvar() {
+  // Save all events to planilha (full sync)
+  try {
+    await jsonpGet({
+      acao: 'salvar_agenda_completa',
+      aba: 'Agenda',
+      eventos: JSON.stringify(agendaEventos)
+    });
+  } catch(e) {
+    // Fallback to localStorage
+    try { localStorage.setItem(AGENDA_KEY, JSON.stringify(agendaEventos)); } catch(e2) {}
+  }
 }
 
 function agendaHoje() {
@@ -2682,7 +2734,7 @@ function selecionarPessoaAgenda() {
   } catch(e) {}
 }
 
-function salvarEvento() {
+async function salvarEvento() {
   const titulo = document.getElementById('ev-titulo').value.trim();
   const data = document.getElementById('ev-data').value;
   if(!titulo) { alert('Informe o título do evento.'); return; }
@@ -2719,9 +2771,10 @@ function salvarEvento() {
     agendaEventos.push(ev);
   }
 
-  agendaSalvar();
+  await agendaSalvar();
   fecharModalEvento();
   renderAgenda();
+  updateDash();
   showToast('Evento salvo! ✅');
   // Sync to Google Calendar
   if(calendarAccessToken) {
@@ -2846,14 +2899,15 @@ function abrirModalEventoNoDia() {
   abrirModalEvento(_modalDiaData);
 }
 
-function excluirEventoAtual() {
+async function excluirEventoAtual() {
   if(!eventoEditandoId) return;
   if(!confirm('Excluir este evento?')) return;
   const evParaExcluir = agendaEventos.find(e => e.id == eventoEditandoId);
   agendaEventos = agendaEventos.filter(e => e.id != eventoEditandoId);
-  agendaSalvar();
+  await agendaSalvar();
   document.getElementById('modal-evento-detalhe').classList.remove('open');
   renderAgenda();
+  updateDash();
   showToast('Evento excluído.');
   if(evParaExcluir?.googleId) excluirEventoDoCalendar(evParaExcluir.googleId);
 }
@@ -2907,7 +2961,7 @@ function editarEvento() {
   document.getElementById('modal-evento').classList.add('open');
 }
 
-function concluirEvento() {
+async function concluirEvento() {
   if(!eventoEditandoId) return;
   const ev = agendaEventos.find(e => e.id == eventoEditandoId);
   if(!ev) return;
@@ -2968,7 +3022,7 @@ function concluirEvento() {
     showToast('✅ Evento marcado como concluído!');
   }
 
-  agendaSalvar();
+  await agendaSalvar();
   document.getElementById('modal-evento-detalhe').classList.remove('open');
   renderAgenda();
 }
@@ -3323,11 +3377,12 @@ if(sbl) sbl.src = LOGO_BRANCA_SRC;
 const ll = document.getElementById('login-logo');
 if(ll) ll.src = LOGO_SRC;
 // Initialize Agenda
-agendaCarregar();
-renderAgenda();
+agendaCarregar().then(() => {
+  renderAgenda();
+  updateDash();
+});
 // Initialize Eventos
 eventosCarregar();
-updateDash();
 // Initialize Google Auth
 inicializarGoogle();
 
