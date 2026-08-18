@@ -356,6 +356,7 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
     <div class="bnav-item" onclick="goPageMobile('familias',this)"><div class="bnav-icon">👨‍👩‍👧</div><div class="bnav-label">Famílias</div></div>
     <div class="bnav-item" onclick="goPageMobile('voluntarios',this)"><div class="bnav-icon">🤝</div><div class="bnav-label">Voluntários</div></div>
     <div class="bnav-item" onclick="goPageMobile('parceiros',this)"><div class="bnav-icon">🏢</div><div class="bnav-label">Parceiros</div></div>
+    <div class="bnav-item" onclick="goPageMobile('projetos',this)"><div class="bnav-icon">🎪</div><div class="bnav-label">Eventos</div></div>
     <div class="bnav-item" onclick="goPageMobile('agenda',this)"><div class="bnav-icon">📅</div><div class="bnav-label">Agenda</div></div>
     <div class="bnav-item" onclick="goPageMobile('relatorios',this)"><div class="bnav-icon">📊</div><div class="bnav-label">Relatórios</div></div>
   </div>
@@ -1379,8 +1380,10 @@ function goPage(id,el){
 function goPageMobile(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.bnav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  const pageEl = document.getElementById('page-'+id);
+  if(pageEl) pageEl.classList.add('active');
   el.classList.add('active');
+  if(id==='projetos') renderEventos();
 }
 function openModal(t){document.getElementById('modal-'+t).classList.add('open');}
 function closeModal(t){document.getElementById('modal-'+t).classList.remove('open');}
@@ -2451,40 +2454,58 @@ const LABEL_EVENTO = {
 };
 
 async function agendaCarregar() {
-  // Load from planilha (shared across all users)
+  // First load from localStorage for instant display
+  try {
+    const saved = localStorage.getItem(AGENDA_KEY);
+    if(saved) {
+      agendaEventos = JSON.parse(saved);
+      renderAgenda(); // Show immediately while loading from planilha
+    }
+  } catch(e) {}
+
+  // Then load from planilha (shared across all users)
   try {
     const res = await jsonpGet({aba: 'Agenda'});
     const rows = (res.dados || []).filter(r => r[0]);
-    agendaEventos = rows.map(r => {
-      try { return JSON.parse(r[0]); } catch(e) { return null; }
-    }).filter(Boolean);
+    if(rows.length > 0) {
+      const evsDaPlanilha = rows.map(r => {
+        try { return JSON.parse(r[0]); } catch(e) { return null; }
+      }).filter(Boolean);
 
-    // One-time migration: merge localStorage events not yet in planilha
-    try {
+      // Merge: start with planilha events
+      const ids = new Set(evsDaPlanilha.map(e => e.id));
+
+      // Add localStorage events not yet in planilha (migration)
       const local = localStorage.getItem(AGENDA_KEY);
       if(local) {
         const localEvs = JSON.parse(local);
-        const ids = new Set(agendaEventos.map(e => e.id));
         const novos = localEvs.filter(e => e.id && !ids.has(e.id));
         if(novos.length > 0) {
-          for(const ev of novos) {
-            agendaEventos.push(ev);
-            await agendaSalvarEvento(ev);
-          }
-          localStorage.removeItem(AGENDA_KEY);
+          evsDaPlanilha.push(...novos);
           showToast(novos.length + ' evento(s) migrado(s) para a planilha!');
-        } else {
+        }
+        localStorage.removeItem(AGENDA_KEY);
+      }
+
+      agendaEventos = evsDaPlanilha;
+
+      // If had new events to migrate, save back
+      if(local) await agendaSalvar();
+
+    } else {
+      // Planilha empty but localStorage has events - migrate them
+      const local = localStorage.getItem(AGENDA_KEY);
+      if(local) {
+        agendaEventos = JSON.parse(local);
+        if(agendaEventos.length > 0) {
+          await agendaSalvar();
           localStorage.removeItem(AGENDA_KEY);
+          showToast(agendaEventos.length + ' evento(s) migrado(s) para a planilha!');
         }
       }
-    } catch(e) {}
-
+    }
   } catch(e) {
-    // Fallback to localStorage if planilha fails
-    try {
-      const saved = localStorage.getItem(AGENDA_KEY);
-      agendaEventos = saved ? JSON.parse(saved) : [];
-    } catch(e2) { agendaEventos = []; }
+    console.warn('Agenda: erro ao carregar da planilha, usando local', e);
   }
 }
 
