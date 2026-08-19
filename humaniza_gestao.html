@@ -3169,12 +3169,14 @@ async function verInscritos(aba, nome, limite) {
         </thead>
         <tbody>
           ${rows.map((r, idx) => `
-            <tr style="border-bottom:1px solid #f3f4f6;">
+            <tr id="inscrito-row-${idx}" style="border-bottom:1px solid #f3f4f6;">
               <td style="padding:8px;font-weight:600;">${r[1]||'—'}</td>
               <td style="padding:8px;text-align:center;"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-weight:600;">${r[2]||1}</span></td>
               <td style="padding:8px;color:var(--muted);font-size:0.78rem;">${r[3]||'—'}</td>
               <td style="padding:8px;color:var(--muted);">${r[4]||'—'}</td>
-              ${isAdmin ? `<td style="padding:8px;"><button onclick="excluirInscrito('${aba}',${idx+1})" style="background:#fee2e2;border:none;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.72rem;color:#dc2626;">🗑</button></td>` : ''}
+              ${isAdmin ? `<td style="padding:8px;">
+                <button id="btn-del-${idx}" onclick="confirmarExclusaoInscrito('${aba}',${idx+1},${idx})" style="background:#fee2e2;border:none;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.72rem;color:#dc2626;">🗑</button>
+              </td>` : ''}
             </tr>
           `).join('')}
         </tbody>
@@ -3184,32 +3186,44 @@ async function verInscritos(aba, nome, limite) {
   }
 }
 
-async function excluirInscrito(aba, rowIdx) {
-  const abaReal = aba || eventoAtivoAba;
-  // Show inline confirmation
-  const btn = event?.target;
-  if(btn && btn.dataset.confirmando !== 'sim') {
-    btn.dataset.confirmando = 'sim';
+function confirmarExclusaoInscrito(aba, rowIdx, btnIdx) {
+  const btn = document.getElementById('btn-del-' + btnIdx);
+  if(!btn) return;
+  if(btn.dataset.step !== '2') {
+    btn.dataset.step = '2';
     btn.textContent = 'Confirmar?';
     btn.style.background = '#dc2626';
     btn.style.color = 'white';
+    btn.style.padding = '3px 6px';
     setTimeout(() => {
-      btn.dataset.confirmando = '';
-      btn.textContent = '🗑';
-      btn.style.background = '#fee2e2';
-      btn.style.color = '#dc2626';
-    }, 3000);
-    return;
+      if(btn.dataset.step === '2') {
+        btn.dataset.step = '';
+        btn.textContent = '🗑';
+        btn.style.background = '#fee2e2';
+        btn.style.color = '#dc2626';
+      }
+    }, 4000);
+  } else {
+    btn.textContent = '...';
+    btn.disabled = true;
+    btn.dataset.step = '';
+    excluirInscritoConfirmado(aba, rowIdx);
   }
-  if(btn) { btn.textContent = '...'; btn.disabled = true; }
+}
+
+async function excluirInscritoConfirmado(aba, rowIdx) {
+  const abaReal = aba || eventoAtivoAba;
   try {
     await jsonpGet({acao:'excluir_linha', aba: abaReal, linha: rowIdx});
     showToast('✅ Inscrição excluída!');
     await verInscritos(eventoAtivoAba, eventoAtivoNome, eventoAtivoLimite);
   } catch(e) {
-    console.log('Erro excluir:', e);
     showToast('⚠️ Erro ao excluir. Tente na planilha.', true);
   }
+}
+
+async function excluirInscrito(aba, rowIdx) {
+  await excluirInscritoConfirmado(aba, rowIdx);
 }
 
 function abrirModalNovoEvento() {

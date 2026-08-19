@@ -306,6 +306,18 @@ async function inscrever() {
   const livres = LIMITE - vagasUsadas;
   if(qtd > livres) { showToast('Vagas insuficientes!'); return; }
 
+  // Check for duplicate registration
+  try {
+    const res = await jsonpGet({aba: 'Cinema'});
+    const rows = res.dados || [];
+    const nomeFam = famSel.responsavel?.nome || '';
+    const jaInscrito = rows.some(r => (r[1]||'').toLowerCase().trim() === nomeFam.toLowerCase().trim());
+    if(jaInscrito) {
+      showToast('⚠️ Esta família já está inscrita!');
+      return;
+    }
+  } catch(e) {}
+
   const btn = document.getElementById('btn-inscrever');
   btn.disabled = true;
   btn.textContent = 'Confirmando...';
