@@ -180,7 +180,7 @@ async function carregarVagas() {
   try {
     const res = await jsonpGet({aba: 'Cinema'});
     const rows = res.dados || [];
-    vagasUsadas = rows.slice(1).reduce((total, row) => total + (parseInt(row[2]) || 0), 0);
+    vagasUsadas = rows.reduce((total, row) => total + (parseInt(row[2]) || 0), 0);
     atualizarVagas();
     if(vagasUsadas >= LIMITE) mostrarEsgotado();
   } catch(e) {
