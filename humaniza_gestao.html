@@ -3156,29 +3156,61 @@ async function verInscritos(aba, nome, limite) {
       return;
     }
 
-    document.getElementById('modal-inscritos-body').innerHTML = `
+    // Check if has transport column (col 6)
+    const temTransporte = rows.some(r => r[6] && r[6].toString().trim());
+
+    // Transport summary
+    let transporteResumo = '';
+    if(temTransporte) {
+      const van = rows.filter(r => (r[6]||'').toString().includes('Van'));
+      const direto = rows.filter(r => (r[6]||'').toString().includes('Direto'));
+      const qtdVan = van.reduce((s,r) => s + (parseInt(r[2])||0), 0);
+      const qtdDireto = direto.reduce((s,r) => s + (parseInt(r[2])||0), 0);
+      transporteResumo = `
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <div style="background:#ede9fe;color:#6B21A8;padding:8px 16px;border-radius:10px;font-size:0.82rem;font-weight:600;">
+            🚐 Van: ${van.length} família(s) · ${qtdVan} pessoa(s)
+          </div>
+          <div style="background:#d1fae5;color:#065f46;padding:8px 16px;border-radius:10px;font-size:0.82rem;font-weight:600;">
+            🚶 Direto: ${direto.length} família(s) · ${qtdDireto} pessoa(s)
+          </div>
+        </div>`;
+    }
+
+    document.getElementById('modal-inscritos-body').innerHTML = transporteResumo + `
       <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
         <thead>
           <tr style="background:var(--bg);">
             <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);">Responsável</th>
             <th style="padding:8px;text-align:center;border-bottom:1px solid var(--border);">Qtd</th>
             <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);">Quem vai</th>
+            ${temTransporte ? '<th style="padding:8px;text-align:center;border-bottom:1px solid var(--border);">Transporte</th>' : ''}
             <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border);">WhatsApp</th>
             ${isAdmin ? '<th style="padding:8px;border-bottom:1px solid var(--border);"></th>' : ''}
           </tr>
         </thead>
         <tbody>
-          ${rows.map((r, idx) => `
+          ${rows.map((r, idx) => {
+            const transporte = (r[6]||'').toString();
+            const isVan = transporte.includes('Van');
+            const isDireto = transporte.includes('Direto');
+            const transpTag = isVan
+              ? '<span style="background:#ede9fe;color:#6B21A8;padding:2px 8px;border-radius:8px;font-size:0.72rem;font-weight:600;">🚐 Van</span>'
+              : isDireto
+              ? '<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:8px;font-size:0.72rem;font-weight:600;">🚶 Direto</span>'
+              : '—';
+            return `
             <tr id="inscrito-row-${idx}" style="border-bottom:1px solid #f3f4f6;">
               <td style="padding:8px;font-weight:600;">${r[1]||'—'}</td>
               <td style="padding:8px;text-align:center;"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-weight:600;">${r[2]||1}</span></td>
               <td style="padding:8px;color:var(--muted);font-size:0.78rem;">${r[3]||'—'}</td>
+              ${temTransporte ? `<td style="padding:8px;text-align:center;">${transpTag}</td>` : ''}
               <td style="padding:8px;color:var(--muted);">${r[4]||'—'}</td>
               ${isAdmin ? `<td style="padding:8px;">
                 <button id="btn-del-${idx}" onclick="confirmarExclusaoInscrito('${aba}',${idx+1},${idx})" style="background:#fee2e2;border:none;padding:3px 8px;border-radius:6px;cursor:pointer;font-size:0.72rem;color:#dc2626;">🗑</button>
               </td>` : ''}
-            </tr>
-          `).join('')}
+            </tr>`;
+          }).join('')}
         </tbody>
       </table>`;
   } catch(e) {
