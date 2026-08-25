@@ -571,6 +571,9 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
         <input id="termo-busca" placeholder="Buscar família..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;" oninput="buscarTermoFam(this.value)">
         <div id="termo-lista" style="max-height:80px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px;display:none;background:white;"></div>
         <div id="termo-sel" style="margin-top:6px;font-size:0.78rem;color:var(--azul);font-weight:600;"></div>
+        <select id="termo-pessoa" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;display:none;">
+          <option value="">Para quem é o termo?</option>
+        </select>
         <select id="termo-psicologa" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;display:none;">
           <option value="">Selecionar psicóloga/parceira...</option>
         </select>
@@ -1255,6 +1258,19 @@ let db={familias:[],vol:[],parc:[],proj:[]};
 let currentFamId=null,searchQ='',tagQ='',_cbN=0;
 let relData=null,relFamIdSel=null,relEncFamIdSel=null,relEncPessoaSel=null;
 let membrosFormCount=0;
+
+// POST function for large data (agenda, eventos)
+async function postDados(acao, aba, dados) {
+  const url = API + '?acao=' + acao + '&aba=' + encodeURIComponent(aba);
+  const body = 'eventos=' + encodeURIComponent(JSON.stringify(dados));
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: body
+  });
+  if(!res.ok) throw new Error('POST failed: ' + res.status);
+  return await res.json();
+}
 
 function jsonpGet(params){
   return new Promise((resolve,reject)=>{
@@ -2226,7 +2242,33 @@ function selecionarTermoFam(id) {
   document.getElementById('termo-lista').style.display = 'none';
   document.getElementById('termo-busca').value = termoFamSel.responsavel?.nome || '';
   document.getElementById('termo-sel').textContent = '✅ ' + (termoFamSel.responsavel?.nome||'');
-  
+
+  // Populate pessoa select
+  const selPessoa = document.getElementById('termo-pessoa');
+  selPessoa.innerHTML = '<option value="">Para quem é o termo?</option>';
+  const resp = termoFamSel.responsavel || {};
+  if(resp.nome) {
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({tipo:'responsavel', nome: resp.nome});
+    opt.textContent = '👤 ' + resp.nome + ' (Responsável)';
+    selPessoa.appendChild(opt);
+  }
+  const conj = termoFamSel.conjuge;
+  if(conj?.nome) {
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({tipo:'conjuge', nome: conj.nome});
+    opt.textContent = '💑 ' + conj.nome + ' (Cônjuge)';
+    selPessoa.appendChild(opt);
+  }
+  (termoFamSel.membros||[]).forEach((m,i) => {
+    if(!m?.nome) return;
+    const opt = document.createElement('option');
+    opt.value = JSON.stringify({tipo:'membro', idx: i, nome: m.nome});
+    opt.textContent = '👶 ' + m.nome + (m.parentesco ? ' ('+m.parentesco+')' : '');
+    selPessoa.appendChild(opt);
+  });
+  selPessoa.style.display = 'block';
+
   // Populate psicólogas from parceiros
   const sel = document.getElementById('termo-psicologa');
   sel.innerHTML = '<option value="">Selecionar psicóloga/parceiro...</option>';
@@ -2252,20 +2294,45 @@ function gerarTermo() {
   const psiCRP = psiOpt?.dataset?.crp || '';
   const psiTel = psiOpt?.dataset?.tel || '';
 
-  // Get menores (dependentes)
-  const menores = (f.membros || []).filter(m => {
-    if (!m.nasc) return false;
+  // Get selected pessoa
+  const selPessoa = document.getElementById('termo-pessoa');
+  let paciente = resp;
+  let ehMenor = false;
+  if(selPessoa?.value) {
     try {
-      const parts = m.nasc.split('/');
-      if (parts.length === 3) {
-        const nasc = new Date(parts[2], parts[1]-1, parts[0]);
-        return (new Date() - nasc) / (365.25*24*3600*1000) < 18;
+      const pessoaSel = JSON.parse(selPessoa.value);
+      if(pessoaSel.tipo === 'membro') {
+        paciente = f.membros?.[pessoaSel.idx] || resp;
+        // Check if minor
+        if(paciente.nasc) {
+          try {
+            const parts = paciente.nasc.split('/');
+            if(parts.length === 3) {
+              const nasc = new Date(parts[2], parts[1]-1, parts[0]);
+              ehMenor = (new Date() - nasc) / (365.25*24*3600*1000) < 18;
+            }
+          } catch(e) {}
+        }
+        if(ehMenor || pessoaSel.tipo === 'membro') ehMenor = true;
+      } else if(pessoaSel.tipo === 'conjuge') {
+        paciente = f.conjuge || resp;
       }
     } catch(e) {}
-    return false;
-  });
-  const paciente = menores.length > 0 ? menores[0] : resp;
-  const ehMenor = menores.length > 0;
+  } else {
+    // Auto-detect: if only one membro, use them
+    const menores = (f.membros || []).filter(m => {
+      if (!m.nasc) return false;
+      try {
+        const parts = m.nasc.split('/');
+        if (parts.length === 3) {
+          const nasc = new Date(parts[2], parts[1]-1, parts[0]);
+          return (new Date() - nasc) / (365.25*24*3600*1000) < 18;
+        }
+      } catch(e) {}
+      return false;
+    });
+    if(menores.length > 0) { paciente = menores[0]; ehMenor = true; }
+  }
 
   const hoje = new Date();
   const dataExtenso = hoje.toLocaleDateString('pt-BR', {day:'numeric', month:'long', year:'numeric'});
@@ -2521,15 +2588,9 @@ async function agendaSalvarEvento(ev) {
 }
 
 async function agendaSalvar() {
-  // Save all events to planilha (full sync)
   try {
-    await jsonpGet({
-      acao: 'salvar_agenda_completa',
-      aba: 'Agenda',
-      eventos: JSON.stringify(agendaEventos)
-    });
+    await postDados('salvar_agenda_completa', 'Agenda', agendaEventos);
   } catch(e) {
-    // Fallback to localStorage
     try { localStorage.setItem(AGENDA_KEY, JSON.stringify(agendaEventos)); } catch(e2) {}
   }
 }
@@ -3058,31 +3119,72 @@ let eventoAtivoLimite = 0;
 let eventoAtivoNome = '';
 let eventoEditandoIdx = null;
 
-function eventosCarregar() {
+async function eventosCarregar() {
+  // First load from localStorage for instant display
   try {
     const saved = localStorage.getItem(EVENTOS_KEY);
-    dbEventos = saved ? JSON.parse(saved) : [];
-  } catch(e) { dbEventos = []; }
+    if(saved) {
+      dbEventos = JSON.parse(saved);
+    }
+  } catch(e) {}
 
-  // Always include Cinema if not already there
-  if(!dbEventos.find(e => e.aba === 'Cinema')) {
-    dbEventos.push({
-      id: 'cinema_2026',
-      nome: 'V Mostra de Cinema Brasil e China 🎬',
-      data: '2026-08-20',
-      hora: '14:00',
-      local: 'Rocinha — RJ',
-      aba: 'Cinema',
-      limite: 40,
-      link: 'cinema.html',
-      desc: 'Cinema solidário com condução para 40 pessoas'
-    });
-    eventosSalvar();
+  // Load from planilha (shared)
+  try {
+    const res = await jsonpGet({aba: 'Eventos'});
+    const rows = (res.dados || []).filter(r => r[0]);
+    if(rows.length > 0) {
+      const evsDaPlanilha = rows.map(r => {
+        try { return JSON.parse(r[0]); } catch(e) { return null; }
+      }).filter(Boolean);
+
+      // Migrate localStorage events not in planilha
+      const ids = new Set(evsDaPlanilha.map(e => e.id));
+      const local = localStorage.getItem(EVENTOS_KEY);
+      if(local) {
+        const localEvs = JSON.parse(local);
+        const novos = localEvs.filter(e => e.id && !ids.has(e.id));
+        if(novos.length > 0) {
+          evsDaPlanilha.push(...novos);
+        }
+        localStorage.removeItem(EVENTOS_KEY);
+      }
+      dbEventos = evsDaPlanilha;
+      await eventosSalvar();
+    } else {
+      // Planilha vazia - migrate from localStorage
+      const local = localStorage.getItem(EVENTOS_KEY);
+      if(local) {
+        dbEventos = JSON.parse(local) || [];
+      }
+      // Add default Cinema event if not present
+      if(!dbEventos.find(e => e.aba === 'Cinema')) {
+        dbEventos.push({
+          id: 'cinema_2026',
+          nome: 'V Mostra de Cinema Brasil e China 🎬',
+          data: '2026-08-20',
+          hora: '14:00',
+          local: 'Rocinha — RJ',
+          aba: 'Cinema',
+          limite: 40,
+          link: 'cinema.html',
+          desc: 'Cinema solidário com condução para 40 pessoas'
+        });
+      }
+      await eventosSalvar();
+      localStorage.removeItem(EVENTOS_KEY);
+    }
+  } catch(e) {
+    // Fallback to localStorage
+    console.warn('Eventos: erro ao carregar da planilha', e);
   }
 }
 
-function eventosSalvar() {
-  try { localStorage.setItem(EVENTOS_KEY, JSON.stringify(dbEventos)); } catch(e) {}
+async function eventosSalvar() {
+  try {
+    await postDados('salvar_agenda_completa', 'Eventos', dbEventos);
+  } catch(e) {
+    try { localStorage.setItem(EVENTOS_KEY, JSON.stringify(dbEventos)); } catch(e2) {}
+  }
 }
 
 function filtrarEventos(q) {
@@ -3291,7 +3393,7 @@ function editarEvento_ev(i) {
   document.getElementById('modal-novo-evento').classList.add('open');
 }
 
-function salvarNovoEvento() {
+async function salvarNovoEvento() {
   const nome = document.getElementById('nev-nome').value.trim();
   if(!nome) { alert('Informe o nome do evento.'); return; }
   const ev = {
@@ -3310,16 +3412,16 @@ function salvarNovoEvento() {
   } else {
     dbEventos.push(ev);
   }
-  eventosSalvar();
+  await eventosSalvar();
   fecharModalNovoEvento();
   renderEventos();
   showToast('✅ Evento salvo!');
 }
 
-function excluirEvento_ev(i) {
+async function excluirEvento_ev(i) {
   if(!confirm('Excluir este evento? As inscrições na planilha não serão apagadas.')) return;
   dbEventos.splice(i, 1);
-  eventosSalvar();
+  await eventosSalvar();
   renderEventos();
   showToast('Evento excluído.');
 }
@@ -3443,13 +3545,18 @@ if(sbl) sbl.src = LOGO_BRANCA_SRC;
 // Set login logo
 const ll = document.getElementById('login-logo');
 if(ll) ll.src = LOGO_SRC;
-// Initialize Agenda
-agendaCarregar().then(() => {
+// Initialize sequentially to avoid overwhelming Apps Script
+async function initDados() {
+  // 1. Agenda first
+  await agendaCarregar();
   renderAgenda();
   updateDash();
-});
-// Initialize Eventos
-eventosCarregar();
+  // 2. Eventos after agenda finishes (500ms gap)
+  await new Promise(r => setTimeout(r, 500));
+  await eventosCarregar();
+  renderEventos();
+}
+initDados();
 // Initialize Google Auth
 inicializarGoogle();
 
