@@ -568,12 +568,9 @@ tr.clickable:hover td{background:#f8faff;cursor:pointer;}
       <div class="rel-icon">📋</div><div class="rel-title">Termo de Consentimento</div>
       <div class="rel-desc">Contrato de acompanhamento psicológico — preenchido pela psicóloga</div>
       <div id="termo-busca-wrap" style="margin-top:10px;" onclick="event.stopPropagation()">
-        <input id="termo-busca" placeholder="Buscar família..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;" oninput="buscarTermoFam(this.value)">
-        <div id="termo-lista" style="max-height:80px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px;display:none;background:white;"></div>
+        <input id="termo-busca" placeholder="Buscar pessoa ou família..." style="width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;" oninput="buscarTermoPessoa(this.value)">
+        <div id="termo-lista" style="max-height:120px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;margin-top:4px;display:none;background:white;"></div>
         <div id="termo-sel" style="margin-top:6px;font-size:0.78rem;color:var(--azul);font-weight:600;"></div>
-        <select id="termo-pessoa" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;display:none;">
-          <option value="">Para quem é o termo?</option>
-        </select>
         <select id="termo-psicologa" style="width:100%;padding:6px;border:1px solid var(--border);border-radius:6px;font-size:0.75rem;margin-top:6px;display:none;">
           <option value="">Selecionar psicóloga/parceira...</option>
         </select>
@@ -2217,59 +2214,47 @@ function gerarRel(tipo,formato){
 // ========== TERMO DE CONSENTIMENTO ==========
 let termoFamSel = null;
 
-function buscarTermoFam(q) {
+function buscarTermoPessoa(q) {
   const lista = document.getElementById('termo-lista');
-  if (!q || q.length < 2) { lista.style.display='none'; return; }
-  const res = db.familias.filter(f => (f.responsavel?.nome||'').toLowerCase().includes(q.toLowerCase())).slice(0,8);
-  if (!res.length) { lista.style.display='none'; return; }
+  if(!q || q.length < 2) { lista.style.display='none'; return; }
+  const ql = q.toLowerCase();
+  const results = [];
+  db.familias.forEach(f => {
+    const resp = f.responsavel || {};
+    if(resp.nome && resp.nome.toLowerCase().includes(ql))
+      results.push({nome: resp.nome, role: 'Responsável', famId: f.id, tipo: 'responsavel', idx: null});
+    const conj = f.conjuge;
+    if(conj?.nome && conj.nome.toLowerCase().includes(ql))
+      results.push({nome: conj.nome, role: 'Cônjuge', famId: f.id, tipo: 'conjuge', idx: null});
+    (f.membros||[]).forEach((m, i) => {
+      if(m?.nome && m.nome.toLowerCase().includes(ql))
+        results.push({nome: m.nome, role: m.parentesco||'Dependente', famId: f.id, tipo: 'membro', idx: i});
+    });
+  });
+  if(!results.length) { lista.style.display='none'; return; }
   lista.innerHTML = '';
   lista.style.display = 'block';
-  res.forEach(f => {
+  results.slice(0,8).forEach(r => {
     const div = document.createElement('div');
     div.style.cssText = 'padding:6px 10px;cursor:pointer;font-size:0.78rem;border-bottom:1px solid #eee;';
-    div.textContent = f.responsavel?.nome || '';
-    const _f = f;
+    div.innerHTML = r.nome + ' <span style="color:#6b7280;font-size:0.72rem">· ' + r.role + '</span>';
     div.addEventListener('mouseover', () => div.style.background='#f8faff');
     div.addEventListener('mouseout', () => div.style.background='');
-    div.addEventListener('click', () => selecionarTermoFam(_f.id));
+    div.addEventListener('click', () => selecionarTermoPessoa(r));
     lista.appendChild(div);
   });
 }
 
-function selecionarTermoFam(id) {
-  termoFamSel = db.familias.find(f => f.id == id);
-  if (!termoFamSel) return;
+function selecionarTermoPessoa(r) {
+  const f = db.familias.find(f => f.id === r.famId || f.id == r.famId);
+  if(!f) return;
+  termoFamSel = f;
+  termoFamSel._pessoaSel = r; // store selected person
   document.getElementById('termo-lista').style.display = 'none';
-  document.getElementById('termo-busca').value = termoFamSel.responsavel?.nome || '';
-  document.getElementById('termo-sel').textContent = '✅ ' + (termoFamSel.responsavel?.nome||'');
+  document.getElementById('termo-busca').value = r.nome;
+  document.getElementById('termo-sel').textContent = '✅ ' + r.nome + ' (' + r.role + ')';
 
-  // Populate pessoa select
-  const selPessoa = document.getElementById('termo-pessoa');
-  selPessoa.innerHTML = '<option value="">Para quem é o termo?</option>';
-  const resp = termoFamSel.responsavel || {};
-  if(resp.nome) {
-    const opt = document.createElement('option');
-    opt.value = JSON.stringify({tipo:'responsavel', nome: resp.nome});
-    opt.textContent = '👤 ' + resp.nome + ' (Responsável)';
-    selPessoa.appendChild(opt);
-  }
-  const conj = termoFamSel.conjuge;
-  if(conj?.nome) {
-    const opt = document.createElement('option');
-    opt.value = JSON.stringify({tipo:'conjuge', nome: conj.nome});
-    opt.textContent = '💑 ' + conj.nome + ' (Cônjuge)';
-    selPessoa.appendChild(opt);
-  }
-  (termoFamSel.membros||[]).forEach((m,i) => {
-    if(!m?.nome) return;
-    const opt = document.createElement('option');
-    opt.value = JSON.stringify({tipo:'membro', idx: i, nome: m.nome});
-    opt.textContent = '👶 ' + m.nome + (m.parentesco ? ' ('+m.parentesco+')' : '');
-    selPessoa.appendChild(opt);
-  });
-  selPessoa.style.display = 'block';
-
-  // Populate psicólogas from parceiros
+  // Populate psicólogas
   const sel = document.getElementById('termo-psicologa');
   sel.innerHTML = '<option value="">Selecionar psicóloga/parceiro...</option>';
   db.parc.forEach(p => {
@@ -2284,6 +2269,12 @@ function selecionarTermoFam(id) {
   document.getElementById('termo-btn').style.display = 'block';
 }
 
+function selecionarTermoFam(id) {
+  const f = db.familias.find(f => f.id == id);
+  if(!f) return;
+  selecionarTermoPessoa({nome: f.responsavel?.nome||'', role:'Responsável', famId: f.id, tipo:'responsavel', idx: null});
+}
+
 function gerarTermo() {
   if (!termoFamSel) { alert('Selecione uma família primeiro.'); return; }
   const f = termoFamSel;
@@ -2294,44 +2285,28 @@ function gerarTermo() {
   const psiCRP = psiOpt?.dataset?.crp || '';
   const psiTel = psiOpt?.dataset?.tel || '';
 
-  // Get selected pessoa
-  const selPessoa = document.getElementById('termo-pessoa');
+  // Get selected person from _pessoaSel
   let paciente = resp;
   let ehMenor = false;
-  if(selPessoa?.value) {
-    try {
-      const pessoaSel = JSON.parse(selPessoa.value);
-      if(pessoaSel.tipo === 'membro') {
-        paciente = f.membros?.[pessoaSel.idx] || resp;
-        // Check if minor
-        if(paciente.nasc) {
-          try {
-            const parts = paciente.nasc.split('/');
-            if(parts.length === 3) {
-              const nasc = new Date(parts[2], parts[1]-1, parts[0]);
-              ehMenor = (new Date() - nasc) / (365.25*24*3600*1000) < 18;
-            }
-          } catch(e) {}
-        }
-        if(ehMenor || pessoaSel.tipo === 'membro') ehMenor = true;
-      } else if(pessoaSel.tipo === 'conjuge') {
-        paciente = f.conjuge || resp;
+  const pessoaSel = f._pessoaSel;
+  if(pessoaSel) {
+    if(pessoaSel.tipo === 'membro' && pessoaSel.idx !== null) {
+      paciente = f.membros?.[pessoaSel.idx] || resp;
+      ehMenor = true; // dependentes são considerados menores para fins do termo
+      // Check actual age
+      if(paciente.nasc) {
+        try {
+          const parts = paciente.nasc.split('/');
+          if(parts.length === 3) {
+            const nasc = new Date(parts[2], parts[1]-1, parts[0]);
+            ehMenor = (new Date() - nasc) / (365.25*24*3600*1000) < 18;
+          }
+        } catch(e) {}
       }
-    } catch(e) {}
-  } else {
-    // Auto-detect: if only one membro, use them
-    const menores = (f.membros || []).filter(m => {
-      if (!m.nasc) return false;
-      try {
-        const parts = m.nasc.split('/');
-        if (parts.length === 3) {
-          const nasc = new Date(parts[2], parts[1]-1, parts[0]);
-          return (new Date() - nasc) / (365.25*24*3600*1000) < 18;
-        }
-      } catch(e) {}
-      return false;
-    });
-    if(menores.length > 0) { paciente = menores[0]; ehMenor = true; }
+    } else if(pessoaSel.tipo === 'conjuge') {
+      paciente = f.conjuge || resp;
+      ehMenor = false;
+    }
   }
 
   const hoje = new Date();
@@ -2487,31 +2462,22 @@ table{page-break-inside:avoid;}
 <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
 </body></html>`;
 
-  // Store HTML and show print button in report area
-  const reportArea = document.getElementById('report-area');
-  const reportContent = document.getElementById('report-content');
-  const btnXls = document.getElementById('btn-xls-report');
-  if(reportArea && reportContent) {
-    if(btnXls) btnXls.style.display = 'none';
-    reportContent.innerHTML = `
-      <div style="text-align:center;padding:20px 0 10px;">
-        <button onclick="imprimirTermo()" style="background:#1B3D6F;color:white;border:none;padding:12px 28px;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:16px;">🖨️ Imprimir / Salvar PDF</button>
-      </div>
-      <div id="termo-preview" style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:20px;max-height:65vh;overflow-y:auto;font-size:9pt;line-height:1.4;">
-      </div>`;
-    document.getElementById('termo-preview').innerHTML = html;
-    window._termoHtml = fullHtml;
-    reportArea.classList.add('open');
-  }
-}
-
-function imprimirTermo() {
+  // Open in new window (triggered by user click so not blocked)
   const w = window.open('', '_blank');
   if(w) {
-    w.document.write(window._termoHtml);
+    w.document.write(fullHtml);
     w.document.close();
     w.focus();
-    setTimeout(() => w.print(), 500);
+    setTimeout(() => w.print(), 800);
+  } else {
+    // Fallback: blob URL
+    const blob = new Blob([fullHtml], {type:'text/html;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
 }
 
