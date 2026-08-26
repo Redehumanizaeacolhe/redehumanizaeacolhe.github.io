@@ -2487,18 +2487,31 @@ table{page-break-inside:avoid;}
 <script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};};<\/script>
 </body></html>`;
 
-  // Render inline to avoid popup blockers (especially Safari)
+  // Store HTML and show print button in report area
   const reportArea = document.getElementById('report-area');
   const reportContent = document.getElementById('report-content');
+  const btnXls = document.getElementById('btn-xls-report');
   if(reportArea && reportContent) {
-    reportContent.innerHTML = `<iframe srcdoc="${fullHtml.replace(/"/g, '&quot;').replace(/`/g, '\`')}" style="width:100%;height:80vh;border:none;" onload="this.contentWindow.print()"></iframe>`;
+    if(btnXls) btnXls.style.display = 'none';
+    reportContent.innerHTML = `
+      <div style="text-align:center;padding:20px 0 10px;">
+        <button onclick="imprimirTermo()" style="background:#1B3D6F;color:white;border:none;padding:12px 28px;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:16px;">🖨️ Imprimir / Salvar PDF</button>
+      </div>
+      <div id="termo-preview" style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:20px;max-height:65vh;overflow-y:auto;font-size:9pt;line-height:1.4;">
+      </div>`;
+    document.getElementById('termo-preview').innerHTML = html;
+    window._termoHtml = fullHtml;
     reportArea.classList.add('open');
-  } else {
-    // Fallback: try window.open
-    const blob = new Blob([fullHtml], {type:'text/html;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(()=>URL.revokeObjectURL(url), 60000);
+  }
+}
+
+function imprimirTermo() {
+  const w = window.open('', '_blank');
+  if(w) {
+    w.document.write(window._termoHtml);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 500);
   }
 }
 
