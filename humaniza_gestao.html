@@ -2678,7 +2678,7 @@ function calcularHoraFim() {
   if(!inicio || fim.value) return; // don't overwrite if already set
   // Default 50 min for atendimento, 60 for others
   const tipo = document.getElementById('ev-tipo').value;
-  const mins = tipo === 'atendimento' ? 50 : 60;
+  const mins = tipo === 'atendimento' ? 40 : 60;
   setDuracao(mins);
 }
 
