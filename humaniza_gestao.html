@@ -1279,21 +1279,16 @@ function jsonpGet(params){
       reject(new Error('Timeout'));
     },60000);
 
-    // Try fetch first (works better on Safari/iOS)
+    // Use JSONP for all GET requests (fetch fails on Apps Script redirects)
     const qs=Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
     const url=API+'?'+qs;
 
-    fetch(url)
-      .then(r=>r.json())
-      .then(d=>{clearTimeout(to);resolve(d);})
-      .catch(()=>{
-        // Fallback to JSONP if fetch fails
-        window[cb]=(d)=>{clearTimeout(to);delete window[cb];const s=document.getElementById(cb);if(s)s.remove();resolve(d);};
-        const qsJsonp=Object.entries({...params,callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
-        const s=document.createElement('script');s.id=cb;s.src=API+'?'+qsJsonp;
-        s.onerror=()=>{clearTimeout(to);delete window[cb];reject(new Error('Erro de conexão'));};
-        document.head.appendChild(s);
-      });
+    // JSONP only (fetch fails on Apps Script redirects)
+    window[cb]=(d)=>{clearTimeout(to);delete window[cb];const s=document.getElementById(cb);if(s)s.remove();resolve(d);};
+    const qsJsonp=Object.entries({...params,callback:cb}).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+    const s=document.createElement('script');s.id=cb;s.src=API+'?'+qsJsonp;
+    s.onerror=()=>{clearTimeout(to);delete window[cb];reject(new Error('Erro de conexão'));};
+    document.head.appendChild(s);
   });
 }
 async function apiGet(aba){const d=await jsonpGet({aba});if(d.erro)throw new Error(d.erro);return d.dados||[];}
@@ -2576,9 +2571,46 @@ async function agendaSalvarEvento(ev) {
 }
 
 async function agendaSalvar() {
+  // Save each event individually using appendRow (reliable, no size limit)
+  // This uses the same mechanism as Cinema/Librelon which works perfectly
   try {
-    await postDados('salvar_agenda_completa', 'Agenda', agendaEventos);
+    // First load current planilha events to find what's new or changed
+    const res = await jsonpGet({aba: 'Agenda'});
+    const rows = (res.dados || []).filter(r => r[0]);
+    const idsNaPlanilha = new Set(rows.map(r => {
+      try { return JSON.parse(r[0]).id; } catch(e) { return null; }
+    }).filter(Boolean));
+
+    // Add new events
+    for(const ev of agendaEventos) {
+      if(!idsNaPlanilha.has(ev.id)) {
+        await jsonpGet({
+          acao: 'salvar',
+          aba: 'Agenda',
+          linha: JSON.stringify([JSON.stringify(ev),'','','','','','','','','','','','','',''])
+        });
+      }
+    }
+
+    // Update changed events (concluidos, editados)
+    // For simplicity, rewrite lines that changed
+    for(let i = 0; i < rows.length; i++) {
+      try {
+        const evPlanilha = JSON.parse(rows[i][0]);
+        const evLocal = agendaEventos.find(e => e.id === evPlanilha.id);
+        if(evLocal && JSON.stringify(evLocal) !== JSON.stringify(evPlanilha)) {
+          // Update this row
+          await jsonpGet({
+            acao: 'atualizar_linha',
+            aba: 'Agenda',
+            linha: i + 1,
+            dados: JSON.stringify([JSON.stringify(evLocal)])
+          });
+        }
+      } catch(e) {}
+    }
   } catch(e) {
+    console.warn('Agenda: erro ao salvar na planilha', e);
     try { localStorage.setItem(AGENDA_KEY, JSON.stringify(agendaEventos)); } catch(e2) {}
   }
 }
