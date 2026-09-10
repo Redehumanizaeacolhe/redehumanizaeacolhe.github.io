@@ -2570,47 +2570,66 @@ async function agendaSalvarEvento(ev) {
   } catch(e) { console.warn('Erro ao salvar evento na agenda:', e); }
 }
 
-async function agendaSalvar() {
-  // Save each event individually using appendRow (reliable, no size limit)
-  // This uses the same mechanism as Cinema/Librelon which works perfectly
+async function agendaSalvarEvento(ev) {
+  // Append single event as new row (same as Cinema/Librelon - never overwrites)
   try {
-    // First load current planilha events to find what's new or changed
+    await jsonpGet({
+      acao: 'salvar',
+      aba: 'Agenda',
+      linha: JSON.stringify([JSON.stringify(ev),'','','','','','','','','','','','','',''])
+    });
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function agendaAtualizarEvento(ev, rowIdx) {
+  // Update existing event row
+  try {
+    await jsonpGet({
+      acao: 'atualizar_linha',
+      aba: 'Agenda',
+      linha: rowIdx,
+      dados: JSON.stringify([JSON.stringify(ev)])
+    });
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+async function agendaSalvar() {
+  // Load current planilha state fresh
+  try {
     const res = await jsonpGet({aba: 'Agenda'});
     const rows = (res.dados || []).filter(r => r[0]);
-    const idsNaPlanilha = new Set(rows.map(r => {
-      try { return JSON.parse(r[0]).id; } catch(e) { return null; }
-    }).filter(Boolean));
+    
+    // Build map: id -> row index
+    const rowMap = {};
+    rows.forEach((r, i) => {
+      try { rowMap[JSON.parse(r[0]).id] = i; } catch(e) {}
+    });
+    const idsNaPlanilha = new Set(Object.keys(rowMap));
 
-    // Add new events
+    // Process each local event
     for(const ev of agendaEventos) {
-      if(!idsNaPlanilha.has(ev.id)) {
-        await jsonpGet({
-          acao: 'salvar',
-          aba: 'Agenda',
-          linha: JSON.stringify([JSON.stringify(ev),'','','','','','','','','','','','','',''])
-        });
+      if(!idsNaPlanilha.has(String(ev.id))) {
+        // New event - append
+        await agendaSalvarEvento(ev);
+      } else {
+        // Existing - check if changed and update
+        const rowIdx = rowMap[String(ev.id)];
+        try {
+          const evPlanilha = JSON.parse(rows[rowIdx][0]);
+          if(JSON.stringify(ev) !== JSON.stringify(evPlanilha)) {
+            await agendaAtualizarEvento(ev, rowIdx + 1);
+          }
+        } catch(e) {}
       }
     }
-
-    // Update changed events (concluidos, editados)
-    // For simplicity, rewrite lines that changed
-    for(let i = 0; i < rows.length; i++) {
-      try {
-        const evPlanilha = JSON.parse(rows[i][0]);
-        const evLocal = agendaEventos.find(e => e.id === evPlanilha.id);
-        if(evLocal && JSON.stringify(evLocal) !== JSON.stringify(evPlanilha)) {
-          // Update this row
-          await jsonpGet({
-            acao: 'atualizar_linha',
-            aba: 'Agenda',
-            linha: i + 1,
-            dados: JSON.stringify([JSON.stringify(evLocal)])
-          });
-        }
-      } catch(e) {}
-    }
   } catch(e) {
-    console.warn('Agenda: erro ao salvar na planilha', e);
+    console.warn('Agenda: erro ao salvar', e);
     try { localStorage.setItem(AGENDA_KEY, JSON.stringify(agendaEventos)); } catch(e2) {}
   }
 }
