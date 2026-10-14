@@ -3221,7 +3221,25 @@ async function eventosCarregar() {
 
 async function eventosSalvar() {
   try {
-    await postDados('salvar_agenda_completa', 'Eventos', dbEventos);
+    // Rewrite all rows: clear and re-append each event via JSONP
+    // First, get current rows to know how many exist
+    const res = await jsonpGet({aba: 'Eventos'});
+    const rows = (res.dados || []).filter(r => r[0]);
+    // Update existing rows
+    for(let i = 0; i < dbEventos.length; i++) {
+      const json = JSON.stringify(dbEventos[i]);
+      if(i < rows.length) {
+        // Update existing row
+        await jsonpGet({acao:'atualizar_linha', aba:'Eventos', linha: i+1, dados: JSON.stringify([json])});
+      } else {
+        // Append new row
+        await jsonpGet({acao:'salvar', aba:'Eventos', linha: JSON.stringify([json])});
+      }
+    }
+    // Delete extra rows if we have fewer events now
+    for(let i = dbEventos.length; i < rows.length; i++) {
+      await jsonpGet({acao:'excluir_linha', aba:'Eventos', linha: dbEventos.length + 1});
+    }
   } catch(e) {
     try { localStorage.setItem(EVENTOS_KEY, JSON.stringify(dbEventos)); } catch(e2) {}
   }
