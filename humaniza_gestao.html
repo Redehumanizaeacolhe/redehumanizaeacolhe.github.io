@@ -3160,71 +3160,34 @@ let eventoAtivoNome = '';
 let eventoEditandoIdx = null;
 
 async function eventosCarregar() {
-  // First load from localStorage for instant display
-  try {
-    const saved = localStorage.getItem(EVENTOS_KEY);
-    if(saved) {
-      dbEventos = JSON.parse(saved);
-    }
-  } catch(e) {}
+  // Planilha é a única fonte da verdade — sem localStorage
+  // Limpa localStorage legado para evitar duplicatas vindas de versões antigas
+  try { localStorage.removeItem(EVENTOS_KEY); } catch(e) {}
 
-  // Load from planilha (shared)
   try {
     const res = await jsonpGet({aba: 'Eventos'});
-    const rows = (res.dados || []).filter(r => r[0]);
+    const rows = (res.dados || []).filter(r => r && r[0]);
     if(rows.length > 0) {
-      const evsDaPlanilha = rows.map(r => {
+      dbEventos = rows.map(r => {
         try { return JSON.parse(r[0]); } catch(e) { return null; }
       }).filter(Boolean);
-
-      // Migrate localStorage events not in planilha
-      const ids = new Set(evsDaPlanilha.map(e => e.id));
-      const local = localStorage.getItem(EVENTOS_KEY);
-      if(local) {
-        const localEvs = JSON.parse(local);
-        const novos = localEvs.filter(e => e.id && !ids.has(e.id));
-        if(novos.length > 0) {
-          evsDaPlanilha.push(...novos);
-        }
-        localStorage.removeItem(EVENTOS_KEY);
-      }
-      dbEventos = evsDaPlanilha;
-      // Don't save back on load - prevents duplicates
     } else {
-      // Planilha vazia - migrate from localStorage
-      const local = localStorage.getItem(EVENTOS_KEY);
-      if(local) {
-        dbEventos = JSON.parse(local) || [];
-      }
-      // Add default Cinema event if not present
-      if(!dbEventos.find(e => e.aba === 'Cinema')) {
-        dbEventos.push({
-          id: 'cinema_2026',
-          nome: 'V Mostra de Cinema Brasil e China 🎬',
-          data: '2026-08-20',
-          hora: '14:00',
-          local: 'Rocinha — RJ',
-          aba: 'Cinema',
-          limite: 40,
-          link: 'cinema.html',
-          desc: 'Cinema solidário com condução para 40 pessoas'
-        });
-      }
-      // Don't save back on load - prevents duplicates
-      localStorage.removeItem(EVENTOS_KEY);
+      dbEventos = [];
     }
   } catch(e) {
-    // Fallback to localStorage
     console.warn('Eventos: erro ao carregar da planilha', e);
+    dbEventos = [];
   }
 }
 
 async function eventosSalvar() {
+  // Reescreve a aba Eventos inteira via salvar_agenda_completa
+  // Usa encodeURIComponent para não rebentar a URL com JSON
   try {
-    // Use JSONP GET with salvar_agenda_completa (rewrites entire Eventos sheet)
     await jsonpGet({acao: 'salvar_agenda_completa', aba: 'Eventos', eventos: JSON.stringify(dbEventos)});
   } catch(e) {
-    try { localStorage.setItem(EVENTOS_KEY, JSON.stringify(dbEventos)); } catch(e2) {}
+    showToast('⚠️ Erro ao salvar eventos. Verifique a planilha.', true);
+    console.error('eventosSalvar erro:', e);
   }
 }
 
@@ -3460,11 +3423,16 @@ async function salvarNovoEvento() {
 }
 
 async function excluirEvento_ev(i) {
-  if(!confirm('Excluir este evento? As inscrições na planilha não serão apagadas.')) return;
-  dbEventos.splice(i, 1);
-  await eventosSalvar();
-  renderEventos();
-  showToast('Evento excluído.');
+  const ev = dbEventos[i];
+  if(!ev) return;
+  // Usar showConfirm em vez de window.confirm (bloqueado em iframes/GitHub Pages)
+  showConfirm(`Excluir o evento "<b>${ev.nome}</b>"?<br><small style="color:#888">As inscrições na planilha não serão apagadas.</small>`, async () => {
+    dbEventos.splice(i, 1);
+    renderEventos();
+    showToast('Salvando...');
+    await eventosSalvar();
+    showToast('✅ Evento excluído.');
+  });
 }
 
 function imprimirRelatorio(){
@@ -3579,6 +3547,24 @@ function exportarExcel(){
 document.getElementById('rel-aniv-mes').value=new Date().getMonth();
 function ini(n){return(n||'?').split(' ').slice(0,2).map(x=>x[0]||'').join('').toUpperCase();}
 function showToast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+
+function showConfirm(html, onOk) {
+  // Confirm dialog inline (window.confirm bloqueado em alguns contextos)
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `<div style="background:white;border-radius:16px;padding:28px 28px 20px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.25);text-align:center;">
+    <div style="font-size:0.95rem;color:#1e293b;line-height:1.5;margin-bottom:20px;">${html}</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button id="__cfm_cancel" style="padding:9px 22px;border:1px solid #e2e8f0;border-radius:9px;background:white;color:#64748b;cursor:pointer;font-size:0.88rem;">Cancelar</button>
+      <button id="__cfm_ok" style="padding:9px 22px;border:none;border-radius:9px;background:#dc2626;color:white;cursor:pointer;font-size:0.88rem;font-weight:600;">Excluir</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const close = () => overlay.remove();
+  overlay.querySelector('#__cfm_cancel').onclick = close;
+  overlay.querySelector('#__cfm_ok').onclick = () => { close(); onOk(); };
+  overlay.addEventListener('click', e => { if(e.target === overlay) close(); });
+}
 
 // Set sidebar logo
 const sbl = document.getElementById('sidebar-logo');
