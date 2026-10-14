@@ -3189,7 +3189,7 @@ async function eventosCarregar() {
         localStorage.removeItem(EVENTOS_KEY);
       }
       dbEventos = evsDaPlanilha;
-      await eventosSalvar();
+      // Don't save back on load - prevents duplicates
     } else {
       // Planilha vazia - migrate from localStorage
       const local = localStorage.getItem(EVENTOS_KEY);
@@ -3210,7 +3210,7 @@ async function eventosCarregar() {
           desc: 'Cinema solidário com condução para 40 pessoas'
         });
       }
-      await eventosSalvar();
+      // Don't save back on load - prevents duplicates
       localStorage.removeItem(EVENTOS_KEY);
     }
   } catch(e) {
@@ -3221,25 +3221,8 @@ async function eventosCarregar() {
 
 async function eventosSalvar() {
   try {
-    // Rewrite all rows: clear and re-append each event via JSONP
-    // First, get current rows to know how many exist
-    const res = await jsonpGet({aba: 'Eventos'});
-    const rows = (res.dados || []).filter(r => r[0]);
-    // Update existing rows
-    for(let i = 0; i < dbEventos.length; i++) {
-      const json = JSON.stringify(dbEventos[i]);
-      if(i < rows.length) {
-        // Update existing row
-        await jsonpGet({acao:'atualizar_linha', aba:'Eventos', linha: i+1, dados: JSON.stringify([json])});
-      } else {
-        // Append new row
-        await jsonpGet({acao:'salvar', aba:'Eventos', linha: JSON.stringify([json])});
-      }
-    }
-    // Delete extra rows if we have fewer events now
-    for(let i = dbEventos.length; i < rows.length; i++) {
-      await jsonpGet({acao:'excluir_linha', aba:'Eventos', linha: dbEventos.length + 1});
-    }
+    // Use JSONP GET with salvar_agenda_completa (rewrites entire Eventos sheet)
+    await jsonpGet({acao: 'salvar_agenda_completa', aba: 'Eventos', eventos: JSON.stringify(dbEventos)});
   } catch(e) {
     try { localStorage.setItem(EVENTOS_KEY, JSON.stringify(dbEventos)); } catch(e2) {}
   }
